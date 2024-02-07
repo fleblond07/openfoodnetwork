@@ -164,8 +164,10 @@ describe 'As an admin, I can manage products', feature: :admin_style_v3 do
 
   describe "updating" do
     let!(:variant_a1) {
-      create(:variant, product: product_a, display_name: "Medium box", sku: "APL-01", price: 5.25,
-                       on_hand: 5, on_demand: false)
+      product_a.variants.first.tap{ |v|
+        v.update! display_name: "Medium box", sku: "APL-01", price: 5.25, on_hand: 5,
+                  on_demand: false
+      }
     }
     let!(:product_a) { create(:simple_product, name: "Apples", sku: "APL-00") }
     before do
