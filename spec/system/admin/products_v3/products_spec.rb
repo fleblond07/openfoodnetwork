@@ -363,30 +363,122 @@ describe 'As an admin, I can manage products', feature: :admin_style_v3 do
       end
     end
 
-    context "when only one product edited with invalid data" do
-      let!(:product_b) { create(:simple_product, name: "Bananas") }
+    describe "adding variants" do
+      it "creates a new variant" do
+        click_on "New variant"
 
-      before do
-        within row_containing_name("Apples") do
-          fill_in "Name", with: ""
-          fill_in "SKU", with: "A" * 256
-        end
-      end
+        # find empty row for Apples
+        new_variant_row = find_field("Name", placeholder: "Apples", with: "").ancestor("tr")
+        expect(new_variant_row).to be_present
 
-      it "shows errors for product" do
-        # Also update another product with valid data
-        within row_containing_name("Bananas") do
-          fill_in "Name", with: "Bananes"
+        within new_variant_row do
+          fill_in "Name", with: "Large box"
+          fill_in "SKU", with: "APL-02"
+          fill_in "Unit", with: 1000
+          fill_in "Price", with: 10.25
+          click_on "On Hand" # activate popout
         end
+        fill_in "On Hand", with: "3"
 
         expect {
           click_button "Save changes"
-          product_a.reload
-        }.to_not change { product_a.name }
 
-        expect(page).not_to have_content("0 product was saved correctly, but")
-        expect(page).to have_content("1 product could not be saved")
-        expect(page).to have_content "Please review the errors and try again"
+          expect(page).to have_content "Changes saved"
+          product_a.reload
+        }.to change { product_a.variants.count }.by(1)
+
+        new_variant = product_a.variants.last
+        expect(new_variant.display_name).to eq "Large box"
+        expect(new_variant.sku).to eq "APL-02"
+        expect(new_variant.price).to eq 10.25
+        expect(new_variant.unit_value).to eq 1000
+        expect(new_variant.on_hand).to eq 3
+
+        within row_containing_name("Large box") do
+          expect(page).to have_field "Name", with: "Large box"
+          expect(page).to have_field "SKU", with: "APL-02"
+          expect(page).to have_field "Price", with: "10.25"
+          expect(page).to have_content "1kg"
+          expect(page).to have_css "button[aria-label='On Hand']", text: "3"
+        end
+      end
+
+      context "with invalid data" do
+        before do
+          click_on "New variant"
+
+          # find empty row for Apples
+          new_variant_row = find_field("Name", placeholder: "Apples", with: "").ancestor("tr")
+          expect(new_variant_row).to be_present
+
+          within new_variant_row do
+            fill_in "Name", with: "N" * 256 # too long
+            fill_in "SKU", with: "n" * 256
+            fill_in "Unit", with: "" # can't be blank
+            fill_in "Price", with: "10.25" # valid
+          end
+        end
+
+        it "shows errors for both existing and new variant fields" do
+          # Update existing variant with invalid data too
+          within row_containing_name("Medium box") do
+            fill_in "Name", with: "M" * 256
+            fill_in "SKU", with: "m" * 256
+            fill_in "Price", with: "10.25"
+          end
+
+          expect {
+            click_button "Save changes"
+
+            expect(page).to have_content "1 product could not be saved"
+            expect(page).to have_content "Please review the errors and try again"
+            variant_a1.reload
+          }.not_to change { variant_a1.display_name }
+
+          # New variant
+          within row_containing_name("N" * 256) do
+            expect(page).to have_field "Name", with: "N" * 256
+            expect(page).to have_field "SKU", with: "n" * 256
+            expect(page).to have_content "is too long"
+            expect(page).to have_field "Unit", with: ""
+            expect(page).to have_content "can't be blank"
+            expect(page).to have_field "Price", with: "10.25" # other updated value is retained
+          end
+
+          # Existing variant
+          within row_containing_name("M" * 256) do
+            expect(page).to have_field "Name", with: "M" * 256
+            expect(page).to have_field "SKU", with: "m" * 256
+            expect(page).to have_content "is too long"
+          end
+        end
+
+        it "saves changes after fixing errors" do
+          expect {
+            click_button "Save changes"
+
+            variant_a1.reload
+          }.not_to change { variant_a1.display_name }
+
+          within row_containing_name("N" * 256) do
+            fill_in "Name", with: "Nice box"
+            fill_in "SKU", with: "APL-02"
+            fill_in "Unit", with: 200
+          end
+
+          expect {
+            click_button "Save changes"
+
+            expect(page).to have_content "Changes saved"
+            product_a.reload
+          }.to change { product_a.variants.count }.by(1)
+
+          new_variant = product_a.variants.last
+          expect(new_variant.display_name).to eq "Nice box"
+          expect(new_variant.sku).to eq "APL-02"
+          expect(new_variant.price).to eq 10.25
+          expect(new_variant.unit_value).to eq 200
+        end
       end
     end
 
@@ -506,6 +598,33 @@ describe 'As an admin, I can manage products', feature: :admin_style_v3 do
           expect(new_variant.price).to eq 10.25
           expect(new_variant.unit_value).to eq 200
         end
+      end
+    end
+
+    context "when only one product edited with invalid data" do
+      let!(:product_b) { create(:simple_product, name: "Bananas") }
+
+      before do
+        within row_containing_name("Apples") do
+          fill_in "Name", with: ""
+          fill_in "SKU", with: "A" * 256
+        end
+      end
+
+      it "shows errors for product" do
+        # Also update another product with valid data
+        within row_containing_name("Bananas") do
+          fill_in "Name", with: "Bananes"
+        end
+
+        expect {
+          click_button "Save changes"
+          product_a.reload
+        }.not_to change { product_a.name }
+
+        expect(page).not_to have_content("0 product was saved correctly, but")
+        expect(page).to have_content("1 product could not be saved")
+        expect(page).to have_content "Please review the errors and try again"
       end
     end
   end
