@@ -10,8 +10,6 @@ module Admin
       @product_categories = Spree::Taxon.order('name ASC').pluck(:name).uniq
       @tax_categories = Spree::TaxCategory.order('name ASC').pluck(:name)
       @shipping_categories = Spree::ShippingCategory.order('name ASC').pluck(:name)
-      @producers = OpenFoodNetwork::Permissions.new(spree_current_user).
-        managed_product_enterprises.is_primary_producer.by_name.to_a
     end
 
     def import

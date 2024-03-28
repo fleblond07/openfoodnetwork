@@ -47,8 +47,7 @@ describe '
             click_button "Update"
 
             expect(page).to have_link "StripeSCA"
-            last_payment_state = Orders::FindPaymentService.new(order.reload).last_payment.state
-            expect(last_payment_state).to eq 'completed'
+            expect(OrderPaymentFinder.new(order.reload).last_payment.state).to eq "completed"
           end
         end
 
@@ -67,7 +66,7 @@ describe '
 
             expect(page).to have_link "StripeSCA"
             expect(page).to have_content "FAILED"
-            expect(Orders::FindPaymentService.new(order.reload).last_payment.state).to eq "failed"
+            expect(OrderPaymentFinder.new(order.reload).last_payment.state).to eq "failed"
           end
         end
       end
@@ -88,7 +87,7 @@ describe '
 
           expect(page).to have_link "StripeSCA"
           expect(page).to have_content "AUTHORIZATION REQUIRED"
-          expect(Orders::FindPaymentService.new(order.reload).last_payment.state)
+          expect(OrderPaymentFinder.new(order.reload).last_payment.state)
             .to eq "requires_authorization"
         end
       end
@@ -113,7 +112,7 @@ describe '
         click_button "Update"
 
         expect(page).to have_link "StripeSCA"
-        expect(Orders::FindPaymentService.new(order.reload).last_payment.state).to eq "completed"
+        expect(OrderPaymentFinder.new(order.reload).last_payment.state).to eq "completed"
       end
     end
   end

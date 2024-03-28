@@ -64,7 +64,7 @@ class ProductsRenderer
   end
 
   def distributed_products
-    OrderCycles::DistributedProductsService.new(distributor, order_cycle, customer)
+    OrderCycleDistributedProducts.new(distributor, order_cycle, customer)
   end
 
   def products_order
@@ -89,12 +89,10 @@ class ProductsRenderer
     @variants_for_shop ||= begin
       scoper = OpenFoodNetwork::ScopeVariantToHub.new(distributor)
 
-      # rubocop:disable Rails/FindEach # .each returns an array, .find_each returns nil
       distributed_products.variants_relation.
         includes(:default_price, :stock_locations, :product).
         where(product_id: products).
         each { |v| scoper.scope(v) } # Scope results with variant_overrides
-      # rubocop:enable Rails/FindEach
     end
   end
 

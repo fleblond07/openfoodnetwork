@@ -846,9 +846,6 @@ cy:
         product_categories: Categorïau Cynnyrch
         tax_categories: Categorïau Treth
         shipping_categories: Categorïau Cludo
-      dfc_import_form:
-        enterprise: "Menter"
-        import: "Mewnforio"
       import:
         review: Adolygu
         import: Mewnforio

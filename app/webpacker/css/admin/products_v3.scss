@@ -94,10 +94,8 @@
       }
 
       // "Naked" inputs. Row hover helps reveal them.
-      .naked_inputs {
-        input:not([type="checkbox"]), .ts-control {
-          background-color: $color-tbl-cell-bg;
-        }
+      input:not([type="checkbox"]), .ts-control {
+        background-color: $color-tbl-cell-bg;
       }
 
       // Reveal naked button text when any part of row is hovered
@@ -174,6 +172,10 @@
       display: flex;
       flex-wrap: wrap;
       gap: 3px;
+    }
+
+    label {
+      margin: 0;
     }
 
     .ts-control {
@@ -301,13 +303,15 @@
     }
   }
 
-  // Popout widget (todo: move to separate fiel)
-  .popout {
-    position: relative;
+  // Stock popout widget
+  .on-hand {
+    &__wrapper {
+      position: relative;
+    }
 
     &__button {
       // override button styles
-      &.popout__button {
+      &.on-hand__button {
         background: $color-tbl-cell-bg;
         color: $color-txt-text;
         white-space: nowrap;
@@ -316,8 +320,6 @@
         padding-left: $border-radius; // Super compact
         padding-right: 1rem; // Retain space for arrow
         height: auto;
-        min-width: 2em;
-        min-height: 1lh; // Line height of parent
 
         &:hover,
         &:active,
@@ -350,14 +352,13 @@
           content: "\f078";
 
           position: absolute;
-          top: 0; // Required for empty buttons
           right: $border-radius;
           font-size: 0.67em;
         }
       }
     }
 
-    &__container {
+    &__popout {
       position: absolute;
       top: -0.6em;
       left: -0.2em;
@@ -378,12 +379,8 @@
         }
       }
 
-      input {
-        height: auto;
-
-        &[disabled] {
-          color: transparent; // hide value completely
-        }
+      input[disabled] {
+        color: transparent; // hide value completely
       }
     }
   }

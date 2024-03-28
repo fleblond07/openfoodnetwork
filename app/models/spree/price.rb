@@ -37,7 +37,7 @@ module Spree
     def check_price
       return unless currency.nil?
 
-      self.currency = CurrentConfig.get(:currency)
+      self.currency = Spree::Config[:currency]
     end
 
     # strips all non-price-like characters from the price, taking into account locale settings

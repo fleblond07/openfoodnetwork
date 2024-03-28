@@ -52,8 +52,7 @@ module Spree
                        find_user(options[:current_user_id])
                      end
       renderer_data = if OpenFoodNetwork::FeatureToggle.enabled?(:invoices, current_user)
-                        ::Orders::GenerateInvoiceService
-                          .new(@order).generate_or_update_latest_invoice
+                        OrderInvoiceGenerator.new(@order).generate_or_update_latest_invoice
                         @order.invoices.first.presenter
                       else
                         @order

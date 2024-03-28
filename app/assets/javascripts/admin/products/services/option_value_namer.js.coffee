@@ -1,5 +1,4 @@
 angular.module("admin.products").factory "OptionValueNamer", (VariantUnitManager) ->
-  # Javascript clone of VariantUnits::OptionValueNamer, for bulk product editing.
   class OptionValueNamer
     constructor: (@variant) ->
 

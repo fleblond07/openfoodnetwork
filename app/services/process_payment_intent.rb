@@ -58,7 +58,7 @@ class ProcessPaymentIntent
   def process_payment
     return unless order.process_payments!
 
-    Orders::WorkflowService.new(order).complete
+    OrderWorkflow.new(order).complete
   end
 
   def ready_for_capture?

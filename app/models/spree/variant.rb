@@ -42,7 +42,7 @@ module Spree
     accepts_nested_attributes_for :images
 
     has_one :default_price,
-            -> { with_deleted.where(currency: CurrentConfig.get(:currency)) },
+            -> { with_deleted.where(currency: Spree::Config[:currency]) },
             class_name: 'Spree::Price',
             dependent: :destroy
     has_many :prices,
@@ -56,7 +56,6 @@ module Spree
     has_many :exchanges, through: :exchange_variants
     has_many :variant_overrides, dependent: :destroy
     has_many :inventory_items, dependent: :destroy
-    has_many :semantic_links, dependent: :delete_all
 
     localize_number :price, :weight
 
@@ -162,7 +161,7 @@ module Spree
       where("spree_variants.id in (?)", joins(:prices).
                                           where(deleted_at: nil).
                                           where('spree_prices.currency' =>
-                                            currency || CurrentConfig.get(:currency)).
+                                            currency || Spree::Config[:currency]).
                                           where.not(spree_prices: { amount: nil }).
                                           select("spree_variants.id"))
     end
@@ -211,7 +210,7 @@ module Spree
     def check_currency
       return unless currency.nil?
 
-      self.currency = CurrentConfig.get(:currency)
+      self.currency = Spree::Config[:currency]
     end
 
     def save_default_price
@@ -223,7 +222,7 @@ module Spree
     end
 
     def set_cost_currency
-      self.cost_currency = CurrentConfig.get(:currency) if cost_currency.blank?
+      self.cost_currency = Spree::Config[:currency] if cost_currency.blank?
     end
 
     def create_stock_items

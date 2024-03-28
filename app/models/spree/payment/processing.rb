@@ -48,7 +48,7 @@ module Spree
       end
 
       def capture_and_complete_order!
-        Orders::WorkflowService.new(order).complete!
+        OrderWorkflow.new(order).complete!
         capture!
       end
 

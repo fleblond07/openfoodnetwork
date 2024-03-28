@@ -51,7 +51,7 @@ module SampleData
 
     def create_complete_order
       order = create_cart_order
-      Orders::WorkflowService.new(order).complete
+      OrderWorkflow.new(order).complete
       order
     end
 

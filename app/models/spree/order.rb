@@ -186,7 +186,7 @@ module Spree
     end
 
     def currency
-      self[:currency] || CurrentConfig.get(:currency)
+      self[:currency] || Spree::Config[:currency]
     end
 
     def display_item_total
@@ -652,7 +652,7 @@ module Spree
     end
 
     def fee_handler
-      @fee_handler ||= Orders::HandleFeesService.new(self)
+      @fee_handler ||= OrderFeesHandler.new(self)
     end
 
     def clear_legacy_taxes!
@@ -689,7 +689,7 @@ module Spree
     end
 
     def set_currency
-      self.currency = CurrentConfig.get(:currency) if self[:currency].nil?
+      self.currency = Spree::Config[:currency] if self[:currency].nil?
     end
 
     def using_guest_checkout?
@@ -701,7 +701,7 @@ module Spree
     end
 
     def adjustments_fetcher
-      @adjustments_fetcher ||= Orders::FetchAdjustmentsService.new(self)
+      @adjustments_fetcher ||= OrderAdjustmentsFetcher.new(self)
     end
 
     def skip_payment_for_subscription?

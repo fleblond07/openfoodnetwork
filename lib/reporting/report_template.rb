@@ -54,10 +54,6 @@ module Reporting
       raise NotImplementedError
     end
 
-    def table_columns
-      columns
-    end
-
     # Exple { total_price: :currency }
     def columns_format
       {}

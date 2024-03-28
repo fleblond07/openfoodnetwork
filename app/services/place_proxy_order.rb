@@ -87,7 +87,7 @@ class PlaceProxyOrder
   end
 
   def move_to_completion
-    Orders::WorkflowService.new(order).complete!
+    OrderWorkflow.new(order).complete!
   end
 
   def send_placement_email

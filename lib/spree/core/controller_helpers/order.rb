@@ -79,7 +79,7 @@ module Spree
         end
 
         def current_currency
-          CurrentConfig.get(:currency)
+          Spree::Config[:currency]
         end
 
         def ip_address

@@ -175,7 +175,7 @@ class OrderCycle < ApplicationRecord
   end
 
   def clone!
-    OrderCycles::CloneService.new(self).create
+    OrderCycleClone.new(self).create
   end
 
   def variants

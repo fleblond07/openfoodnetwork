@@ -59,7 +59,7 @@ module CheckoutHelper
   end
 
   def display_checkout_taxes_hash(order)
-    totals = Orders::FetchTaxAdjustmentsService.new(order).totals
+    totals = OrderTaxAdjustmentsFetcher.new(order).totals
 
     totals.map do |tax_rate, tax_amount|
       {

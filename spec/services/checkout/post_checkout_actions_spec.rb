@@ -51,12 +51,10 @@ describe Checkout::PostCheckoutActions do
   end
 
   describe "#failure" do
-    let(:restart_checkout_service) { instance_double(Orders::CheckoutRestartService) }
+    let(:restart_checkout_service) { instance_double(OrderCheckoutRestart) }
 
     it "restarts the checkout process" do
-      expect(Orders::CheckoutRestartService).to receive(:new)
-        .with(order)
-        .and_return(restart_checkout_service)
+      expect(OrderCheckoutRestart).to receive(:new).with(order).and_return(restart_checkout_service)
       expect(restart_checkout_service).to receive(:call)
 
       postCheckoutActions.failure

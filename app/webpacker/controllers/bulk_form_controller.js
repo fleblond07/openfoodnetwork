@@ -55,7 +55,6 @@ export default class BulkFormController extends Controller {
 
   toggleFormChanged() {
     // For each record, check if any fields are changed
-    // TODO: optimise basd on current state. if field is changed, but form already changed, no need to update (and vice versa)
     const changedRecordCount = Object.values(this.recordElements).filter((elements) =>
       elements.some(this.#isChanged)
     ).length;
@@ -74,7 +73,7 @@ export default class BulkFormController extends Controller {
 
     // Prevent accidental data loss
     if (formChanged) {
-      window.addEventListener("beforeunload", this.preventLeavingBulkForm); // TOFIX: what if it has laredy been added? we can optimise above to avoid this
+      window.addEventListener("beforeunload", this.preventLeavingBulkForm);
     } else {
       window.removeEventListener("beforeunload", this.preventLeavingBulkForm);
     }

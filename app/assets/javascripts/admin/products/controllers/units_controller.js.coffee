@@ -1,4 +1,3 @@
-# Controller for "New Products" form (spree/admin/products/new)
 angular.module("admin.products")
   .controller "unitsCtrl", ($scope, VariantUnitManager, OptionValueNamer, UnitPrices, PriceParser) ->
     $scope.product = { master: {} }
@@ -13,15 +12,13 @@ angular.module("admin.products")
 
     $scope.variant_unit_options = VariantUnitManager.variantUnitOptions()
 
-    # Extract variant_unit and variant_unit_scale from dropdown variant_unit_with_scale,
-    # and update hidden product fields
     $scope.processVariantUnitWithScale = ->
       if $scope.product.variant_unit_with_scale
-        match = $scope.product.variant_unit_with_scale.match(/^([^_]+)_([\d\.]+)$/) # matches string like "weight_1000"
+        match = $scope.product.variant_unit_with_scale.match(/^([^_]+)_([\d\.]+)$/)
         if match
           $scope.product.variant_unit = match[1]
           $scope.product.variant_unit_scale = parseFloat(match[2])
-        else # "items"
+        else
           $scope.product.variant_unit = $scope.product.variant_unit_with_scale
           $scope.product.variant_unit_scale = null
       else if $scope.product.variant_unit
@@ -35,8 +32,6 @@ angular.module("admin.products")
       else
         $scope.product.variant_unit = $scope.product.variant_unit_scale = null
 
-    # Extract unit_value and unit_description from text field unit_value_with_description,
-    # and update hidden variant fields
     $scope.processUnitValueWithDescription = ->
       if $scope.product.master.hasOwnProperty("unit_value_with_description")
         match = $scope.product.master.unit_value_with_description.match(/^([\d\.,]+(?= *|$)|)( *)(.*)$/)
@@ -50,7 +45,6 @@ angular.module("admin.products")
         value = window.bigDecimal.divide(value, $scope.product.variant_unit_scale, 2) if $scope.product.master.unit_value && $scope.product.variant_unit_scale
         $scope.product.master.unit_value_with_description = value + " " + $scope.product.master.unit_description
 
-    # Calculate unit price based on product price and variant_unit_scale
     $scope.processUnitPrice = ->
       price = $scope.product.price
       scale = $scope.product.variant_unit_scale

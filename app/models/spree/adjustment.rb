@@ -120,7 +120,7 @@ module Spree
     end
 
     def currency
-      adjustable ? adjustable.currency : CurrentConfig.get(:currency)
+      adjustable ? adjustable.currency : Spree::Config[:currency]
     end
 
     def display_amount

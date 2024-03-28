@@ -64,7 +64,7 @@ module OrderCompletion
       return redirect_to order_failed_route(step: 'payment')
     end
 
-    if Orders::WorkflowService.new(@order).next && @order.complete?
+    if OrderWorkflow.new(@order).next && @order.complete?
       processing_succeeded
       redirect_to order_completion_route
     else

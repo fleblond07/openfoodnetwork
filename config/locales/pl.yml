@@ -561,9 +561,6 @@ pl:
         product_categories: Kategorie produktów
         tax_categories: Kategorie podatków
         shipping_categories: Kategorie dostaw
-      dfc_import_form:
-        enterprise: "Podmiot"
-        import: "Import"
       import:
         review: Przejrzyj
         import: Import

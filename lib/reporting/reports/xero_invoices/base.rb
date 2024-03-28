@@ -189,7 +189,7 @@ module Reporting
            '',
            '',
            '',
-           CurrentConfig.get(:currency),
+           Spree::Config.currency,
            '',
            order.paid? ? I18n.t(:y) : I18n.t(:n)]
         end

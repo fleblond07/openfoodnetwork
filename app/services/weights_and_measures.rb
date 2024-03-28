@@ -40,7 +40,7 @@ class WeightsAndMeasures
   end
 
   def self.available_units
-    CurrentConfig.get(:available_units).split(",")
+    Spree::Config.available_units.split(",")
   end
 
   def self.available_units_sorted

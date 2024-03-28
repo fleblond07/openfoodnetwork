@@ -16,9 +16,9 @@ input[type="number"],
 textarea {
   @include border-radius($border-radius);
   padding: ($vpadding-txt - 1px) ($hpadding-txt - 1px); // Minus 1px for border
-  border: 1px solid $color-txt-brd;
+  border: 1px solid $lighter-grey;
   color: $color-txt-text;
-  background-color: $color-txt-bg;
+  background-color: $lighter-grey;
   font-size: 14px;
   line-height: 22px;
 
@@ -69,11 +69,18 @@ textarea {
 }
 
 label {
-  display: inline-block;
   font-weight: 600;
   font-size: 85%;
-  margin-bottom: 5px;
+  margin-bottom: 3px;
   color: $near-black;
+
+  &.inline {
+    display: inline-block !important;
+  }
+
+  &.block {
+    display: block !important;
+  }
 }
 
 .label-block label {
@@ -98,7 +105,6 @@ span.info {
       display: block;
       font-size: inherit;
       font-weight: normal;
-      margin-bottom: 0;
     }
   }
 

@@ -46,7 +46,6 @@ class CapQuantity
   end
 
   def available_variants_for
-    OrderCycles::DistributedVariantsService.new(order.order_cycle,
-                                                order.distributor).available_variants
+    OrderCycleDistributedVariants.new(order.order_cycle, order.distributor).available_variants
   end
 end

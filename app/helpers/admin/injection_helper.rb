@@ -162,7 +162,7 @@ module Admin
     def admin_inject_available_units
       admin_inject_json "admin.products",
                         "availableUnits",
-                        CurrentConfig.get(:available_units)
+                        Spree::Config.available_units
     end
 
     def admin_inject_json(ng_module, name, data)

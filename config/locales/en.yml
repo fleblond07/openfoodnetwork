@@ -561,8 +561,6 @@ en:
         name: Name
         unit_scale: Unit scale
         unit: Unit
-        unit_value: Unit value
-        display_as: Display unit as
         price: Price
         producer: Producer
         category: Category
@@ -759,10 +757,6 @@ en:
         user_guide: User Guide
         map: Map
 
-    dfc_product_imports:
-      index:
-        title: "Importing a DFC product catalog"
-        imported_products: "Imported products:"
     enterprise_fees:
       index:
         title: "Enterprise Fees"
@@ -935,11 +929,6 @@ en:
         product_categories: Product Categories
         tax_categories: Tax Categories
         shipping_categories: Shipping Categories
-      dfc_import_form:
-        title: "Import from DFC catalog"
-        enterprise: "Enterprise"
-        catalog_url: "DFC catalog URL"
-        import: "Import"
       import:
         review: Review
         import: Import

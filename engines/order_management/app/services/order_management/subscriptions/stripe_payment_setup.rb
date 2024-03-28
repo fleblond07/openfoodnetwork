@@ -5,7 +5,7 @@ module OrderManagement
     class StripePaymentSetup
       def initialize(order)
         @order = order
-        @payment = Orders::FindPaymentService.new(@order).last_pending_payment
+        @payment = OrderPaymentFinder.new(@order).last_pending_payment
       end
 
       def call!

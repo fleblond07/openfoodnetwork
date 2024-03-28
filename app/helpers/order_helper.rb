@@ -2,7 +2,7 @@
 
 module OrderHelper
   def last_payment_method(order)
-    Orders::FindPaymentService.new(order).last_payment&.payment_method
+    OrderPaymentFinder.new(order).last_payment&.payment_method
   end
 
   def outstanding_balance_label(order)
@@ -16,6 +16,6 @@ module OrderHelper
   end
 
   def order_comparator(order)
-    Orders::CompareInvoiceService.new(order)
+    OrderInvoiceComparator.new(order)
   end
 end

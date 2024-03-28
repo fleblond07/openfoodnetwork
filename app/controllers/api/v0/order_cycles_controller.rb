@@ -101,8 +101,7 @@ module Api
       end
 
       def distributed_products
-        OrderCycles::DistributedProductsService.new(distributor, order_cycle,
-                                                    customer).products_relation
+        OrderCycleDistributedProducts.new(distributor, order_cycle, customer).products_relation
       end
     end
   end
