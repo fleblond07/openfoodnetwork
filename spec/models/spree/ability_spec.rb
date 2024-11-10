@@ -4,7 +4,7 @@ require 'spec_helper'
 require 'cancan/matchers'
 require 'support/ability_helpers'
 
-describe Spree::Ability do
+RSpec.describe Spree::Ability do
   let(:user) { create(:user) }
   let(:subject) { Spree::Ability.new(user) }
   let(:token) { nil }
@@ -12,8 +12,6 @@ describe Spree::Ability do
   before do
     user.spree_roles.clear
   end
-
-  TOKEN = 'token123'
 
   after(:each) {
     user.spree_roles = []
@@ -99,22 +97,15 @@ describe Spree::Ability do
       end
     end
 
-    context 'for Product' do
-      let(:resource) { Spree::Product.new }
-      context 'requested by any user' do
-        it_should_behave_like 'read only'
-      end
-    end
-
     context 'for ProductProperty' do
-      let(:resource) { Spree::Product.new }
+      let(:resource) { Spree::ProductProperty.new }
       context 'requested by any user' do
         it_should_behave_like 'read only'
       end
     end
 
     context 'for Property' do
-      let(:resource) { Spree::Product.new }
+      let(:resource) { Spree::Property.new }
       context 'requested by any user' do
         it_should_behave_like 'read only'
       end
@@ -134,13 +125,6 @@ describe Spree::Ability do
       end
     end
 
-    context 'for StockLocation' do
-      let(:resource) { Spree::StockLocation.new }
-      context 'requested by any user' do
-        it_should_behave_like 'read only'
-      end
-    end
-
     context 'for StockMovement' do
       let(:resource) { Spree::StockMovement.new }
       context 'requested by any user' do
@@ -150,13 +134,6 @@ describe Spree::Ability do
 
     context 'for Taxons' do
       let(:resource) { Spree::Taxon.new }
-      context 'requested by any user' do
-        it_should_behave_like 'read only'
-      end
-    end
-
-    context 'for Taxonomy' do
-      let(:resource) { Spree::Taxonomy.new }
       context 'requested by any user' do
         it_should_behave_like 'read only'
       end
@@ -306,9 +283,9 @@ describe Spree::Ability do
     let(:d1) { create(:distributor_enterprise) }
     let(:d2) { create(:distributor_enterprise) }
 
-    let(:p1) { create(:product, supplier: s1) }
-    let(:p2) { create(:product, supplier: s2) }
-    let(:p_related) { create(:product, supplier: s_related) }
+    let(:p1) { create(:product, supplier_id: s1.id) }
+    let(:p2) { create(:product, supplier_id: s2.id) }
+    let(:p_related) { create(:product, supplier_id: s_related.id) }
 
     let(:er1) { create(:enterprise_relationship, parent: s1, child: d1) }
     let(:er2) { create(:enterprise_relationship, parent: d1, child: s1) }
@@ -368,6 +345,20 @@ describe Spree::Ability do
         is_expected.to have_ability(:create, for: Spree::Product)
       end
 
+      it "should be able to read/write their enterprises' products" do
+        is_expected.to have_ability(
+          [:admin, :read, :index, :update, :seo, :group_buy_options, :bulk_update, :clone, :delete,
+           :destroy], for: p1
+        )
+      end
+
+      it "should not be able to read/write other enterprises' products" do
+        is_expected.not_to have_ability(
+          [:admin, :read, :index, :update, :seo, :group_buy_options, :bulk_update, :clone, :delete,
+           :destroy], for: p2
+        )
+      end
+
       it "should be able to read/write their enterprises' product variants" do
         is_expected.to have_ability([:create], for: Spree::Variant)
         is_expected.to have_ability(
@@ -424,7 +415,7 @@ describe Spree::Ability do
 
       it "should be able to read some reports" do
         is_expected.to have_ability(
-          [:admin, :index, :show], for: Admin::ReportsController
+          [:admin, :index, :show, :create], for: Admin::ReportsController
         )
         is_expected.to have_ability(
           [:customers, :bulk_coop, :orders_and_fulfillment, :products_and_inventory,
@@ -660,7 +651,7 @@ describe Spree::Ability do
 
       it "should be able to read some reports" do
         is_expected.to have_ability(
-          [:admin, :index, :show], for: Admin::ReportsController
+          [:admin, :index, :show, :create], for: Admin::ReportsController
         )
         is_expected.to have_ability(
           [:customers, :sales_tax, :group_buys, :bulk_coop, :payments,
@@ -798,8 +789,7 @@ describe Spree::Ability do
   describe "permissions for variant overrides" do
     let!(:distributor) { create(:distributor_enterprise) }
     let!(:producer) { create(:supplier_enterprise) }
-    let!(:product) { create(:product, supplier: producer) }
-    let!(:variant) { create(:variant, product:) }
+    let!(:variant) { create(:variant, supplier: producer) }
     let!(:variant_override) { create(:variant_override, hub: distributor, variant:) }
 
     subject { user }

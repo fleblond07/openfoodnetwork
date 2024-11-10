@@ -2,7 +2,7 @@
 
 require "system_helper"
 
-describe "Shops caching", caching: true do
+RSpec.describe "Shops caching", caching: true do
   include WebHelper
   include UIComponentHelper
 
@@ -14,12 +14,13 @@ describe "Shops caching", caching: true do
   }
 
   describe "caching enterprises AMS data" do
-    it "caches data for all enterprises, with the provided options" do
+    before do
       # Trigger lengthy tasks like JS compilation before testing caching:
       visit shops_path
       Rails.cache.clear
+    end
 
-      # Now run the test, hopefully in a timely manner:
+    it "caches data for all enterprises, with the provided options" do
       visit shops_path
 
       key, options = CacheService::FragmentCaching.ams_shops
@@ -53,8 +54,9 @@ describe "Shops caching", caching: true do
     let!(:property) { create(:property, presentation: "Cached Property") }
     let!(:property2) { create(:property, presentation: "New Property") }
     let!(:product) {
-      create(:product, primary_taxon: taxon, properties: [property])
+      create(:product, primary_taxon_id: taxon.id, properties: [property])
     }
+    let(:variant) { product.variants.first }
     let(:exchange) { order_cycle.exchanges.to_enterprises(distributor).outgoing.first }
 
     let(:test_domain) {
@@ -72,6 +74,10 @@ describe "Shops caching", caching: true do
 
     before do
       exchange.variants << product.variants.first
+
+      # Trigger lengthy tasks like JS compilation before testing caching:
+      visit enterprise_shop_path(distributor)
+      Rails.cache.clear
     end
 
     it "caches rendered response for taxons and properties, with the provided options" do
@@ -92,7 +98,7 @@ describe "Shops caching", caching: true do
         expect(page).to have_content taxon.name
         expect(page).to have_content property.presentation
 
-        product.update_attribute(:primary_taxon, taxon2)
+        variant.update_attribute(:primary_taxon, taxon2)
         product.update_attribute(:properties, [property2])
 
         visit enterprise_shop_path(distributor)

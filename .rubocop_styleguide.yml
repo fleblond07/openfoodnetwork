@@ -3,7 +3,6 @@
 # These are the rules we agreed upon and we work towards.
 AllCops:
   NewCops: enable
-  SuggestExtensions: false
   Exclude:
     - bin/**/*
     - db/**/*
@@ -116,6 +115,11 @@ Rails/OutputSafety:
   Exclude:
     - spec/**/*
 
+Rails/RedundantActiveRecordAllMethod:
+  AllowedReceivers:
+    - ActionMailer::Preview
+    - ActiveSupport::TimeZone
+
 Rails/SkipsModelValidations:
   AllowedMethods:
     - touch
@@ -124,6 +128,16 @@ Rails/SkipsModelValidations:
     - update_attribute
     - update_column
     - update_columns
+
+Rails/UnknownEnv:
+  Environments:
+    - development
+    - production
+    - staging
+    - test
+
+Rails/WhereExists:
+  EnforcedStyle: where # Cf. conversion https://github.com/openfoodfoundation/openfoodnetwork/pull/12363
 
 Style/Documentation:
   Enabled: false

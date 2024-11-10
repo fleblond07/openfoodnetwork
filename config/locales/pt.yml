@@ -29,10 +29,12 @@ pt:
       spree/product:
         name: "Nome do Produto"
         price: "Preço"
-        primary_taxon: "Categoria de Produto"
-        supplier: "Fornecedor"
+        primary_taxon_id: "Categoria de Produto"
         shipping_category_id: "Categoria de Envio"
-        variant_unit: "Unidade da Variante"
+      spree/variant:
+        primary_taxon: "Categoria de Produto"
+        shipping_category_id: "Categoria de Envio"
+        supplier: "Fornecedor"
         variant_unit_name: "Nome da Unidade da Variante"
       spree/credit_card:
         base: "Cartão de Crédito"
@@ -65,7 +67,6 @@ pt:
         variant_override:
           count_on_hand:
             using_producer_stock_settings_but_count_on_hand_set: "deve ser vazio dado estar a usar as configurações do produtor"
-            on_demand_but_count_on_hand_set: "deve ser vazio dado estar sob encomenda"
             limited_stock_but_no_count_on_hand: "deve ser definido dado não estar sob encomenda"
       messages:
         blank: "não pode ser vazio"
@@ -163,6 +164,9 @@ pt:
     integer_array_validator:
       not_array_error: "deve ser uma lista"
       invalid_element_error: "deve conter apenas números válidos"
+  backorder_mailer:
+    backorder_failed:
+      product: "Produto"
   enterprise_mailer:
     confirmation_instructions:
       subject: "Por favor confirme o endereço de email de %{enterprise}"
@@ -314,7 +318,6 @@ pt:
   password_confirmation: Confirmação de Palavra-passe
   reset_password_token: Redefinir palavra-passe
   expired: expirou, por favor peça uma nova
-  back_to_payments_list: "Voltar à lista de pagamentos"
   maestro_or_solo_cards: "Cartões Maestro/Solo"
   backordered: "Encomendado"
   on_hand: "Disponível"
@@ -348,6 +351,7 @@ pt:
           title: Produtores
         colums: Colunas
       columns:
+        image: Imagem
         name: Nome
         unit: Unidade
         price: Preço
@@ -375,8 +379,11 @@ pt:
         edit: Editar
         clone: Clonar
         delete: Apagar
+        remove: Remover
       image:
         edit: Editar
+      product_preview:
+        shop_tab: Loja
     begins_at: Começa às
     begins_on: Começa em
     customer: Consumidor/a
@@ -426,7 +433,6 @@ pt:
     show_n_more: Mostrar mais %{num}
     choose: "Escolher..."
     please_select: Por favor seleccione...
-    column_save_as_default: Guardar como Preferência
     columns: Colunas
     actions: Acções
     viewing: "Visualizando: %{current_view_name}"
@@ -562,7 +568,6 @@ pt:
       variants:
         infinity: "Infinito"
         to_order_tip: "Os itens feitos por encomenda não têm um nível de stock definido, como pão fresco, por exemplo."
-      back_to_products_list: "Voltar à lista de produtos"
       editing_product: "Editando um Produto"
       tabs:
         product_details: "Detalhes do Produto"
@@ -580,10 +585,13 @@ pt:
         categories:
           label: Categorias
         search: Procurar
-      table:
+      product_variant_row:
         new_variant: Nova variante
-      edit_image:
-        close: Voltar
+      variant_row:
+        none_tax_category: Nenhum
+        category_field_name: "Categoria"
+        tax_category_field_name: "Categoria de Imposto"
+        producer_field_name: "Produtor/a"
     product_import:
       title: Importação de Produtos
       file_not_found: O ficheiro não foi encontrado ou não pôde ser aberto
@@ -894,8 +902,6 @@ pt:
           customer_names_false: "Desactivado"
           customer_names_true: "Activo"
           shopfront_message: "Mensagem da Loja"
-          shopfront_message_link_tooltip: "Inserir / editar link"
-          shopfront_message_link_prompt: "Por favor insira um URL"
           shopfront_closed_message: "Mensagem de Loja Fechada"
           shopfront_closed_message_placeholder: >
               Uma mensagem que forneça uma explicação mais detalhada sobre o motivo
@@ -962,7 +968,12 @@ pt:
           customers: Consumidor
           active: Activo?
         connected_apps:
-          loading: "A carregar"
+          affiliate_sales_data:
+            loading: "A carregar"
+          discover_regen:
+            loading: "A carregar"
+          vine:
+            enable: "Conectar"
       actions:
         edit_profile: Definições
         properties: Propriedades
@@ -1015,10 +1026,8 @@ pt:
         contact_name: Nome do contacto
       edit:
         editing: 'Configurações'
-        back_link: Voltar à lista de organizações
       new:
         title: Nova Organização
-        back_link: Voltar à lista de organizações
       welcome:
         welcome_title: Bem-vindo à Open Food Network!
         welcome_text: Você criou com sucesso uma
@@ -1053,6 +1062,8 @@ pt:
         back_to_list: "Voltar à Lista"
         save_and_back_to_list: "Guardar e Voltar à Lista"
         choose_products_from: "Escolha produtos de:"
+      date_time_warning_modal_content:
+        cancel: 'Cancelar'
       incoming:
         incoming: "Entrada"
         supplier: "Fornecedor"
@@ -1570,7 +1581,6 @@ pt:
   label_account: "Conta"
   label_more: "Mostrar mais"
   label_less: "Mostrar menos"
-  label_notices: "Avisos"
   cart_items: "itens"
   cart_headline: "O seu carrinho de compras"
   total: "Total"
@@ -2290,7 +2300,6 @@ pt:
   spree_admin_single_enterprise_hint: "Dica: Para permitir que as pessoas te encontrem, ative sua visibilidade em"
   spree_admin_eg_pickup_from_school: "ex: \"Levantar na Escola Primária\""
   spree_admin_eg_collect_your_order: "ex: \"Por favor levante a sua encomenda na Rua Imaginária, nº 123, 3070\""
-  spree_classification_primary_taxon_error: "A Taxon %{taxon}é a taxon primária de %{product} e não pode ser apagada."
   spree_order_availability_error: "O distribuidor ou ciclo de encomendas não pode fornecer os produtos do seu carrinho"
   spree_order_populator_error: "Esse distribuidor ou ciclo de encomendas não pode fornecer todos os produtos do seu carrinho. Por favor escolha outro."
   spree_order_populator_availability_error: "Esse produto não está disponível no distribuidor ou ciclo de encomendas selecionado."
@@ -2566,7 +2575,7 @@ pt:
   order_cycles_bulk_update_notice: 'Os ciclos de encomendas foram actualizados.'
   order_cycles_no_permission_to_coordinate_error: "Nenhuma das suas organizações tem permissão para coordenar um ciclo de encomendas."
   order_cycles_no_permission_to_create_error: "Não tem permissão para criar um ciclo de encomendas coordenado por essa organização."
-  back_to_orders_list: "Voltar à lista de encomendas"
+  back_to_orders_list: "Voltar à Lista de Encomendas"
   no_orders_found: "Nenhuma encomenda encontrada"
   order_information: "Informação da Encomenda"
   new_payment: "Novo Pagamento"
@@ -2852,6 +2861,8 @@ pt:
       confirmation: |
           Isto colocará a zero o stock de todos os produtos desta organização que não estejam presentes no ficheiro carregado.
     order_cycles:
+      unsaved_changes: "Tem alterações por guardar"
+      bulk_save_error: "Oh não! Não conseguimos guardar as suas alterações."
       create_failure: "Falhou a criação do ciclo de encomendas"
       update_success: 'O seu ciclo de encomendas foi actualizado.'
       update_failure: "Falhou a atualização do ciclo de encomendas"
@@ -2874,6 +2885,9 @@ pt:
       signup_or_login: "Comece por fazer login ou registar-se"
       have_an_account: "Já possui uma conta?"
       action_login: "Entrar agora."
+    trix:
+      code: "Código"
+      urlPlaceholder: "Por favor insira um URL"
   inflections:
     packet:
       one: "pacote"
@@ -2996,7 +3010,7 @@ pt:
   account: "Conta"
   logout: "Terminar sessão"
   date_range: "Intervalo de Datas"
-  status: "estado"
+  status: "Estado"
   new: "Novo"
   start: "Começar"
   end: "Terminar"
@@ -3010,6 +3024,7 @@ pt:
     credit: "Crédito"
     more: "Mais"
     no_pending_payments: "Sem pagamentos pendentes"
+    remove: "Remover"
     none: "Nenhum"
     updating: "Atualizando"
     your_order_is_empty_add_product: "A sua encomenda está vazia, por favor procure e adicione um produto em cima"
@@ -3090,7 +3105,6 @@ pt:
     tax_rate_amount_explanation: "Taxas de Imposto são uma quantidade decimal que suportam o cálculo (por exemplo, se a taxa de imposto for 5%, insira 0.05)"
     included_in_price: "Incluído no Preço"
     show_rate_in_label: "Mostrar taxa na etiqueta"
-    back_to_tax_rates_list: "Voltar à lista de Taxas de Imposto"
     tax_settings: "Configurações de Impostos"
     zones: "Zonas"
     new_zone: "Nova Zona"
@@ -3103,14 +3117,11 @@ pt:
     iso_name: "Nome ISO"
     states_required: "Regiões obrigatórias"
     editing_country: "Editar País"
-    back_to_countries_list: "Voltar à Lista de Países"
     states: "Regiões"
     abbreviation: "Abreviatura"
     new_state: "Nova Região"
     payment_methods: "Métodos de pagamento"
-    taxonomies: "Taxonomias"
-    new_taxonomy: "Nova Taxonomia"
-    back_to_taxonomies_list: "Voltar à Lista de Taxonomias"
+    taxons: "Categorias de Produtos"
     shipping_methods: "Métodos de Envio"
     shipping_method: "Método de Envio"
     shipment: "Envio"
@@ -3164,6 +3175,9 @@ pt:
           header:
             store: Loja
     admin:
+      images:
+        edit:
+          close: Voltar
       subscriptions:
         number: "Número"
       tab:
@@ -3172,6 +3186,7 @@ pt:
         bulk_order_management: "Gestão de Encomendas em Massa"
         subscriptions: "Subscrições"
         products: "Produtos"
+        products_v3: "Produtos"
         option_types: "Tipos de Opções"
         properties: "Propriedades"
         variant_overrides: "Inventário"
@@ -3184,6 +3199,10 @@ pt:
         enterprise_relationships: "Permissões"
         customers: "Consumidores/as"
         groups: "Grupos"
+        overview: "Visão geral"
+        product_import: "Importar"
+        enterprise_roles: "Papeis"
+        payment_methods: "Métodos de pagamento"
       product_properties:
         index:
           inherits_properties_checkbox_hint: "Herdar propriedades de %{supplier}? (excepto se já alterado em cima)"
@@ -3440,12 +3459,14 @@ pt:
           new_variant: "Nova variante"
         form:
           sku: "SKU"
-          price: "Preço"
           unit_price: "Preço Unitário"
           display_as: "Mostrar como"
           display_name: "Nome a apresentar"
           display_as_placeholder: 'por ex. 2 kg'
           display_name_placeholder: 'por ex. Tomates'
+          unit: Unidade
+          price: Preço
+          variant_category: Categoria
         autocomplete:
           out_of_stock: "Sem Stock"
           producer_name: "Produtor"
@@ -3462,6 +3483,8 @@ pt:
           total: "Total"
           billing_address_name: "Nome"
       taxons:
+        index:
+          title: "Categorias de Produtos"
         form:
           name: Nome
           description: Descrição

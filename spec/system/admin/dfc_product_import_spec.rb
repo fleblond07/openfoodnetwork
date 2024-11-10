@@ -3,12 +3,12 @@
 require 'system_helper'
 require_relative '../../../engines/dfc_provider/spec/support/authorization_helper'
 
-describe "DFC Product Import" do
+RSpec.describe "DFC Product Import" do
   include AuthorizationHelper
 
   let(:user) { create(:oidc_user, owned_enterprises: [enterprise]) }
   let(:enterprise) { create(:supplier_enterprise) }
-  let(:source_product) { create(:product, supplier: enterprise) }
+  let(:source_product) { create(:product, supplier_id: enterprise.id) }
 
   before do
     login_as user
@@ -40,5 +40,67 @@ describe "DFC Product Import" do
 
     expect(page).to have_content "Importing a DFC product catalog"
     expect(page).to have_content "Imported products: 1"
+  end
+
+  it "imports from a FDC catalog", vcr: true do
+    user.oidc_account.update!(
+      uid: "testdfc@protonmail.com",
+      refresh_token: ENV.fetch("OPENID_REFRESH_TOKEN"),
+      updated_at: 1.day.ago,
+    )
+    product_id =
+      "https://env-0105831.jcloud-ver-jpe.ik-server.com/api/dfc/Enterprises/test-hodmedod/SuppliedProducts/44519466467635"
+    linked_variant = source_product.variants.first
+    linked_variant.semantic_links << SemanticLink.new(semantic_id: product_id)
+
+    visit admin_product_import_path
+
+    select enterprise.name, from: "Enterprise"
+
+    url = "https://env-0105831.jcloud-ver-jpe.ik-server.com/api/dfc/Enterprises/test-hodmedod/SuppliedProducts"
+    fill_in "catalog_url", with: url
+
+    expect {
+      click_button "Import"
+      linked_variant.reload
+    }.to change { enterprise.supplied_products.count }
+      .and change { linked_variant.display_name }
+      .and change { linked_variant.unit_value }
+      .and change { linked_variant.price }.to(2.09)
+      .and change { linked_variant.on_demand }.to(true)
+      .and change { linked_variant.on_hand }.by(0)
+
+    expect(page).to have_content "Importing a DFC product catalog"
+
+    product = Spree::Product.last
+    expect(product.variants[0].semantic_links).to be_present
+    expect(product.image).to be_present
+  end
+
+  it "fails gracefully" do
+    user.oidc_account.update!(
+      uid: "anonymous@example.net",
+      updated_at: 1.minute.ago,
+    )
+    url = "https://example.net/unauthorized"
+    stub_request(:get, url).to_return(status: [401, "Unauthorized"])
+
+    visit admin_product_import_path
+    select enterprise.name, from: "Enterprise"
+    fill_in "catalog_url", with: url
+
+    expect { click_button "Import" }.not_to change { Spree::Variant.count }
+
+    expect(page).to have_content "the server responded with status 401"
+
+    select enterprise.name, from: "Enterprise"
+    fill_in "catalog_url", with: "badurl"
+    click_button "Import"
+    expect(page).to have_content "Absolute URI missing hierarchical segment: 'http://:80'"
+
+    select enterprise.name, from: "Enterprise"
+    fill_in "catalog_url", with: ""
+    click_button "Import"
+    expect(page).to have_content "param is missing or the value is empty: catalog_url"
   end
 end

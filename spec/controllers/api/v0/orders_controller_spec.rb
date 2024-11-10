@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 module Api
-  describe V0::OrdersController, type: :controller do
+  RSpec.describe V0::OrdersController, type: :controller do
     include AuthenticationHelper
     render_views
 
@@ -42,19 +42,19 @@ module Api
       let!(:order5) { create(:order, state: 'cart', completed_at: nil) }
       let!(:line_item1) do
         create(:line_item_with_shipment, order: order1,
-                                         product: create(:product, supplier:))
+                                         product: create(:product, supplier_id: supplier.id))
       end
       let!(:line_item2) do
         create(:line_item_with_shipment, order: order2,
-                                         product: create(:product, supplier:))
+                                         product: create(:product, supplier_id: supplier.id))
       end
       let!(:line_item3) do
         create(:line_item_with_shipment, order: order2,
-                                         product: create(:product, supplier:))
+                                         product: create(:product, supplier_id: supplier.id))
       end
       let!(:line_item4) do
         create(:line_item_with_shipment, order: order3,
-                                         product: create(:product, supplier:))
+                                         product: create(:product, supplier_id: supplier.id))
       end
 
       context 'as a regular user' do
@@ -146,8 +146,8 @@ module Api
                       as: :json
 
           expect(json_response['orders']
-            .map{ |o| o[:id] }).to eq serialized_orders([order2, order3, order1, order4])
-              .map{ |o| o["id"] }
+            .pluck('id')).to eq serialized_orders([order2, order3, order1, order4])
+              .pluck('id')
         end
 
         context "with an order without billing address" do
@@ -155,25 +155,22 @@ module Api
             create(:order_with_line_items, billing_address: nil, order_cycle:,
                                            distributor:)
           }
+          let(:expected_order_ids) {
+            serialized_orders([order2, order3, order1, order4, order7]).pluck('id')
+          }
 
           it 'can show orders without bill address' do
             get :index, params: { q: {} },
                         as: :json
 
-            expect(json_response['orders']
-              .map{ |o| o[:id] }).to match_array serialized_orders([order2, order3, order1, order4,
-                                                                    order7])
-                .map{ |o|
-                                                   o["id"]
-                                                 }
+            expect(json_response[:orders].pluck(:id)).to match_array(expected_order_ids)
           end
 
           it 'can sort orders by bill_address.lastname' do
             get :index, params: { q: { s: 'bill_address_lastname ASC' } },
                         as: :json
-            expect(json_response['orders']
-              .map{ |o| o[:id] }).to eq serialized_orders([order2, order3, order1, order4, order7])
-                .map{ |o| o["id"] }
+
+            expect(json_response[:orders].pluck(:id)).to eq expected_order_ids
           end
         end
       end
@@ -238,7 +235,7 @@ module Api
 
         it "returns unauthorized, as the order product's supplier owner" do
           allow(controller).to receive(:spree_current_user) {
-                                 order.line_items.first.variant.product.supplier.owner
+                                 order.line_items.first.variant.supplier.owner
                                }
           get :show, params: { id: order.number }
           assert_unauthorized!

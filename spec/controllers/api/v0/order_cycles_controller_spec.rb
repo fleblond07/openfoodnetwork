@@ -3,7 +3,7 @@
 require "spec_helper"
 
 module Api
-  describe V0::OrderCyclesController, type: :controller do
+  RSpec.describe V0::OrderCyclesController, type: :controller do
     let!(:distributor) { create(:distributor_enterprise) }
     let!(:order_cycle) { create(:simple_order_cycle, distributors: [distributor]) }
     let!(:exchange) { order_cycle.exchanges.to_enterprises(distributor).outgoing.first }
@@ -52,7 +52,7 @@ module Api
 
       it "returns products that were searched for" do
         ransack_param = "name_or_meta_keywords_or_variants_display_as_or_" \
-                        "variants_display_name_or_supplier_name_cont"
+                        "variants_display_name_or_variants_supplier_name_cont"
         api_get :products, id: order_cycle.id, distributor: distributor.id,
                            q: { ransack_param => "Kangaroo" }
 
@@ -107,14 +107,15 @@ module Api
           let!(:supplier) { create(:supplier_enterprise, properties: [supplier_property]) }
 
           before do
-            product1.update!(supplier:)
-            product2.update!(supplier:)
-            product3.update!(supplier:, inherits_properties: false)
+            product1.variants.first.update!(supplier:)
+            product2.variants.first.update!(supplier:)
+            product3.update!(inherits_properties: false)
+            product3.variants.first.update!(supplier:)
           end
 
           it "filter out the product that don't inherits from supplier properties" do
             api_get :products, id: order_cycle.id, distributor: distributor.id,
-                               q: { with_properties: [supplier_property.id] }
+                               q: { with_variants_supplier_properties: [supplier_property.id] }
 
             expect(response.status).to eq 200
             expect(product_ids).to match_array [product1.id, product2.id]
@@ -126,7 +127,7 @@ module Api
       context "with taxon filters" do
         it "filters by taxon" do
           api_get :products, id: order_cycle.id, distributor: distributor.id,
-                             q: { primary_taxon_id_in_any: [taxon2.id] }
+                             q: { variants_primary_taxon_id_in_any: [taxon2.id] }
 
           expect(product_ids).to include product2.id, product3.id
           expect(product_ids).not_to include product1.id, product4.id
@@ -222,7 +223,7 @@ module Api
       it "loads taxons for distributed products in the order cycle" do
         api_get :taxons, id: order_cycle.id, distributor: distributor.id
 
-        taxons = json_response.map{ |taxon| taxon['name'] }
+        taxons = json_response.pluck(:name)
 
         expect(json_response.length).to be 2
         expect(taxons).to include taxon1.name, taxon2.name
@@ -233,43 +234,49 @@ module Api
       it "loads properties for distributed products in the order cycle" do
         api_get :properties, id: order_cycle.id, distributor: distributor.id
 
-        properties = json_response.map{ |property| property['name'] }
+        properties = json_response.pluck(:name)
 
         expect(json_response.length).to be 2
         expect(properties).to include property1.presentation, property2.presentation
       end
+    end
 
-      context "with producer properties" do
-        let!(:property4) { create(:property) }
-        let!(:producer_property) {
-          create(:producer_property, producer_id: product1.supplier.id, property: property4)
-        }
+    describe "#producer_properties" do
+      let!(:property4) { create(:property) }
+      let!(:supplier) { create(:supplier_enterprise) }
+      let!(:producer_property) {
+        create(:producer_property, producer_id: supplier.id, property: property4)
+      }
 
-        it "loads producer properties for distributed products in the order cycle" do
-          api_get :properties, id: order_cycle.id, distributor: distributor.id
+      before { product1.variants.first.update(supplier: ) }
 
-          properties = json_response.map{ |property| property['name'] }
+      it "loads producer properties for distributed products in the order cycle" do
+        api_get :producer_properties, id: order_cycle.id, distributor: distributor.id
 
-          expect(json_response.length).to be 3
-          expect(properties).to include property1.presentation, property2.presentation,
-                                        producer_property.property.presentation
-        end
+        properties = json_response.pluck(:name)
+
+        expect(json_response.length).to be 1
+        expect(properties).to include producer_property.property.presentation
       end
     end
 
     context "with custom taxon ordering applied and duplicate product names in the order cycle" do
       let!(:supplier) { create(:supplier_enterprise) }
       let!(:product5) {
-        create(:product, name: "Duplicate name", primary_taxon: taxon3, supplier:)
+        create(:product, name: "Duplicate name", primary_taxon_id: taxon3.id,
+                         supplier_id: supplier.id)
       }
       let!(:product6) {
-        create(:product, name: "Duplicate name", primary_taxon: taxon3, supplier:)
+        create(:product, name: "Duplicate name", primary_taxon_id: taxon3.id,
+                         supplier_id: supplier.id)
       }
       let!(:product7) {
-        create(:product, name: "Duplicate name", primary_taxon: taxon2, supplier:)
+        create(:product, name: "Duplicate name", primary_taxon_id: taxon2.id,
+                         supplier_id: supplier.id)
       }
       let!(:product8) {
-        create(:product, name: "Duplicate name", primary_taxon: taxon2, supplier:)
+        create(:product, name: "Duplicate name", primary_taxon_id: taxon2.id,
+                         supplier_id: supplier.id)
       }
 
       before do
@@ -301,7 +308,7 @@ module Api
     private
 
     def product_ids
-      json_response.map{ |product| product['id'] }
+      json_response.pluck(:id)
     end
   end
 end

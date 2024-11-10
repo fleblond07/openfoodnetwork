@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Api::V0::ShipmentsController, type: :controller do
+RSpec.describe Api::V0::ShipmentsController, type: :controller do
   render_views
 
   let!(:shipment) { create(:shipment) }
@@ -31,7 +31,7 @@ describe Api::V0::ShipmentsController, type: :controller do
     let(:current_api_user) { build(:admin_user) }
     let!(:order) { shipment.order }
     let(:order_ship_address) { create(:address) }
-    let!(:stock_location) { Spree::StockLocation.first || create(:stock_location) }
+    let!(:stock_location) { DefaultStockLocation.find_or_create }
     let!(:variant) { create(:variant) }
     let(:params) do
       { quantity: 2,
@@ -44,8 +44,8 @@ describe Api::V0::ShipmentsController, type: :controller do
 
     before do
       order.update_attribute :ship_address_id, order_ship_address.id
-      order.update_attribute :distributor, variant.product.supplier
-      shipment.shipping_method.distributors << variant.product.supplier
+      order.update_attribute :distributor, variant.supplier
+      shipment.shipping_method.distributors << variant.supplier
     end
 
     context '#create' do
@@ -364,7 +364,7 @@ describe Api::V0::ShipmentsController, type: :controller do
 
         context "when line items have fees" do
           let(:fee_order) {
-            instance_double(Spree::Order, number: "123", distributor: variant.product.supplier)
+            instance_double(Spree::Order, number: "123", distributor: variant.supplier)
           }
           let(:contents) { instance_double(Spree::OrderContents) }
           let(:fee_order_shipment) {

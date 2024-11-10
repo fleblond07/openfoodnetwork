@@ -6,20 +6,18 @@ class VariantOverride < ApplicationRecord
   extend Spree::LocalizedNumber
   include StockSettingsOverrideValidation
 
-  self.belongs_to_required_by_default = false
-
   acts_as_taggable
 
   belongs_to :hub, class_name: 'Enterprise'
   belongs_to :variant, class_name: 'Spree::Variant'
 
-  validates :hub, presence: true
-  validates :variant, presence: true
   # Default stock can be nil, indicating stock should not be reset or zero, meaning reset to zero.
   # Need to ensure this can be set by the user.
   validates :default_stock, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :price, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
-  validates :count_on_hand, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :count_on_hand, numericality: {
+    greater_than_or_equal_to: 0, unless: :on_demand?
+  }, allow_nil: true
 
   default_scope { where(permission_revoked_at: nil) }
 
@@ -40,9 +38,8 @@ class VariantOverride < ApplicationRecord
   end
 
   def stock_overridden?
-    # If count_on_hand is present, it means on_demand is false
-    #   See StockSettingsOverrideValidation for details
-    count_on_hand.present?
+    # Testing for not nil because for a boolean `false.present?` is false.
+    !on_demand.nil? || !count_on_hand.nil?
   end
 
   def use_producer_stock_settings?
@@ -56,11 +53,14 @@ class VariantOverride < ApplicationRecord
       return
     end
 
+    # rubocop:disable Rails/SkipsModelValidations
+    # Cf. conversation https://github.com/openfoodfoundation/openfoodnetwork/pull/12647
     if quantity > 0
       increment! :count_on_hand, quantity
     elsif quantity < 0
       decrement! :count_on_hand, -quantity
     end
+    # rubocop:enable Rails/SkipsModelValidations
   end
 
   def default_stock?

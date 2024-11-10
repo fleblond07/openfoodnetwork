@@ -39,29 +39,35 @@ class Enterprise < ApplicationRecord
                                    class_name: 'EnterpriseGroup'
   has_many :producer_properties, foreign_key: 'producer_id', dependent: :destroy
   has_many :properties, through: :producer_properties
-  has_many :supplied_products, class_name: 'Spree::Product',
-                               foreign_key: 'supplier_id',
-                               dependent: :destroy
-  has_many :supplied_variants, through: :supplied_products, source: :variants
-  has_many :distributed_orders, class_name: 'Spree::Order', foreign_key: 'distributor_id'
+  has_many :supplied_variants,
+           class_name: 'Spree::Variant', foreign_key: 'supplier_id', dependent: :destroy
+  has_many :supplied_products, through: :supplied_variants, source: :product
+  has_many :distributed_orders, class_name: 'Spree::Order',
+                                foreign_key: 'distributor_id',
+                                dependent: :restrict_with_exception
+
   belongs_to :address, class_name: 'Spree::Address'
   belongs_to :business_address, optional: true, class_name: 'Spree::Address', dependent: :destroy
-  has_many :enterprise_fees
+  has_many :enterprise_fees, dependent: :restrict_with_exception
   has_many :enterprise_roles, dependent: :destroy
   has_many :users, through: :enterprise_roles
   belongs_to :owner, class_name: 'Spree::User',
                      inverse_of: :owned_enterprises
   has_many :distributor_payment_methods,
-           inverse_of: :distributor, foreign_key: :distributor_id
+           inverse_of: :distributor,
+           foreign_key: :distributor_id,
+           dependent: :restrict_with_exception
   has_many :distributor_shipping_methods,
-           inverse_of: :distributor, foreign_key: :distributor_id
+           inverse_of: :distributor,
+           foreign_key: :distributor_id,
+           dependent: :restrict_with_exception
   has_many :payment_methods, through: :distributor_payment_methods
   has_many :shipping_methods, through: :distributor_shipping_methods
   has_many :customers, dependent: :destroy
   has_many :inventory_items, dependent: :destroy
   has_many :tag_rules, dependent: :destroy
   has_one :stripe_account, dependent: :destroy
-  has_many :vouchers
+  has_many :vouchers, dependent: :restrict_with_exception
   has_many :connected_apps, dependent: :destroy
   has_one :custom_tab, dependent: :destroy
 
@@ -128,6 +134,7 @@ class Enterprise < ApplicationRecord
 
   after_create :set_default_contact
   after_create :relate_to_owners_enterprises
+
   after_rollback :restore_permalink
   after_touch :touch_distributors
   after_create_commit :send_welcome_email
@@ -160,8 +167,8 @@ class Enterprise < ApplicationRecord
   scope :is_distributor, -> { where.not(sells: 'none') }
   scope :is_hub, -> { where(sells: 'any') }
   scope :supplying_variant_in, lambda { |variants|
-    joins(supplied_products: :variants).
-      where('spree_variants.id IN (?)', variants).
+    joins(:supplied_variants).
+      where(spree_variants: { id: variants }).
       select('DISTINCT enterprises.*')
   }
 
@@ -198,14 +205,14 @@ class Enterprise < ApplicationRecord
       select('DISTINCT enterprises.*')
   }
 
-  scope :distributing_products, lambda { |product_ids|
+  scope :distributing_variants, lambda { |variants_ids|
     exchanges = joins("
         INNER JOIN exchanges
-          ON (exchanges.receiver_id = enterprises.id AND exchanges.incoming = 'f')
+          ON (exchanges.receiver_id = enterprises.id AND exchanges.incoming = false)
       ").
       joins('INNER JOIN exchange_variants ON (exchange_variants.exchange_id = exchanges.id)').
       joins('INNER JOIN spree_variants ON (spree_variants.id = exchange_variants.variant_id)').
-      where('spree_variants.product_id IN (?)', product_ids).select('DISTINCT enterprises.id')
+      where(spree_variants: { id: variants_ids }).select('DISTINCT enterprises.id')
 
     where(id: exchanges)
   }
@@ -214,7 +221,7 @@ class Enterprise < ApplicationRecord
     if user.has_spree_role?('admin')
       where(nil)
     else
-      joins(:enterprise_roles).where('enterprise_roles.user_id = ?', user.id)
+      joins(:enterprise_roles).where(enterprise_roles: { user_id: user.id })
     end
   }
 
@@ -238,6 +245,19 @@ class Enterprise < ApplicationRecord
   # Force a distinct count to work around relation count issue https://github.com/rails/rails/issues/5554
   def self.distinct_count
     count(distinct: true)
+  end
+
+  def long_description=(html)
+    super(HtmlSanitizer.sanitize_and_enforce_link_target_blank(html))
+  end
+
+  def preferred_shopfront_message=(html)
+    self.prefers_shopfront_message = HtmlSanitizer.sanitize_and_enforce_link_target_blank(html)
+  end
+
+  def preferred_shopfront_closed_message=(html)
+    self.prefers_shopfront_closed_message =
+      HtmlSanitizer.sanitize_and_enforce_link_target_blank(html)
   end
 
   def contact
@@ -359,7 +379,7 @@ class Enterprise < ApplicationRecord
   def category
     # Make this crazy logic human readable so we can argue about it sanely.
     cat = is_primary_producer ? "producer_" : "non_producer_"
-    cat << ("sells_" + sells)
+    cat << ("sells_#{sells}")
 
     # Map backend cases to front end cases.
     case cat
@@ -369,10 +389,10 @@ class Enterprise < ApplicationRecord
       :producer_shop # Producer with shopfront and supplies other hubs.
     when "producer_sells_none"
       :producer # Producer only supplies through others.
-    when "non_producer_sells_any"
-      :hub # Hub selling others products in order cycles.
-    when "non_producer_sells_own"
-      :hub # Wholesaler selling through own shopfront? Does this need a separate name or even exist?
+    when "non_producer_sells_any", "non_producer_sells_own"
+      # Hub selling others products in order cycles
+      # Or Wholesaler selling through own shopfront? Does this need a separate name or even exist?
+      :hub
     when "non_producer_sells_none"
       :hub_profile # Hub selling outside the system.
     end
@@ -382,7 +402,7 @@ class Enterprise < ApplicationRecord
   def distributed_taxons
     Spree::Taxon.
       joins(:products).
-      where('spree_products.id IN (?)', Spree::Product.in_distributor(self).select(&:id)).
+      where(spree_products: { id: Spree::Product.in_distributor(self).select(&:id) }).
       select('DISTINCT spree_taxons.*')
   end
 
@@ -398,7 +418,7 @@ class Enterprise < ApplicationRecord
   def supplied_taxons
     Spree::Taxon.
       joins(:products).
-      where('spree_products.id IN (?)', Spree::Product.in_supplier(self).select(&:id)).
+      where(spree_products: { id: Spree::Product.in_supplier(self).select(&:id) }).
       select('DISTINCT spree_taxons.*')
   end
 
@@ -410,10 +430,9 @@ class Enterprise < ApplicationRecord
     test_permalink = UrlGenerator.to_url(test_permalink)
     test_permalink = "my-enterprise" if test_permalink.blank?
     existing = Enterprise.
-      select(:permalink).
       order(:permalink).
       where("permalink LIKE ?", "#{test_permalink}%").
-      map(&:permalink)
+      pluck(:permalink)
 
     if existing.include?(test_permalink)
       used_indices = existing.map do |p|
@@ -461,7 +480,7 @@ class Enterprise < ApplicationRecord
     return unless image.variable?
 
     image_variant_url_for(image.variant(name))
-  rescue ActiveStorage::Error, MiniMagick::Error, ActionView::Template::Error => e
+  rescue StandardError => e
     Bugsnag.notify "Enterprise ##{id} #{image.try(:name)} error: #{e.message}"
     Rails.logger.error(e.message)
 
@@ -472,7 +491,7 @@ class Enterprise < ApplicationRecord
     ExchangeVariant.joins(exchange: :order_cycle)
       .merge(Exchange.outgoing)
       .select("DISTINCT exchange_variants.variant_id, exchanges.receiver_id AS enterprise_id")
-      .where("exchanges.receiver_id = ?", id)
+      .where(exchanges: { receiver_id: id })
       .merge(OrderCycle.active.with_distributor(id))
   end
 
@@ -493,7 +512,7 @@ class Enterprise < ApplicationRecord
   end
 
   def correct_whatsapp_url(phone_number)
-    phone_number && ("https://wa.me/" + phone_number.tr('+ ', ''))
+    phone_number && "https://wa.me/#{phone_number.tr('+ ', '')}"
   end
 
   def correct_instagram_url(url)
@@ -581,7 +600,7 @@ class Enterprise < ApplicationRecord
   # Touch distributors without them touching their distributors.
   # We avoid an infinite loop and don't need to touch the whole distributor tree.
   def touch_distributors
-    Enterprise.distributing_products(supplied_products.select(:id)).
+    Enterprise.distributing_variants(supplied_variants.select(:id)).
       where.not(enterprises: { id: }).
       update_all(updated_at: Time.zone.now)
   end

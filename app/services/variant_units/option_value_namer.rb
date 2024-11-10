@@ -32,16 +32,18 @@ module VariantUnits
     private
 
     def value_scaled?
-      @nameable.product.variant_unit_scale.present?
+      @nameable.variant_unit_scale.present?
     end
 
     def option_value_value_unit
-      if @nameable.unit_value.present? && @nameable.product&.persisted?
-        if %w(weight volume).include? @nameable.product.variant_unit
+      if @nameable.unit_value.present?
+        if %w(weight volume).include? @nameable.variant_unit
           value, unit_name = option_value_value_unit_scaled
         else
           value = @nameable.unit_value
-          unit_name = pluralize(@nameable.product.variant_unit_name, value)
+
+          unit_name = @nameable.variant_unit_name
+          unit_name = pluralize(unit_name, value) if unit_name.present?
         end
 
         value = value.to_i if value == value.to_i

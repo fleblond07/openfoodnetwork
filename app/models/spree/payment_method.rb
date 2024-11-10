@@ -29,8 +29,7 @@ module Spree
       return where(nil) if user.admin?
 
       joins(:distributors).
-        where('distributors_payment_methods.distributor_id IN (?)',
-              user.enterprises.select(&:id)).
+        where(distributors_payment_methods: { distributor_id: user.enterprises.select(&:id) }).
         select('DISTINCT spree_payment_methods.*')
     }
 
@@ -40,7 +39,7 @@ module Spree
     }
 
     scope :for_distributor, ->(distributor) {
-      joins(:distributors).where('enterprises.id = ?', distributor)
+      joins(:distributors).where(enterprises: { id: distributor })
     }
 
     scope :for_subscriptions, -> { where(type: Subscription::ALLOWED_PAYMENT_METHOD_TYPES) }
@@ -119,7 +118,7 @@ module Spree
     end
 
     def self.clean_name
-      i18n_key = "spree.admin.payment_methods.providers." + name.demodulize.downcase
+      i18n_key = "spree.admin.payment_methods.providers.#{name.demodulize.downcase}"
       I18n.t(i18n_key)
     end
 

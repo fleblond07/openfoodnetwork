@@ -4,14 +4,14 @@ require 'spec_helper'
 
 module Catalog
   module ProductImport
-    describe ProductsResetStrategy do
+    RSpec.describe ProductsResetStrategy do
       let(:products_reset) { described_class.new(excluded_items_ids) }
 
       describe '#reset' do
         let(:supplier_ids) { enterprise.id }
         let(:product) { create(:product) }
-        let(:enterprise) { product.supplier }
         let(:variant) { product.variants.first }
+        let(:enterprise) { variant.supplier }
 
         before { variant.on_hand = 2 }
 

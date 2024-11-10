@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 module Api
-  describe V0::ExchangeProductsController, type: :controller do
+  RSpec.describe V0::ExchangeProductsController, type: :controller do
     include AuthenticationHelper
 
     let(:order_cycle) { create(:order_cycle) }
@@ -39,7 +39,7 @@ module Api
             api_get :index, exchange_id: exchange.id, order_cycle_id: 666, enterprise_id: 666,
                             incoming: false
             expect(json_response["products"].first["supplier_name"])
-              .to eq exchange.variants.first.product.supplier.name
+              .to eq exchange.variants.first.supplier.name
           end
         end
 
@@ -48,7 +48,7 @@ module Api
             api_get :index, order_cycle_id: order_cycle.id, enterprise_id: exchange.sender_id,
                             incoming: true
             expect(json_response["products"].first["supplier_name"])
-              .to eq exchange.variants.first.product.supplier.name
+              .to eq exchange.variants.first.supplier.name
           end
         end
       end

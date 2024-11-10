@@ -3,7 +3,7 @@
 require 'system_helper'
 require 'open_food_network/permissions'
 
-describe "Product Import" do
+RSpec.describe "Product Import" do
   include AdminHelper
   include AuthenticationHelper
   include WebHelper
@@ -24,23 +24,26 @@ describe "Product Import" do
   let!(:tax_category2) { create(:tax_category) }
   let!(:shipping_category) { create(:shipping_category) }
 
-  let!(:product) { create(:simple_product, supplier: enterprise2, name: 'Hypothetical Cake') }
+  let!(:product) { create(:simple_product, supplier_id: enterprise2.id, name: 'Hypothetical Cake') }
   let!(:variant) {
     create(:variant, product_id: product.id, price: '8.50', on_hand: 100, unit_value: '500',
-                     display_name: 'Preexisting Banana')
+                     display_name: 'Preexisting Banana', supplier: enterprise2)
   }
   let!(:product2) {
-    create(:simple_product, supplier: enterprise, on_hand: 100, name: 'Beans', unit_value: '500',
-                            description: '', primary_taxon_id: category.id)
+    create(:simple_product, supplier_id: enterprise.id, on_hand: 100, name: 'Beans',
+                            unit_value: '500', description: '', primary_taxon_id: category.id)
   }
   let!(:product3) {
-    create(:simple_product, supplier: enterprise, on_hand: 100, name: 'Sprouts', unit_value: '500')
+    create(:simple_product, supplier_id: enterprise.id, on_hand: 100, name: 'Sprouts',
+                            unit_value: '500')
   }
   let!(:product4) {
-    create(:simple_product, supplier: enterprise, on_hand: 100, name: 'Cabbage', unit_value: '500')
+    create(:simple_product, supplier_id: enterprise.id, on_hand: 100, name: 'Cabbage',
+                            unit_value: '500')
   }
   let!(:product5) {
-    create(:simple_product, supplier: enterprise2, on_hand: 100, name: 'Lettuce', unit_value: '500')
+    create(:simple_product, supplier_id: enterprise2.id, on_hand: 100, name: 'Lettuce',
+                            unit_value: '500')
   }
   let!(:variant_override) {
     create(:variant_override, variant_id: product4.variants.first.id, hub: enterprise2,
@@ -51,7 +54,7 @@ describe "Product Import" do
                               count_on_hand: 96)
   }
 
-  let(:shipping_category_id_str) { Spree::ShippingCategory.all.first.id.to_s }
+  let(:shipping_category_id_str) { Spree::ShippingCategory.first.id.to_s }
 
   describe "when importing products from uploaded file" do
     before do
@@ -89,19 +92,17 @@ describe "Product Import" do
 
       carrots = Spree::Product.find_by(name: 'Carrots')
       potatoes = Spree::Product.find_by(name: 'Potatoes')
-      expect(potatoes.supplier).to eq enterprise
+      expect(potatoes.variants.first.supplier).to eq enterprise
       expect(potatoes.on_hand).to eq 6
       expect(potatoes.variants.first.price).to eq 6.50
       expect(potatoes.variants.first.import_date).to be_within(1.minute).of Time.zone.now
 
-      wait_until { page.find("a.button.view").present? }
-
       click_link 'Go To Products Page'
-
       expect(page).to have_content 'Bulk Edit Products'
-      wait_until { page.find("#p_#{potatoes.id}").present? }
-      expect(page).to have_field "product_name", with: carrots.name
-      expect(page).to have_field "product_name", with: potatoes.name
+
+      # displays product list
+      expect(page).to have_field("_products_2_name", with: carrots.name.to_s)
+      expect(page).to have_field("_products_5_name", with: potatoes.name.to_s)
     end
 
     it "displays info about invalid entries but no save button if all items are invalid" do
@@ -186,6 +187,8 @@ describe "Product Import" do
     end
 
     it "records a timestamp on import that can be viewed and filtered under Bulk Edit Products" do
+      pending "This feature was removed, see:
+        https://github.com/openfoodfoundation/openfoodnetwork/issues/10694#issuecomment-1578097339"
       csv_data = <<~CSV
         name, producer, category, on_hand, price, units, unit_type, shipping_category_id
         Carrots, User Enterprise, Vegetables, 5, 3.20, 500, g, #{shipping_category_id_str}
@@ -210,11 +213,16 @@ describe "Product Import" do
 
       click_link 'Go To Products Page'
 
-      wait_until { page.find("#p_#{carrots.id}").present? }
+      # displays product list
+      expect(page).to have_field("_products_2_name", with: carrots.name.to_s)
+      expect(page).to have_field("_products_5_name", with: potatoes.name.to_s)
 
-      expect(page).to have_field "product_name", with: carrots.name
-      expect(page).to have_field "product_name", with: potatoes.name
-      toggle_columns "Import"
+      click_button "Save changes"
+
+      ofn_drop_down("Columns").click
+      within ofn_drop_down("Columns") do
+        check "Import"
+      end
 
       within "tr#p_#{carrots.id} td.import_date" do
         expect(page).to have_content Time.zone.now.year
@@ -358,7 +366,7 @@ describe "Product Import" do
     end
 
     it "handles a unit of kg for inventory import" do
-      product = create(:simple_product, supplier: enterprise, on_hand: 100, name: 'Beets',
+      product = create(:simple_product, supplier_id: enterprise.id, on_hand: 100, name: 'Beets',
                                         unit_value: '1000', variant_unit_scale: 1000)
       csv_data = <<~CSV
         name, distributor, producer, category, on_hand, price, unit_type, units, on_demand
@@ -396,7 +404,7 @@ describe "Product Import" do
 
     describe "Item type products" do
       let!(:product) {
-        create(:simple_product, supplier: enterprise, on_hand: nil, name: 'Aubergine',
+        create(:simple_product, supplier_id: enterprise.id, on_hand: nil, name: 'Aubergine',
                                 unit_value: '1', variant_unit_scale: nil, variant_unit: "items",
                                 variant_unit_name: "Bag")
       }
@@ -616,33 +624,6 @@ describe "Product Import" do
       expect(page).not_to have_content "line 3: Sprouts"
     end
 
-    it "handles on_demand and on_hand validations with inventory - With both values set" do
-      csv_data = <<~CSV
-        name, distributor, producer, category, on_hand, price, units, on_demand
-        Beans, Another Enterprise, User Enterprise, Vegetables, 6, 3.20, 500, 1
-        Sprouts, Another Enterprise, User Enterprise, Vegetables, 6, 6.50, 500, 1
-        Cabbage, Another Enterprise, User Enterprise, Vegetables, 0, 1.50, 500, 1
-      CSV
-      File.write('/tmp/test.csv', csv_data)
-
-      visit main_app.admin_product_import_path
-      select 'Inventories', from: "settings_import_into"
-      attach_file 'file', '/tmp/test.csv'
-      click_button 'Upload'
-
-      proceed_to_validation
-
-      expect(page).to have_selector '.item-count', text: "3"
-      expect(page).to have_selector '.invalid-count', text: "3"
-
-      find('div.header-description', text: 'Items contain errors').click
-      expect(page).to have_content "line 2: Beans - Count_on_hand must be blank if on demand"
-      expect(page).to have_content "line 3: Sprouts - Count_on_hand must be blank if on demand"
-      expect(page).to have_content "line 4: Cabbage - Count_on_hand must be blank if on demand"
-      expect(page).to have_content "Imported file contains invalid entries"
-      expect(page).not_to have_selector 'input[type=submit][value="Save"]'
-    end
-
     it "imports lines with all allowed units" do
       csv_data = CSV.generate do |csv|
         csv << ["name", "producer", "category", "on_hand", "price", "units", "unit_type",
@@ -672,12 +653,20 @@ describe "Product Import" do
       expect(page).to have_selector '.created-count', text: '2'
       expect(page).not_to have_selector '.updated-count'
 
+      default_variant_selector = "tr:has(input[aria-label=Name][value='Carrots'])"
+
       visit spree.admin_products_path
 
-      within "#p_#{Spree::Product.find_by(name: 'Carrots').id}" do
-        expect(page).to have_input "product_name", with: "Carrots"
-        expect(page).to have_select "variant_unit_with_scale", selected: "Weight (lb)"
-        expect(page).to have_content "5" # on_hand
+      carrots = Spree::Product.find_by(name: 'Carrots')
+
+      within "#product_#{carrots.id}" do
+        expect(page).to have_input("[products][2][variants_attributes][0][display_name]",
+                                   text: "Carrots")
+        expect(page).to have_input("[products][2][variants_attributes][][0][unit_to_display]",
+                                   text: "1 lb")
+        within(:xpath, '//*[@id="products-form"]/table/tbody[3]/tr[2]/td[7]') do
+          expect(page).to have_content("5")
+        end
       end
     end
 
@@ -706,17 +695,21 @@ describe "Product Import" do
       save_data
 
       expect(page).to have_selector '.created-count', text: '1'
+
       expect(page).not_to have_selector '.updated-count'
-      expect(page).to have_content "GO TO PRODUCTS PAGE"
-      expect(page).to have_content "UPLOAD ANOTHER FILE"
+      expect(page).to have_content "Go To Products Page"
+      expect(page).to have_content "Upload Another File"
 
       visit spree.admin_products_path
 
-      within "#p_#{Spree::Product.find_by(name: 'Cupcake').id}" do
-        expect(page).to have_input "product_name", with: "Cupcake"
-        expect(page).to have_select "variant_unit_with_scale", selected: "Items"
-        expect(page).to have_input "variant_unit_name", with: "Bunch"
-        expect(page).to have_content "5" # on_hand
+      expect(page).to have_input("[products][2][variants_attributes][0][display_name]",
+                                 text: "Cupcake")
+      expect(page).to have_select("_products_2_variants_attributes_0_variant_unit_with_scale",
+                                  selected: "Items")
+      expect(page).to have_input("[products][2][variants_attributes][0][variant_unit_name]",
+                                 text: "Bunch")
+      within(:xpath, '//*[@id="products-form"]/table/tbody[3]/tr[2]/td[7]') do
+        expect(page).to have_content("5")
       end
     end
 
@@ -781,7 +774,7 @@ describe "Product Import" do
 
           product_headings.each do |heading|
             expect(page).to have_content(
-              I18n.t("admin.product_import.product_headings.#{heading}").upcase
+              I18n.t("admin.product_import.product_headings.#{heading}")
             )
           end
         end

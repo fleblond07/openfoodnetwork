@@ -8,15 +8,14 @@ module OrderManagement
       # - Variants of hub
       # - Variants that are in outgoing exchanges where the hub is receiver
       def self.eligible_variants(distributor)
-        variant_conditions = ["spree_products.supplier_id IN (?)",
-                              permitted_producer_ids(distributor)]
+        query = Spree::Variant.where(supplier_id: permitted_producer_ids(distributor))
+
         exchange_variant_ids = outgoing_exchange_variant_ids(distributor)
         if exchange_variant_ids.present?
-          variant_conditions[0] << " OR spree_variants.id IN (?)"
-          variant_conditions << exchange_variant_ids
+          query = query.or(Spree::Variant.where(id: exchange_variant_ids))
         end
 
-        Spree::Variant.joins(:product).where(*variant_conditions)
+        query
       end
 
       def self.in_open_and_upcoming_order_cycles?(distributor, schedule, variant)
@@ -33,7 +32,9 @@ module OrderManagement
           .merge(Enterprise.is_primary_producer)
           .pluck(:parent_id)
 
-        other_permitted_producer_ids | [distributor.id]
+        # Append to the potentially gigantic array instead of using union, which creates a new array
+        # The db IN statement won't care if there's a duplicate.
+        other_permitted_producer_ids << distributor.id
       end
 
       def self.outgoing_exchange_variant_ids(distributor)

@@ -2,18 +2,15 @@
 
 module Spree
   class ReturnAuthorization < ApplicationRecord
-    self.belongs_to_required_by_default = false
-
+    self.ignored_columns += [:stock_location_id]
     acts_as_paranoid
 
     belongs_to :order, class_name: 'Spree::Order', inverse_of: :return_authorizations
 
     has_many :inventory_units, inverse_of: :return_authorization, dependent: :nullify
-    has_one :stock_location, dependent: nil
     before_save :force_positive_amount
     before_create :generate_number
 
-    validates :order, presence: true
     validates :amount, numericality: true
     validate :must_have_shipped_units
 

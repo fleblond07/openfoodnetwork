@@ -1,6 +1,9 @@
 - content_for :main_ng_app_name do
   = "admin.lineItems"
 
+- content_for :html_title do
+  = t("admin.orders.bulk_management.page_title")
+
 - content_for :page_title do
   %h1.page-title
     = t("admin.orders.bulk_management.page_title")
@@ -77,15 +80,15 @@
       .three.columns
         .text-center
           = t("admin.orders.bulk_management.group_buy_unit_size")
-        .text-center {{ getGroupBySizeFormattedValueWithUnitName(selectedUnitsProduct.group_buy_unit_size , selectedUnitsProduct, selectedUnitsVariant ) }}
+        .text-center {{ getGroupBySizeFormattedValueWithUnitName(selectedUnitsProduct.group_buy_unit_size , selectedUnitsVariant ) }}
       .three.columns
         .text-center
           = t("admin.orders.bulk_management.total_qtt_ordered")
-        .text-center {{ formattedValueWithUnitName( sumUnitValues(), selectedUnitsProduct, selectedUnitsVariant ) }}
+        .text-center {{ formattedValueWithUnitName( sumUnitValues(), selectedUnitsVariant ) }}
       .three.columns
         .text-center
           = t("admin.orders.bulk_management.max_qtt_ordered")
-        .text-center {{ formattedValueWithUnitName( sumMaxUnitValues(), selectedUnitsProduct, selectedUnitsVariant ) }}
+        .text-center {{ formattedValueWithUnitName( sumMaxUnitValues(), selectedUnitsVariant ) }}
       .three.columns
         .text-center
           = t("admin.orders.bulk_management.current_fulfilled_units")

@@ -7,6 +7,19 @@ module OpenFoodNetwork
   # - http://localhost:3000/admin/feature-toggle/features
   #
   module FeatureToggle
+    def self.conditional_features
+      features = {}
+      if Rails.env.development?
+        features.merge!({
+                          "admin_style_v3" => <<~DESC,
+                            Test the work-in-progress design updates.
+                          DESC
+                        });
+      end
+
+      features
+    end
+
     # Please add your new feature here to appear in the Flipper UI.
     # We way move this to a YAML file when it becomes too awkward.
     # **WARNING:** Features not in this list will be removed.
@@ -22,9 +35,6 @@ module OpenFoodNetwork
     #   Flipper.enable("dragon_mode")
     #
     CURRENT_FEATURES = {
-      "admin_style_v3" => <<~DESC,
-        Test the work-in-progress design updates.
-      DESC
       "api_reports" => <<~DESC,
         An API endpoint for reports at
         <code>/api/v0/reports/:report_type(/:report_subtype)</code>
@@ -44,12 +54,19 @@ module OpenFoodNetwork
         Enterprise data can be shared with another app.
         The first example is the Australian Discover Regenerative Portal.
       DESC
-    }.freeze
+      "affiliate_sales_data" => <<~DESC,
+        Activated for a user.
+        The user (INRAE researcher) has access to anonymised sales.
+      DESC
+    }.merge(conditional_features).freeze;
 
     # Features you would like to be enabled to start with.
     ACTIVE_BY_DEFAULT = {
       # Copy features here that were activated in a migration so that new
       # instances, development and test environments have the feature active.
+      "admin_style_v3" => <<~DESC,
+        Test the work-in-progress design updates.
+      DESC
     }.freeze
 
     def self.setup!
@@ -68,6 +85,9 @@ module OpenFoodNetwork
 
     # Checks weather a feature is enabled for any of the given actors.
     def self.enabled?(feature_name, *actors)
+      # TODO: Need to remove these checks when we fully remove the toggle from development as well
+      # need this check as Flipper won't recognize 'admin_style_v3' as it is removed for server envs
+      return true if !Rails.env.development? && feature_name == :admin_style_v3
       return Flipper.enabled?(feature_name) if actors.empty?
 
       actors.any? do |actor|

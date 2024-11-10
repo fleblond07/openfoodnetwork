@@ -4,8 +4,9 @@
 
 ENV["RAILS_ENV"] ||= 'test'
 
+# for full configuration, see .simplecov
 require 'simplecov' if ENV["COVERAGE"]
-require 'rubygems'
+
 require 'pry' unless ENV['CI']
 require 'view_component/test_helpers'
 
@@ -27,12 +28,18 @@ end
 require 'knapsack_pro'
 KnapsackPro::Adapters::RSpecAdapter.bind
 
+if ENV["COVERAGE"] && defined?(SimpleCov)
+  KnapsackPro::Hooks::Queue.before_queue do
+    SimpleCov.command_name("rspec_ci_node_#{KnapsackPro::Config::Env.ci_node_index}")
+  end
+end
+
 # Allow connections to selenium whilst raising errors when connecting to external sites
 require 'webmock/rspec'
 WebMock.enable!
 WebMock.disable_net_connect!(
   allow_localhost: true,
-  allow: ['chromedriver.storage.googleapis.com', 'api.knapsackpro.com']
+  allow: ['chromedriver.storage.googleapis.com']
 )
 
 # Requires supporting ruby files with custom matchers and macros, etc,
@@ -58,9 +65,11 @@ end
 # Disable timestamp check for test environment
 InvisibleCaptcha.timestamp_enabled = false
 
+InvisibleCaptcha.spinner_enabled = false
+
 RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
-  config.fixture_path = "#{Rails.root.join('spec/fixtures')}"
+  config.fixture_path = Rails.root.join('spec/fixtures').to_s
 
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
@@ -94,10 +103,58 @@ RSpec.configure do |config|
   # Force use of expect (over should)
   config.expect_with :rspec do |expectations|
     expectations.syntax = :expect
+
+    # This option will default to `true` in RSpec 4. It makes the `description`
+    # and `failure_message` of custom matchers include text for helper methods
+    # defined using `chain`, e.g.:
+    #     be_bigger_than(2).and_smaller_than(4).description
+    #     # => "be bigger than 2 and smaller than 4"
+    # ...rather than:
+    #     # => "be bigger than 2"
+    expectations.include_chain_clauses_in_custom_matcher_descriptions = true
+  end
+
+  # rspec-mocks config goes here. You can use an alternate test double
+  # library (such as bogus or mocha) by changing the `mock_with` option here.
+  config.mock_with :rspec do |mocks|
+    # We use too many mocks at the moment. Activating the following
+    # feature fails a lot of specs. We should clean it up over time.
+    #
+    # Prevents you from mocking or stubbing a method that does not exist on
+    # a real object. This is generally recommended, and will default to
+    # `true` in RSpec 4.
+    # mocks.verify_partial_doubles = true
+  end
+
+  # This option will default to `:apply_to_host_groups` in RSpec 4 (and will
+  # have no way to turn it off -- the option exists only for backwards
+  # compatibility in RSpec 3). It causes shared context metadata to be
+  # inherited by the metadata hash of host groups and examples, rather than
+  # triggering implicit auto-inclusion in groups with matching metadata.
+  config.shared_context_metadata_behavior = :apply_to_host_groups
+
+  # Limits the available syntax to the non-monkey patched syntax that is
+  # recommended. For more details, see:
+  # https://rspec.info/features/3-12/rspec-core/configuration/zero-monkey-patching-mode/
+  config.disable_monkey_patching!
+
+  # Many RSpec users commonly either run the entire suite or an individual
+  # file, and it's useful to allow more verbose output when running an
+  # individual spec file.
+  if config.files_to_run.one?
+    # Use the documentation formatter for detailed output,
+    # unless a formatter has already been configured
+    # (e.g. via a command-line flag).
+    config.default_formatter = "doc"
+  end
+
+  # Reset locale for all specs.
+  config.around(:each) do |example|
+    I18n.with_locale(:en_AU) { example.run }
   end
 
   # Reset all feature toggles to prevent leaking.
-  config.before(:suite) do
+  config.before(:each) do
     Flipper.features.each(&:remove)
     OpenFoodNetwork::FeatureToggle.setup!
   end
@@ -177,11 +234,6 @@ RSpec.configure do |config|
     end
   end
 
-  # Geocoding
-  config.before(:each) {
-    allow_any_instance_of(Spree::Address).to receive(:geocode).and_return([1, 1])
-  }
-
   default_country_id = DefaultCountry.id
   checkout_zone = Spree::Config[:checkout_zone]
   currency = Spree::Config[:currency]
@@ -241,6 +293,7 @@ RSpec.configure do |config|
   config.include OpenFoodNetwork::PerformanceHelper
   config.include ActiveJob::TestHelper
   config.include ReportsHelper
+  config.include TomSelectHelper, type: :system
 
   config.include ViewComponent::TestHelpers, type: :component
 
@@ -255,4 +308,5 @@ RSpec.configure do |config|
   config.include Features::TrixEditorHelper, type: :system
   config.include DownloadsHelper, type: :system
   config.include ReportsHelper, type: :system
+  config.include ProductsHelper, type: :system
 end

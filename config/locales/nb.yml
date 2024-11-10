@@ -8,6 +8,8 @@ nb:
       spree/product: Produkt
       spree/shipping_method: Leveringsmetode
     attributes:
+      spree/image:
+        attachment: Vedlegg
       spree/order/ship_address:
         address1: "Leveringsadresse (Gate + Husnummer)"
         address2: "Leveringsadresse linje 2"
@@ -45,10 +47,13 @@ nb:
       spree/product:
         name: "Produktnavn"
         price: "Pris"
-        primary_taxon: "Produktkategori"
-        supplier: "Leverandør"
+        primary_taxon_id: "Produktkategori"
         shipping_category_id: "Leveringskategori"
-        variant_unit: "Variant Enhet"
+      spree/variant:
+        primary_taxon: "Produktkategori"
+        shipping_category_id: "Leveringskategori"
+        supplier: "Leverandør"
+        variant_unit: "Enhetsskala"
         variant_unit_name: "Enhetsnavn Variant"
         unit_value: "Enhetsverdi"
       spree/credit_card:
@@ -77,7 +82,7 @@ nb:
     errors:
       models:
         enterprise_fee:
-          inherit_tax_requires_per_item_calculator: "Å arve skattekategorien krever en varekalkulator."
+          inherit_tax_requires_per_item_calculator: "Å arve skattekategorien krever en per-stk kalkulator."
         spree/image:
           attributes:
             attachment:
@@ -101,8 +106,10 @@ nb:
         variant_override:
           count_on_hand:
             using_producer_stock_settings_but_count_on_hand_set: "må være tomt fordi du bruker produsentens lagerinnstillinger"
-            on_demand_but_count_on_hand_set: "må være tom hvis på forespørsel"
             limited_stock_but_no_count_on_hand: "må spesifiseres fordi det tvinger begrenset lager"
+        connected_apps:
+          vine:
+            api_request_error: "Det oppsto en feil under tilkobling til VINE API"
       messages:
         confirmation: "samsvarer ikke med %{attribute}"
         blank: "kan ikke være tomt"
@@ -138,7 +145,8 @@ nb:
     unprocessable_entity:
       title: "Endringen du ønsket ble avvist (422)"
       message_html: "<p>Endringen du ønsket ble avvist. Kanskje du prøvde å endre noe du ikke har tilgang til.<br><h3> <a href='/' >Vend hjem</a></h3></p>"
-    stimulus_reflex_error: "Vi beklager, men noe gikk galt.\n\nDette kan være et midlertidig problem, så prøv igjen eller last inn siden på nytt.\nVi registrerer alle feil og jobber kanskje med å fikse.\nHvis problemet vedvarer eller haster, vennligst kontakt oss."
+    general_error:
+      message: "Vi beklager, men noe gikk galt.\n\nDette kan være et midlertidig problem, så prøv igjen eller last inn siden på nytt.\nVi registrerer alle feil og jobber kanskje med å fikse.\nHvis problemet vedvarer eller haster, vennligst kontakt oss."
   stripe:
     error_code:
       incorrect_number: "Kortnummeret er feil."
@@ -191,6 +199,9 @@ nb:
       transaction_not_allowed: "Kortet har blitt avvist av ukjent årsak."
       try_again_later: "Kortet har blitt avvist av ukjent årsak."
       withdrawal_count_limit_exceeded: "Kunden har overskredet saldoen eller kredittgrensen som er tilgjengelig på kortet sitt."
+      disconnect_failure: "Kunne ikke koble fra Stripe."
+    success_code:
+      disconnected: "Stripe-kontoen er koblet fra."
   activemodel:
     errors:
       messages:
@@ -216,10 +227,16 @@ nb:
               not_available_to_shop: "er ikke tilgjengelig for %{shop}"
   card_details: "Kortdetaljer"
   card_type: "Korttype"
+  card_type_is: "Korttype er"
+  unrecognized_card_type: "Ukjent korttype"
+  use_new_cc: "Bruk et nytt kredittkort"
+  what_is_this: "Hva er dette?"
   cardholder_name: "Kortholders navn"
   community_forum_url: "URL for diskusjonsforum"
   customer_instructions: "Kundeinstruksjoner"
   additional_information: "Tilleggsinformasjon"
+  connect_app:
+    url: "https://n8n.openfoodnetwork.org/webhook/regen/connect-enterprise"
   devise:
     passwords:
       spree_user:
@@ -302,6 +319,36 @@ nb:
     report_failed: |
         Denne rapporten mislyktes. Det kan være for stort å behandle.
         Vi vil se nærmere på det, men gi oss beskjed hvis problemet vedvarer.
+  backorder_mailer:
+    backorder_failed:
+      subject: "En automatisk restordre mislyktes"
+      headline: "Restbestilling mislyktes"
+      description: |
+          Vi prøvde å legge inn eller oppdatere en restordre for varer som ikke er på lager, men
+          noe gikk galt. Du kan ha negativ beholdning og trenger å løse
+          problemet med å bestille mer til lager.
+      hints: |
+          Du må kanskje gå til OIDC-innstillingene og koble til kontoen din på nytt.
+          Sjekk også at leverandørens katalog ikke er endret og fortsatt
+          leverer alle produktene du trenger. Og ta gjerne kontakt med oss hvis
+          du har spørsmål.
+      order: "Berørt bestilling: %{number}"
+      stock: "Lager"
+      product: "Produkt"
+    backorder_incomplete:
+      subject: "En automatisk restordre ble ikke fullført"
+      headline: "Din restordre er fortsatt et utkast"
+      description: |
+          Vi prøvde å fullføre en restordre for varer som ikke er på lager, men
+          noe gikk galt. Restbestillingsmengdene kan være for høye hvis
+          du hadde kanselleringer. Og restordren din blir ikke oppfylt mens
+          den er i utkasttilstand.
+      hints: |
+          Du må kanskje gå til OIDC-innstillingene og koble til kontoen din på nytt.
+          Sjekk også at leverandørens katalog ikke er endret og fortsatt
+          leverer alle produktene du trenger. Og ta gjerne kontakt med oss hvis
+          du har spørsmål.
+      affected: "%{enterprise} : %{order_cycle}"
   enterprise_mailer:
     confirmation_instructions:
       subject: "Vennligst bekreft epostadressen til %{enterprise}"
@@ -508,8 +555,12 @@ nb:
         per_page: "%{count} elementer per side"
         colums: Kolonner
       columns:
+        image: Bilde
         name: Navn
+        unit_scale: Enhetsskala
         unit: Enhet
+        unit_value: Enhetsverdi
+        display_as: Vis enhet som
         price: Pris
         producer: Produsent
         category: Kategori
@@ -535,8 +586,14 @@ nb:
         edit: Rediger
         clone: Klon
         delete: Slett
+        remove: Fjern
+        preview: Forhåndsvisning
       image:
         edit: Rediger
+      product_preview:
+        product_preview: Forhåndsvisning av produktet
+        shop_tab: Butikk
+        product_details_tab: Produktdetaljer
     adjustments:
       skipped_changing_canceled_order: "Du kan ikke endre en avbrutt bestilling."
     begins_at: Begynner på
@@ -590,7 +647,7 @@ nb:
     show_n_more: Vis %{num} flere
     choose: "Velg..."
     please_select: Vennligst velg...
-    column_save_as_default: Lagre som Standard
+    column_save_as_default: Lagre som standard
     columns: Kolonner
     actions: Handlinger
     viewing: "Viser: %{current_view_name}"
@@ -639,6 +696,7 @@ nb:
         status: Status
         ok: Ok
         instance_secret_key: Instans Secret Key
+        instance_publishable_key: Instans Publiserbar nøkkel
         account_id: Konto-ID
         business_name: Bedriftsnavn
         charges_enabled: Avgifter Aktivert
@@ -654,6 +712,17 @@ nb:
         info_html: "Matomo er en web- og mobilanalyseapplikasjon. Du kan enten sette opp en egen server for Matomo eller bruke en skybasert tjeneste. Se <a href='http://matomo.org' target='_blank'>matomo.org</a> for mer informasjon."
         config_instructions_html: "Her kan du konfigurere OFN-Matomo integrasjonen. URL til Matomo nedenfor skal peke på Matomo-instansen der brukersporingsinformasjonen skal sendes til; Hvis den er tom, blir Matomo-brukersporing deaktivert. Site-ID feltet er ikke obligatorisk, men nyttig hvis du sporer mer enn ett nettsted på en enkelt Matomo-instans; den kan bli funnet på Matomo-konsollen."
         config_instructions_tag_manager_html: "Å sette Matomo Tag Manager URL muliggjør Matomo Tag Manager. Dette verktøyet lar deg konfigurere analysehendelser. Matomo Tag Manager URL kopieres fra Installer kode-delen i Matomo Tag Manager. Forsikre deg om at du velger riktig beholder og miljø, da disse alternativene endrer nettadressen."
+    connected_app_settings:
+      edit:
+        title: "Innstillinger for tilkoblet app"
+        info_html: "Aktiverte apper vises under Enterprise Settings > Connected Apps."
+        enabled_legend: "Aktiverte tilkoblede apper"
+        connected_apps_enabled:
+          discover_regen: Discover Regenerative portal
+          affiliate_sales_data: DFC anonymiserte ordre-API for forskningsformål
+          vine: Voucher Integration Engine (VINE)
+      update:
+        resource: Innstillinger for tilkoblet app
     customers:
       index:
         new_customer: "Ny kunde"
@@ -678,6 +747,9 @@ nb:
         balance_due: "Til Forfall"
       destroy:
         has_associated_subscriptions: "Sletting mislyktes: Denne kunden har aktive abonnementer. Avbryt dem først."
+    column_preferences:
+      bulk_update:
+        success: "Kolonnepreferansene er lagret"
     contents:
       edit:
         title: Innhold
@@ -691,6 +763,10 @@ nb:
         your_content: Ditt innhold
         user_guide: Brukermanual
         map: Kart
+    dfc_product_imports:
+      index:
+        title: "Importere en DFC-produktkatalog"
+        imported_products: "Importerte produkter:"
     enterprise_fees:
       index:
         title: "Bedriftsavgifter"
@@ -744,7 +820,7 @@ nb:
       variants:
         infinity: "Uendelig"
         to_order_tip: "Varer laget for bestilling har ikke et lagernivå, slik som ferske skiver brød laget for bestilling."
-      back_to_products_list: "Tilbake til produktlisten"
+      back_to_products_list: "Tilbake til produktliste"
       editing_product: "Redigerer produkt"
       tabs:
         product_details: "Produktdetaljer"
@@ -756,6 +832,7 @@ nb:
       index:
         header:
           title: Endre produkter i bulk
+      content:
         loading: Laster inn produktene dine
       delete_modal:
         delete_product_modal:
@@ -768,24 +845,28 @@ nb:
           prompt: "Dette vil fjerne den permanent fra listen din."
           confirmation_text: "Slett variant"
           cancellation_text: "Behold variant"
-      sort:
-        pagination:
-          total_html: "<strong>%{total} produkter</strong> funnet for søkekriteriene dine. Viser %{from} til %{to} ."
-          per_page:
-            show: Vis
-            per_page: "%{num} per side"
-          clear_search: Tøm søk
       filters:
         search_products: Søk etter produkter
         search_for_producers: Søk etter produsenter
+        select_producer: Velg produsent
         all_producers: Alle produsenter
         search_for_categories: Søk etter kategorier
+        select_category: Velg kategori
         all_categories: Alle kategorier
         producers:
           label: Produsenter
         categories:
           label: Kategorier
         search: Søk
+      sort:
+        pagination:
+          products_total_html:
+            one: "<strong>%{count} produkt</strong> funnet for søkekriteriene dine. Viser %{from} til %{to} ."
+            other: "<strong>%{count} produkter</strong> funnet for søkekriteriene dine. Viser %{from} til %{to} ."
+          per_page:
+            show: Vis
+            per_page: "%{num} per side"
+          clear_search: Tøm søk
       no_products:
         no_products_found: Ingen produkter funnet
         import_products: Importer flere produkter
@@ -803,19 +884,25 @@ nb:
             other: "%{count} produkter kunne ikke lagres. Se gjennom feilene og prøv igjen."
         reset: Forkaste endringer
         save: Lagre endringer
+      product_variant_row:
         new_variant: Ny variant
       bulk_update:
         success: Endringer lagret
-      edit_image:
-        title: Rediger produktbilde
-        close: Tilbake
-        upload: Last opp bilde
       delete_product:
         success: Produktet ble slettet
         error: Kan ikke slette produktet
       delete_variant:
         success: Varianten ble slettet
         error: Kan ikke slette varianten
+      variant_row:
+        none_tax_category: Ingen
+        search_for_tax_categories: "Søk etter avgiftskategorier"
+        category_field_name: "Kategori"
+        tax_category_field_name: "Avgiftskategori"
+        producer_field_name: "Produsent"
+      clone:
+        success: Kloning av produktet var vellykket
+        error: Kan ikke klone produktet
     product_import:
       title: Produktimport
       file_not_found: Filen ble ikke funnet eller kunne ikke åpnes
@@ -858,7 +945,9 @@ nb:
         tax_categories: Avgiftskategorier
         shipping_categories: Fraktkategorier
       dfc_import_form:
+        title: "Importer fra DFC-katalogen"
         enterprise: "Bedrift"
+        catalog_url: "DFC-katalog-URL"
         import: "Import"
       import:
         review: Anmeldelse
@@ -962,6 +1051,7 @@ nb:
       edit:
         order_sure_want_to: Er du sikker på at du vil %{event} denne bestillingen?
         voucher_tax_included_in_price: "%{label} (avgift inkludert i kupongen)"
+        tax_on_fees: "Skatt på avgifter"
       invoice_email_sent: 'Faktura-e-post er sendt'
       order_email_resent: 'Bestillings-e-post har blitt angitt'
       bulk_management:
@@ -1155,8 +1245,6 @@ nb:
               En valgfri melding for å ønske kunder velkommen og forklare hvordan
               de handler hos deg. Hvis tekst legges inn her, vil den vises i en hjemmefane
               når kundene først ankommer butikken din.
-          shopfront_message_link_tooltip: "Sett inn / rediger lenke"
-          shopfront_message_link_prompt: "Vennligst skriv inn en URL for å sette inn"
           shopfront_closed_message: "Melding Butikk Stengt"
           shopfront_closed_message_placeholder: >
               En melding som gir en mer detaljert forklaring om hvorfor din butikk
@@ -1168,6 +1256,7 @@ nb:
           open_date: "Åpningsdato"
           close_date: "Stengedato"
           display_ordering_in_shopfront: "Vis sortering i butikken:"
+          shopfront_sort_by_product: "Etter produkt"
           shopfront_sort_by_category: "Etter kategori"
           shopfront_sort_by_producer: "Etter produsent"
           shopfront_sort_by_category_placeholder: "Kategori"
@@ -1251,27 +1340,65 @@ nb:
           custom_tab_content: "Innhold for egendefinert fane"
         connected_apps:
           legend: "Tilkoblede apper"
-          title: "Oppdag Regenerativ"
-          tagline: "Tillat Discover Regenerativ å publisere bedriftsinformasjonen din."
-          enable: "Tillat datadeling"
-          disable: "Stopp deling"
-          loading: "Laster"
-          note: |
-              Open Food Network-kontoen din er koblet til Discover Regenerativ.
-              Legg til eller oppdater informasjon om Discover Regenerativ-oppføringen din her.
-          link_label: "Administrer oppføring"
-          description_html: |
-              <p>
-              Kvalifiserte produsenter kan vise frem sin regenerative legitimasjon,
-              oppdrettspraksis og mer gjennom en profiloppføring.
-              Forenkler hvordan kunder kan finne regenerative produkter og koble sammen
-              med produsenter av interesse.
-              </p>
-              <p>
-              <a href="https://about.openfoodnetwork.org.au/regen-produce-portal/"
-              target="_blank"><b>Lær mer om Discover Regenerativ</b>
-              <i class="icon-external-link"></i></a>
-              </p>
+          affiliate_sales_data:
+            title: "INRAE / UFC QUE CHOISIR Research"
+            tagline: "La dette forskningsprosjektet få tilgang til ordredataene dine anonymt"
+            enable: "Tillat datadeling"
+            disable: "Stopp deling"
+            loading: "Laster"
+            need_to_be_manager: "Bare ledere kan koble til apper."
+            description_html: |
+                <p>
+                INRAE og UFC QUE CHOISIR går sammen for å studere matvarepriser i korte matsystemer og sammenligne dem med prisene i supermarkedet, for et gitt sett med produkter. Dataene som brukes av INRAE er blandet med data som kommer fra andre korte matkjedeplattformer i Frankrike. Ingen individuelle produktpriser vil bli offentliggjort gjennom dette prosjektet.
+                </p>
+                <p>
+                <a href="https://apropos.coopcircuits.fr/"
+                target="_blank"></b>Lær mer om dette forskningsprosjektet</b>
+                <i class="icon-external-link"></i></a>
+                </p>
+          discover_regen:
+            title: "Oppdag Regenerativ"
+            tagline: "Tillat Discover Regenerativ å publisere bedriftsinformasjonen din."
+            enable: "Tillat datadeling"
+            disable: "Stopp deling"
+            loading: "Laster"
+            need_to_be_manager: "Bare ledere kan koble til apper."
+            note: |
+                Open Food Network-kontoen din er koblet til Discover Regenerativ.
+                Legg til eller oppdater informasjon om Discover Regenerativ-oppføringen din her.
+            link_label: "Administrer oppføring"
+            description_html: |
+                <p>
+                Kvalifiserte produsenter kan vise frem sin regenerative legitimasjon,
+                oppdrettspraksis og mer gjennom en profiloppføring.
+                Forenkler hvordan kunder kan finne regenerative produkter og koble sammen
+                med produsenter av interesse.
+                </p>
+                <p>
+                <a href="https://about.openfoodnetwork.org.au/regen-produce-portal/"
+                target="_blank"><b>Lær mer om Discover Regenerativ</b>
+                <i class="icon-external-link"></i></a>
+                </p>
+          vine:
+            title: "Voucher Integration Engine (VINE)"
+            tagline: "Tillat innløsning av VINE-kuponger i butikken din."
+            enable: "Koble til"
+            disable: "Koble fra"
+            need_to_be_manager: "Bare ledere kan koble til apper."
+            vine_api_key: "VINE API-nøkkel"
+            vine_secret: "VINE-hemmelighet"
+            description_html: |
+                <p>
+                For å aktivere VINE for bedriften din, skriv inn API-nøkkelen og hemmeligheten.
+                </p>
+                <p>
+                <a href="#" target="_blank"><b>VINE</b>
+                <i class="icon-external-link"></i></a>
+                </p>
+            api_parameters_empty: "Vennligst skriv inn en API-nøkkel og en hemmelighet"
+            api_parameters_error: "Sjekk at du skrev inn API-nøkkelen og hemmeligheten din riktig, kontakt administratoren din hvis feilen vedvarer"
+            connection_error: "API-tilkoblingsfeil. Vennligst prøv igjen"
+            setup_error: "VINE API er ikke konfigurert. Ta kontakt med administrator"
       actions:
         edit_profile: Innstillinger
         properties: Egenskaper
@@ -1324,10 +1451,10 @@ nb:
         contact_name: Kontaktnavn
       edit:
         editing: 'innstillinger:'
-        back_link: Tilbake til bedriftsliste
+        back_link: Tilbake til bedriftslisten
       new:
         title: Ny Bedrift
-        back_link: Tilbake til bedriftsliste
+        back_link: Tilbake til bedriftslisten
       welcome:
         welcome_title: Velkommen til Open Food Network!
         welcome_text: Du har opprettet en
@@ -1364,6 +1491,11 @@ nb:
         choose_products_from: "Velg Produkter Fra:"
         re_notify_producers: Varsle produsentene på nytt
         notify_producers_tip: Dette vil sende en epost til hver produsent med listen over deres bestillinger.
+      date_time_warning_modal_content:
+        title: 'Bestillinger er knyttet til denne bestillingsrunden.'
+        content: 'Hvis du ønsker å opprette en ny bestillingsrunde, anbefales det å duplisere bestillingsrudnen først og deretter endre datoene.'
+        proceed: 'Fortsett uansett'
+        cancel: 'Avbryt'
       incoming:
         incoming: "Innkommende"
         supplier: "Leverandør"
@@ -1563,6 +1695,9 @@ nb:
       pack_by_customer: Pakk etter Kunde
       pack_by_supplier: Pakk etter Leverandør
       pack_by_product: Pakke etter Produkt
+      display:
+        report_is_big: "Denne rapporten er stor og kan gjøre enheten din tregere."
+        display_anyway: "Vis uansett"
       download:
         button: "Last ned rapport"
       show:
@@ -2062,7 +2197,6 @@ nb:
   label_account: "Konto"
   label_more: "Vis mer"
   label_less: "Vis mindre"
-  label_notices: "Meldinger"
   cart_items: "Elementer"
   cart_headline: "Din handlekurv"
   total: "Sum"
@@ -2474,6 +2608,7 @@ nb:
   orders_bought_already_confirmed: "* allerede bekreftet"
   orders_confirm_cancel: "Er du sikker på at du vil avbryte denne bestillingen?"
   order_processed_successfully: "Behandlingen av din bestilling var vellykket"
+  thank_you_for_your_order: "Takk for din bestilling"
   products_cart_distributor_choice: "Distributør for bestillingen:"
   products_cart_distributor_change: "Din distributør for denne ordren vil bli endret til %{name} hvis du legger til dette produktet i handlekurven din."
   products_cart_distributor_is: "Din distributør for denne ordren er %{name}."
@@ -2820,7 +2955,6 @@ nb:
   spree_admin_single_enterprise_hint: "Hint: For å hjelpe folk til å finne deg, skru på din synlighet under"
   spree_admin_eg_pickup_from_school: "f.eks. 'Henting ved Sammfunnshuset'"
   spree_admin_eg_collect_your_order: "f.eks. 'Vennligst hente din bestilling fra 123 Matveien, Nesodden, 3070'"
-  spree_classification_primary_taxon_error: "Gruppe %{taxon} er hovedgruppe til %{product} og kan ikke slettes"
   spree_order_availability_error: "Distributør eller bestillingsrunde kan ikke levere produktene i handlekurven din"
   spree_order_populator_error: "Den distributøren eller bestillingsrunden kan ikke levere alle produktene i handlekurven din. Vennligst velg en annen."
   spree_order_cycle_error: "Vennligst velg en bestillingsrunde for denne bestillingen."
@@ -3140,7 +3274,7 @@ nb:
   order_cycles_no_permission_to_coordinate_error: "Ingen av bedriftene dine har tillatelse til å koordinere en bestillingsrunde"
   order_cycles_no_permission_to_create_error: "Du har ikke rettigheter til å opprette en bestillingsrunde som er koordinert av den bedriften"
   order_cycle_closed: "Bestillingsrunden du har valgt har akkurat stengt. Vennligst prøv igjen!"
-  back_to_orders_list: "Tilbake til bestillingslisten"
+  back_to_orders_list: "Tilbake til Bestillingsliste"
   no_orders_found: "Ingen bestillinger funnet"
   order_information: "Bestillingsinformasjon"
   new_payment: "Ny betaling"
@@ -3483,6 +3617,8 @@ nb:
       confirmation: |
           Dette vil sette varebeholdning til null på alle produkter for denne virksomheten som ikke er til stede i den nedlastede filen.
     order_cycles:
+      unsaved_changes: "Du har ulagrede endringer"
+      bulk_save_error: "Å nei! Jeg kunne ikke lagre endringene dine."
       create_failure: "Kunne ikke opprette bestillingsrunde"
       update_success: 'Din bestillingsrunde har blitt oppdatert.'
       update_failure: "Kunne ikke oppdatere bestillingsrunde"
@@ -3508,6 +3644,24 @@ nb:
     stripe_elements:
       unknown_error_from_stripe: |
           Det oppsto et problem med å konfigurere kortet ditt i betalingsportalen vår. Oppdater siden og prøv igjen. Hvis den mislykkes en gang til, kan du kontakte oss for support.
+    trix:
+      bold: "Fet"
+      bullets: "Punkter"
+      code: "Kode"
+      heading1: "Overskrift"
+      hr: "Horisontal linjal"
+      indent: "Øk nivået"
+      italic: "Kursiv"
+      link: "Link"
+      numbers: "Tall"
+      outdent: "Reduser nivået"
+      quote: "Sitat"
+      redo: "Gjenta"
+      strike: "Gjennomstreking"
+      undo: "Angre"
+      unlink: "Fjern tilknytningen"
+      url: "URL"
+      urlPlaceholder: "Vennligst skriv inn en URL for å sette inn"
   inflections:
     each:
       one: "Hver"
@@ -3695,6 +3849,7 @@ nb:
     editing_tax_category: "Redigering av avgiftskategori"
     editing_tax_rate: "Redigering av avgiftssats"
     editing_zone: "Redigeringssone"
+    editing_state: "Redigerer regioner"
     expiration: "Utløp"
     invalid_payment_provider: "Ugyldig betalingsleverandør"
     items_cannot_be_shipped: "Varer kan ikke sendes"
@@ -3703,9 +3858,9 @@ nb:
     more: "Mer"
     new_adjustment: "Ny justering"
     new_tax_category: "Ny avgiftskategori"
-    new_taxon: "Ny kategori"
     new_user: "Ny bruker"
     no_pending_payments: "Ingen ventende betalinger"
+    remove: "Fjern"
     none: "Ingen"
     not_found: "Ikke funnet"
     notice_messages:
@@ -3721,8 +3876,6 @@ nb:
       delivery: "Signert, forseglet, levert"
     start_date: "Startdato"
     successfully_removed: "Fjernet OK"
-    taxonomy_edit: "Rediger kategori"
-    tree: "Tre"
     updating: "Oppdaterer"
     your_order_is_empty_add_product: "Bestillingen din er tom, vennligst søk etter og legg til et produkt over"
     add_product: "Legg til produkt"
@@ -3730,6 +3883,7 @@ nb:
     resend: "Send på nytt"
     back_to_orders_list: "Tilbake til Bestillingsliste"
     back_to_payments_list: "Tilbake til betalingsliste"
+    back_to_states_list: "Tilbake til liste over regioner"
     return_authorizations: "Returautorisasjoner"
     cannot_create_returns: "Kan ikke opprette retur da denne bestillingen ikke har noen sendte elementer."
     select_stock: "Velg lager"
@@ -3819,7 +3973,7 @@ nb:
     tax_rate_amount_explanation: "Avgiftssatser er et desimalbeløp til hjelp i beregninger, (dvs. dersom avgiftssatsen er 5%, angi 0,05)"
     included_in_price: "Inkludert i Pris"
     show_rate_in_label: "Vis sats på merkelapp"
-    back_to_tax_rates_list: "Tilbake til siden for Avgiftssats"
+    back_to_tax_rates_list: "Tilbake til skattesatslisten"
     tax_settings: "Avgiftsinnstillinger"
     zones: "Soner"
     new_zone: "Ny Sone"
@@ -3832,14 +3986,12 @@ nb:
     iso_name: "ISO-navn"
     states_required: "Regioner Påkrevd"
     editing_country: "Redigerer Land"
-    back_to_countries_list: "Tilbake til Landlisten"
+    back_to_countries_list: "Tilbake til listen over land"
     states: "Regioner"
     abbreviation: "Forkortelse"
     new_state: "Ny Region"
     payment_methods: "Betalingsmetoder"
-    taxonomies: "Taksonomier"
-    new_taxonomy: "Ny Taksonomi"
-    back_to_taxonomies_list: "Tilbake til Taksonomiliste"
+    taxons: "Produktkategorier"
     shipping_methods: "Leveringsmetoder"
     shipping_method: "Leveringsmetode"
     shipment: "Leveranse"
@@ -3932,6 +4084,11 @@ nb:
     validation:
       must_be_int: "må være et heltall"
     admin:
+      images:
+        edit:
+          title: Rediger produktbilde
+          close: Tilbake
+          upload: Last opp bilde
       mail_methods:
         send_testmail: "Send test-epost"
         testmail:
@@ -3946,6 +4103,7 @@ nb:
         bulk_order_management: "Bulk ordrehåndtering"
         subscriptions: "Abonnement"
         products: "Produkter"
+        products_v3: "Produkter"
         option_types: "Valgtyper"
         properties: "Egenskaper"
         variant_overrides: "Varelager"
@@ -3959,6 +4117,10 @@ nb:
         customers: "Kunder"
         groups: "Grupper"
         oidc_settings: "OIDC-innstillinger"
+        overview: "Oversikt"
+        product_import: "Import"
+        enterprise_roles: "Roller"
+        payment_methods: "Betalingsmetoder"
       product_properties:
         index:
           inherits_properties_checkbox_hint: "Arve egenskaper fra %{supplier}? (med mindre overstyrt over)"
@@ -3989,7 +4151,7 @@ nb:
           continue: "Fortsett"
         new:
           new_return_authorization: "Ny Returautorisasjon"
-          back_to_return_authorizations_list: "Tilbake til liste over Returautorisasjoner"
+          back_to_return_authorizations_list: "Tilbake til liste over returautorisasjoner"
           continue: "Fortsett"
         edit:
           receive: "motta"
@@ -4202,6 +4364,8 @@ nb:
           new_product: "Nytt produkt"
           supplier: "Leverandør"
           supplier_select_placeholder: "Velg en leverandør"
+          search_for_suppliers: "Søk etter leverandører"
+          search_for_units: "Søk etter enheter"
           product_name: "Produktnavn"
           units: "Enhetsstørrelse"
           value: "Verdi"
@@ -4236,6 +4400,7 @@ nb:
           product_name: Produktnavn
         primary_taxon_form:
           product_category: Produktkategori
+          search_for_categories: "Søk etter kategorier"
         group_buy_form:
           group_buy: "Gruppekjøp?"
           bulk_unit_size: Bulk enhetsstørrelse
@@ -4289,12 +4454,16 @@ nb:
           new_variant: "Ny Variant"
         form:
           sku: "SKU"
-          price: "Pris"
           unit_price: "Enhetspris"
           display_as: "Vis som"
           display_name: "Visningsnavn"
           display_as_placeholder: 'f.eks. 2 kg'
           display_name_placeholder: 'f.eks. Tomater'
+          unit_scale: "Enhetsskala"
+          unit: Enhet
+          price: Pris
+          unit_value: Enhetsverdi
+          variant_category: Kategori
         autocomplete:
           out_of_stock: "Ikke på Lager"
           producer_name: "Produsent"
@@ -4313,9 +4482,20 @@ nb:
           total: "Total"
           billing_address_name: "Navn"
       taxons:
+        back_to_list: "Tilbake til produktkategorilisten"
+        index:
+          title: "Produktkategorier"
+          new_taxon: 'Ny produktkategori'
+        new:
+          title: "Ny produktkategori"
+        edit:
+          title: "Rediger produktkategori"
+        destroy:
+          delete_taxon:
+            success: "Produktkategorien er slettet"
+            error: "Kan ikke slette produktkategorien på grunn av tildelte produkter."
         form:
           name: Navn
-          permalink: Permalink
           meta_title: Metatittel
           meta_description: Metabeskrivelse
           meta_keywords: Meta nøkkelord
@@ -4557,7 +4737,6 @@ nb:
       key_cleared: "Nøkkelen ble fjernet"
       shipment:
         cannot_ready: "Kan ikke gjøre klar forsendelse."
-      invalid_taxonomy_id: "Ugyldig kategori-id."
       toggle_api_key_view: "Vis API-nøkkelvisning for bruker"
     activerecord:
       models:

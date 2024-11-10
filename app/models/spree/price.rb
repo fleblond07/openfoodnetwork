@@ -24,10 +24,6 @@ module Spree
       amount
     end
 
-    def price_changed?
-      amount_changed?
-    end
-
     def price=(price)
       self[:amount] = parse_price(price)
     end
@@ -42,6 +38,7 @@ module Spree
 
     # strips all non-price-like characters from the price, taking into account locale settings
     def parse_price(price)
+      return nil if price.blank?
       return price unless price.is_a?(String)
 
       separator, _delimiter = I18n.t([:'number.currency.format.separator',

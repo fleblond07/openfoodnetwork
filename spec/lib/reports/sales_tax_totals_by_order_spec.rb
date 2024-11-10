@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
+RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
   subject(:report) { Reporting::Reports::SalesTax::SalesTaxTotalsByOrder.new(user, {}) }
 
   let(:user) { create(:user) }
@@ -55,7 +55,7 @@ describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
   end
 
   before do
-    product.update!(supplier_id: supplier.id)
+    variant.update!(supplier: )
 
     order.update!(
       number: 'ORDER_NUMBER_1',

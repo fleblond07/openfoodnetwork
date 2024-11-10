@@ -43,19 +43,9 @@ module VariantStock
   def on_demand
     # A variant that has not been saved yet or has been soft-deleted doesn't have a stock item
     #   This provides a default value for variant.on_demand
-    #     using Spree::StockLocation.backorderable_default
-    return Spree::StockLocation.first.backorderable_default if new_record? || deleted?
+    return false if new_record? || deleted?
 
-    # This can be removed unless we have seen this error in Bugsnag recently
-    if stock_item.nil?
-      Bugsnag.notify(
-        RuntimeError.new("Variant #stock_item called, but the stock_item does not exist!"),
-        object: as_json
-      )
-      return Spree::StockLocation.first.backorderable_default
-    end
-
-    stock_item.backorderable?
+    stock_item&.backorderable?
   end
 
   # Sets whether the variant can be ordered on demand or not. Note that
@@ -96,7 +86,7 @@ module VariantStock
   # Here we depend only on variant.total_on_hand and variant.on_demand.
   #   This way, variant_overrides only need to override variant.total_on_hand and variant.on_demand.
   def fill_status(quantity)
-    on_hand = if total_on_hand >= quantity || on_demand
+    on_hand = if total_on_hand.to_i >= quantity || on_demand
                 quantity
               else
                 [0, total_on_hand].max
@@ -112,8 +102,7 @@ module VariantStock
   #
   # This enables us to override this behaviour for variant overrides
   def move(quantity, originator = nil)
-    # Don't change variant stock if variant is on_demand or has been deleted
-    return if on_demand || deleted_at
+    return if deleted_at
 
     raise_error_if_no_stock_item_available
 

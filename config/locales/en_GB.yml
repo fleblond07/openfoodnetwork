@@ -1,10 +1,15 @@
 en_GB:
   language_name: "English"
+  time:
+    formats:
+      long: "%B %d, %Y %-l:%M %p"
   activerecord:
     models:
       spree/product: Product
       spree/shipping_method: Shipping Method
     attributes:
+      spree/image:
+        attachment: Attachment
       spree/order/ship_address:
         address1: "Shipping address (Street + House number)"
         address2: "Shipping address line 2"
@@ -42,10 +47,12 @@ en_GB:
       spree/product:
         name: "Product Name"
         price: "Price"
-        primary_taxon: "Product Category"
-        supplier: "Supplier"
+        primary_taxon_id: "Product Category"
         shipping_category_id: "Shipping Category"
-        variant_unit: "Variant Unit"
+      spree/variant:
+        primary_taxon: "Product Category"
+        shipping_category_id: "Shipping Category"
+        supplier: "Supplier"
         variant_unit_name: "Variant Unit Name"
         unit_value: "Unit value"
       spree/credit_card:
@@ -73,8 +80,10 @@ en_GB:
         white_label_logo_link: "Link for the logo used in shopfront"
     errors:
       models:
-        enterprise_fee:
-          inherit_tax_requires_per_item_calculator: "Inheriting the tax category requires a per-item calculator."
+        spree/image:
+          attributes:
+            attachment:
+              integrity_error: "failed to load. Please check to ensure the file is not corrupt, and try again."
         spree/user:
           attributes:
             email:
@@ -94,7 +103,6 @@ en_GB:
         variant_override:
           count_on_hand:
             using_producer_stock_settings_but_count_on_hand_set: "must be blank because using producer stock settings"
-            on_demand_but_count_on_hand_set: "must be blank if on demand"
             limited_stock_but_no_count_on_hand: "must be specified because forcing limited stock"
       messages:
         confirmation: "doesn't match %{attribute}"
@@ -131,7 +139,8 @@ en_GB:
     unprocessable_entity:
       title: "The change you wanted was rejected (422)"
       message_html: "<p>The change you wanted was rejected. Maybe you tried to change something you don't have access to. <br><h3><a href='/' >Return home</a></h3> </p>"
-    stimulus_reflex_error: "We're sorry, but something went wrong.\n\nThis might be a temporary problem, so please try again or reload the page.\nWe record all errors and may be working on a fix.\nIf the problem persists or is urgent, please contact us."
+    general_error:
+      message: "We're sorry, but something went wrong.\n\nThis might be a temporary problem, so please try again or reload the page.\nWe record all errors and may be working on a fix.\nIf the problem persists or is urgent, please contact us."
   stripe:
     error_code:
       incorrect_number: "The card number is incorrect."
@@ -184,6 +193,9 @@ en_GB:
       transaction_not_allowed: "The card has been declined for an unknown reason."
       try_again_later: "The card has been declined for an unknown reason."
       withdrawal_count_limit_exceeded: "The customer has exceeded the balance or credit limit available on their card."
+      disconnect_failure: "Failed to disconnect Stripe."
+    success_code:
+      disconnected: "Stripe account disconnected."
   activemodel:
     errors:
       messages:
@@ -209,10 +221,16 @@ en_GB:
               not_available_to_shop: "is not available to %{shop}"
   card_details: "Card details"
   card_type: "Card type"
+  card_type_is: "Card type is"
+  unrecognized_card_type: "Unrecognised card type"
+  use_new_cc: "Use a new credit card"
+  what_is_this: "What is this?"
   cardholder_name: "Cardholder name"
   community_forum_url: "Community forum URL"
   customer_instructions: "Customer instructions"
   additional_information: "Additional Information"
+  connect_app:
+    url: "https://n8n.openfoodnetwork.org/webhook/regen/connect-enterprise"
   devise:
     passwords:
       spree_user:
@@ -295,6 +313,9 @@ en_GB:
     report_failed: |
         This report failed. It may be too big to process.
         We will look into it but please let us know if the problem persists.
+  backorder_mailer:
+    backorder_failed:
+      product: "Product"
   enterprise_mailer:
     confirmation_instructions:
       subject: "Please confirm the email address for %{enterprise}"
@@ -384,6 +405,7 @@ en_GB:
   cancel_order: "Cancel Order"
   confirm_send_invoice: "An invoice for this order will be sent to the customer. Are you sure you want to continue?"
   confirm_resend_order_confirmation: "Are you sure you want to resend the order confirmation email?"
+  must_have_valid_business_number: "%{enterprise_name} must have a valid company number or charity number before invoices can be used."
   invoice: "Invoice"
   invoices: "Invoices"
   file: "File"
@@ -461,7 +483,7 @@ en_GB:
   password_confirmation: Password Confirmation
   reset_password_token: Reset password
   expired: has expired, please request a new one
-  back_to_payments_list: "Back to Payments List"
+  back_to_payments_list: "Back To Payments List"
   maestro_or_solo_cards: "Maestro/Solo cards"
   backordered: "Backordered"
   on_hand: "In Stock"
@@ -500,8 +522,12 @@ en_GB:
         per_page: "%{count} items per page"
         colums: Columns
       columns:
+        image: Image
         name: Name
+        unit_scale: Unit scale
         unit: Unit
+        unit_value: Unit value
+        display_as: Display unit as
         price: Price
         producer: Producer
         category: Category
@@ -527,8 +553,11 @@ en_GB:
         edit: Edit
         clone: Clone
         delete: Delete
+        remove: Remove
       image:
         edit: Edit
+      product_preview:
+        shop_tab: Shop
     adjustments:
       skipped_changing_canceled_order: "You can't change a cancelled order."
     begins_at: Begins At
@@ -582,7 +611,7 @@ en_GB:
     show_n_more: Show %{num} more
     choose: "Choose..."
     please_select: Please select...
-    column_save_as_default: Save As Default
+    column_save_as_default: Save as default
     columns: Columns
     actions: Actions
     viewing: "Viewing: %{current_view_name}"
@@ -631,6 +660,7 @@ en_GB:
         status: Status
         ok: Ok
         instance_secret_key: Instance Secret Key
+        instance_publishable_key: Instance Publishable Key
         account_id: Account ID
         business_name: Business Name
         charges_enabled: Charges Enabled
@@ -646,6 +676,16 @@ en_GB:
         info_html: "Matomo is a Web and Mobile Analytics application. You can either host Matomo on-premises or use a cloud-hosted service. See <a href='http://matomo.org' target='_blank'>matomo.org</a> for more information."
         config_instructions_html: "Here you can configure the OFN Matomo integration. The Matomo URL below should point to the Matomo instance where the user tracking information will be sent to; if it is left empty, Matomo user tracking will be disabled. The Site ID field is not mandatory but useful if you are tracking more than one website on a single Matomo instance; it can be found on the Matomo instance console."
         config_instructions_tag_manager_html: "Setting the Matomo Tag Manager URL enables Matomo Tag Manager. This tool allows you to set up analytics events. The Matomo Tag Manager URL is copied from the Install Code section of Matomo Tag Manager. Ensure you select the right container and environment as these options change the URL."
+    connected_app_settings:
+      edit:
+        title: "Connected app settings"
+        info_html: "Enabled apps will appear under Enterprise Settings > Connected Apps."
+        enabled_legend: "Enabled connected apps"
+        connected_apps_enabled:
+          discover_regen: Discover Regenerative portal
+          affiliate_sales_data: DFC anonymised orders API for research purposes
+      update:
+        resource: Connected app settings
     customers:
       index:
         new_customer: "New Customer"
@@ -670,6 +710,9 @@ en_GB:
         balance_due: "Balance Due"
       destroy:
         has_associated_subscriptions: "Delete failed: This customer has active subscriptions. Cancel them first."
+    column_preferences:
+      bulk_update:
+        success: "Column preferences saved"
     contents:
       edit:
         title: Content
@@ -683,6 +726,10 @@ en_GB:
         your_content: Your content
         user_guide: User Guide
         map: Map
+    dfc_product_imports:
+      index:
+        title: "Importing a DFC product catalogue"
+        imported_products: "Imported products:"
     enterprise_fees:
       index:
         title: "Enterprise Fees"
@@ -736,7 +783,6 @@ en_GB:
       variants:
         infinity: "Infinity"
         to_order_tip: "Items made to order do not have a set stock level, such as loaves of bread made fresh to order."
-      back_to_products_list: "Back to products list"
       editing_product: "Editing Product"
       tabs:
         product_details: "Product Details"
@@ -748,6 +794,7 @@ en_GB:
       index:
         header:
           title: Bulk Edit Products
+      content:
         loading: Loading your products
       delete_modal:
         delete_product_modal:
@@ -759,51 +806,65 @@ en_GB:
           heading: "Delete variant"
           prompt: "This will permanently remove it from your list."
           confirmation_text: "Delete variant"
-      sort:
-        pagination:
-          total_html: "<strong>%{total}products</strong>found for your search criteria. Showing %{from}to%{to}."
-          per_page:
-            show: Show
-            per_page: "%{num}per page"
-          clear_search: Clear search
+          cancellation_text: "Keep variant"
       filters:
         search_products: Search for products
         search_for_producers: Search for producers
+        select_producer: Select producer
         all_producers: All producers
         search_for_categories: Search for categories
+        select_category: Select category
         all_categories: All categories
         producers:
-          label: Buy
+          label: Producer
         categories:
           label: Categories
         search: Search
+      sort:
+        pagination:
+          products_total_html:
+            one: "<strong>%{count} product</strong> found for your search criteria. Showing %{from} to %{to}."
+            other: "<strong>%{count} products</strong> found for your search criteria. Showing %{from} to %{to}."
+          per_page:
+            show: Show
+            per_page: "%{num} per page"
+          clear_search: Clear search
       no_products:
         no_products_found: No products found
         import_products: Import multiple products
         no_products_found_for_search: No products found for your search criteria
       table:
         changed_summary:
-          one: "%{count}product modified."
-          other: "%{count}products modified."
+          one: "%{count} product modified."
+          other: "%{count} products modified."
         error_summary:
           saved:
-            one: "%{count}product was saved correctly, but "
-            other: "%{count}products were saved correctly, but "
+            one: "%{count} product was saved correctly, but "
+            other: "%{count} products were saved correctly, but "
+          invalid:
+            one: "%{count} product could not be saved. Please review the errors and try again."
+            other: "%{count} products could not be saved. Please review the errors and try again."
         reset: Discard changes
         save: Save changes
+      product_variant_row:
         new_variant: New variant
       bulk_update:
         success: Changes saved
-      edit_image:
-        title: Edit product photo
-        close: Back
-        upload: Upload photo
       delete_product:
         success: Successfully deleted the product
         error: Unable to delete the product
       delete_variant:
         success: Successfully deleted the variant
         error: Unable to delete the variant
+      variant_row:
+        none_tax_category: None
+        search_for_tax_categories: "Search for tax categories"
+        category_field_name: "Category"
+        tax_category_field_name: "Tax Category"
+        producer_field_name: "Producer"
+      clone:
+        success: Successfully cloned the product
+        error: Unable to clone the product
     product_import:
       title: Product Import
       file_not_found: File not found or could not be opened
@@ -846,7 +907,9 @@ en_GB:
         tax_categories: Tax Categories
         shipping_categories: Shipping Categories
       dfc_import_form:
+        title: "Import from DFC catalogue"
         enterprise: "Enterprise"
+        catalog_url: "DFC catalogue URL"
         import: "Import"
       import:
         review: Review
@@ -950,6 +1013,7 @@ en_GB:
       edit:
         order_sure_want_to: Are you sure you want to %{event} this order?
         voucher_tax_included_in_price: "%{label}(tax included in voucher)"
+        tax_on_fees: "Tax on fees"
       invoice_email_sent: 'Invoice email has been sent'
       order_email_resent: 'Order email has been resent'
       bulk_management:
@@ -1143,8 +1207,6 @@ en_GB:
               An optional message to welcome customers and explain how to shop with
               you. If text is entered here it will be displayed in a home tab when
               customers first arrive at your shopfront.
-          shopfront_message_link_tooltip: "Insert / edit link"
-          shopfront_message_link_prompt: "Please enter a URL to insert"
           shopfront_closed_message: "Shopfront Closed Message"
           shopfront_closed_message_placeholder: >
               A message which provides a more detailed explanation about why your
@@ -1156,6 +1218,7 @@ en_GB:
           open_date: "Open Date"
           close_date: "Close Date"
           display_ordering_in_shopfront: "Display ordering in shopfront:"
+          shopfront_sort_by_product: "By product"
           shopfront_sort_by_category: "By category"
           shopfront_sort_by_producer: "By producer"
           shopfront_sort_by_category_placeholder: "Category"
@@ -1239,27 +1302,39 @@ en_GB:
           custom_tab_content: "Content for custom tab"
         connected_apps:
           legend: "Connected apps"
-          title: "Discover Regenerative"
-          tagline: "Allow Discover Regenerative to publish your enterprise information."
-          enable: "Allow data sharing"
-          disable: "Stop sharing"
-          loading: "Loading"
-          note: |
-              Your Open Food Network account is connected to Discover Regenerative.
-              Add or update information on your Discover Regenerative listing here.
-          link_label: "Manage listing"
-          description_html: |
-              <p>
-              Eligible producers can showcase their regenerative credentials,
-              farming practices and more through a profile listing.
-              Simplifying how buyers can find regenerative produce and connect
-              with producers of interest.
-              </p>
-              <p>
-              <a href="https://about.openfoodnetwork.org.au/regen-produce-portal/"
-              target="_blank"><b>Learn more about Discover Regenerative</b>
-              <i class="icon-external-link"></i></a>
-              </p>
+          affiliate_sales_data:
+            tagline: "Allow this research project to access your orders data anonymously"
+            enable: "Allow data sharing"
+            disable: "Stop sharing"
+            loading: "Loading"
+            need_to_be_manager: "Only managers can connect apps."
+          discover_regen:
+            title: "Discover Regenerative"
+            tagline: "Allow Discover Regenerative to publish your enterprise information."
+            enable: "Allow data sharing"
+            disable: "Stop sharing"
+            loading: "Loading"
+            need_to_be_manager: "Only managers can connect apps."
+            note: |
+                Your Open Food Network account is connected to Discover Regenerative.
+                Add or update information on your Discover Regenerative listing here.
+            link_label: "Manage listing"
+            description_html: |
+                <p>
+                Eligible producers can showcase their regenerative credentials,
+                farming practices and more through a profile listing.
+                Simplifying how buyers can find regenerative produce and connect
+                with producers of interest.
+                </p>
+                <p>
+                <a href="https://about.openfoodnetwork.org.au/regen-produce-portal/"
+                target="_blank"><b>Learn more about Discover Regenerative</b>
+                <i class="icon-external-link"></i></a>
+                </p>
+          vine:
+            enable: "Resources"
+            disable: "Disconnect"
+            need_to_be_manager: "Only managers can connect apps."
       actions:
         edit_profile: Settings
         properties: Properties
@@ -1312,10 +1387,8 @@ en_GB:
         contact_name: Contact Name
       edit:
         editing: 'Settings:'
-        back_link: Back to enterprises list
       new:
         title: New Enterprise
-        back_link: Back to enterprises list
       welcome:
         welcome_title: Welcome to the Open Food Network!
         welcome_text: You have successfully created a
@@ -1352,6 +1425,11 @@ en_GB:
         choose_products_from: "Choose Products From:"
         re_notify_producers: Re notify producers
         notify_producers_tip: This will send an email to each producer with the list of their orders.
+      date_time_warning_modal_content:
+        title: 'Orders are linked to this order cycle.'
+        content: 'If you wish to create a new order cycle, it is recommended to duplicate the order cycle first and then change the dates.'
+        proceed: 'Proceed anyway'
+        cancel: 'Cancel'
       incoming:
         incoming: "Incoming"
         supplier: "Supplier"
@@ -1551,6 +1629,9 @@ en_GB:
       pack_by_customer: Pack By Customer
       pack_by_supplier: Pack By Supplier
       pack_by_product: Pack By Product
+      display:
+        report_is_big: "This report is big and may slow down your device."
+        display_anyway: "Display anyway"
       download:
         button: "Download Report"
       show:
@@ -1631,9 +1712,15 @@ en_GB:
       index:
         title: "OIDC Settings"
         connect: "Connect Your Account"
+        disconnect: "Disconnect"
+        connected: "Your account is linked to %{uid}"
         les_communs_link: "Les Communs Open ID server"
         link_your_account: "You need first to link your account with the authorisation provider used by DFC (Les Communs Open ID Connect)."
         link_account_button: "Link your Les Communs OIDC Account"
+        note_expiry: |
+            Tokens to access connected apps have expired. Please refresh your account
+            connection to keep all integrations working.
+        refresh: "Refresh authorisation"
         view_account: "To view your account, see:"
     subscriptions:
       index:
@@ -1863,7 +1950,7 @@ en_GB:
       all_terms_and_conditions:
         message_html: "I agree to the seller's %{terms_and_conditions_link} and the platform %{tos_link}."
         terms_and_conditions: "Terms and Conditions"
-      submit: Complete order
+      submit: Place order
       cancel: Back to Payment method
     errors:
       saving_failed: "Saving failed, please update the highlighted fields."
@@ -2044,7 +2131,6 @@ en_GB:
   label_account: "Account"
   label_more: "Show more"
   label_less: "Show less"
-  label_notices: "Community Forum"
   cart_items: "items"
   cart_headline: "Your shopping cart"
   total: "Total"
@@ -2123,7 +2209,7 @@ en_GB:
   system_step3_text: "Set up payment methods and add your collection and delivery options."
   cta_headline: "The sustainable food network of our future."
   cta_label: "Start shopping"
-  stats_headline: "Join over 15k shoppers and producers in creating a new food system"
+  stats_headline: "Join over 18k shoppers and producers in creating a new food system"
   stats_producers: "food producers"
   stats_shops: "food shops"
   stats_shoppers: "food shoppers"
@@ -2176,6 +2262,7 @@ en_GB:
   order_back_to_website: Back To Website
   checkout_details_title: Checkout Details
   checkout_payment_title: Checkout Payment
+  checkout_summary_title: Checkout Summary
   bom_tip: "Use this page to alter product quantities across multiple orders. Products may also be removed from orders entirely, if required."
   unsaved_changes_warning: "Unsaved changes exist and will be lost if you continue."
   unsaved_changes_error: "Fields with red borders contain errors."
@@ -2218,7 +2305,7 @@ en_GB:
   email_so_placement_intro_html: "You have a new order with <strong>%{distributor}</strong>"
   email_so_placement_details_html: "Here are the details of your order for <strong>%{distributor}</strong>:"
   email_so_placement_changes: "Unfortunately, not all products that you requested were available. The original quantities that you requested appear crossed-out below."
-  email_so_payment_success_intro_html: "An automatic payment has been processed for your order from <strong>%{distributor}</strong>."
+  email_so_payment_success_intro_html: "Your subscription order from <strong>%{distributor}</strong> has been processed. \nIf you chose to pay for your subscription via card, you will now be charged."
   email_so_placement_explainer_html: "This order was automatically created for you."
   email_so_edit_true_html: "You can <a href='%{order_url}'>make changes</a> until orders close on %{orders_close_at}."
   email_so_edit_false_html: "You can <a href='%{order_url}'>view details of this order</a> at any time."
@@ -2455,6 +2542,7 @@ en_GB:
   orders_bought_already_confirmed: "* already confirmed"
   orders_confirm_cancel: "Are you sure you want to cancel this order?"
   order_processed_successfully: "Your order has been processed successfully"
+  thank_you_for_your_order: "Thank you for your order"
   products_cart_distributor_choice: "Distributor for your order:"
   products_cart_distributor_change: "Your distributor for this order will be changed to %{name} if you add this product to your cart."
   products_cart_distributor_is: "Your distributor for this order is %{name}."
@@ -2801,7 +2889,6 @@ en_GB:
   spree_admin_single_enterprise_hint: "Hint: To allow people to find you, turn on your visibility under"
   spree_admin_eg_pickup_from_school: "eg. 'Pick-up from Primary School'"
   spree_admin_eg_collect_your_order: "eg. 'Please collect your order from 123 Imaginary St, Newcastle, NE1 1AA'"
-  spree_classification_primary_taxon_error: "Taxon %{taxon} is the primary taxon of %{product} and cannot be deleted"
   spree_order_availability_error: "Distributor or order cycle cannot supply the products in your cart"
   spree_order_populator_error: "That distributor or order cycle can't supply all the products in your cart. Please choose another."
   spree_order_cycle_error: "Please choose an order cycle for this order."
@@ -3121,7 +3208,7 @@ en_GB:
   order_cycles_no_permission_to_coordinate_error: "None of your enterprises have permission to coordinate an order cycle"
   order_cycles_no_permission_to_create_error: "You don't have permission to create an order cycle coordinated by that enterprise"
   order_cycle_closed: "The order cycle you've selected has just closed."
-  back_to_orders_list: "Back to order list"
+  back_to_orders_list: "Back To Orders List"
   no_orders_found: "No Orders Found"
   order_information: "Order Information"
   new_payment: "New Payment"
@@ -3444,7 +3531,7 @@ en_GB:
       one_override: one override
       overrides: overrides
       remain_unsaved: remain unsaved.
-      no_changes_to_save: No changes to save.'
+      no_changes_to_save: No changes to save.
       no_authorisation: "I couldn't get authorisation to save those changes, so they remain unsaved."
       some_trouble: "I had some trouble saving: %{errors}"
       changing_on_hand_stock: Changing 'in stock' stock levels...
@@ -3471,6 +3558,8 @@ en_GB:
           This will set stock level to zero on all products for this
           enterprise that are not present in the uploaded file.
     order_cycles:
+      unsaved_changes: "You have unsaved changes"
+      bulk_save_error: "Oh no! I was unable to save your changes."
       create_failure: "Failed to create order cycle"
       update_success: 'Your order cycle has been updated.'
       update_failure: "Failed to update order cycle"
@@ -3498,6 +3587,9 @@ en_GB:
           There was a problem setting up your card in our payments gateway.
           Please refresh the page and try again, if it fails a second time,
           please contact us for support.
+    trix:
+      code: "Code"
+      urlPlaceholder: "Please enter a URL to insert"
   inflections:
     each:
       one: "each"
@@ -3652,7 +3744,7 @@ en_GB:
   account: "Account"
   logout: "Logout"
   date_range: "Date Range"
-  status: "status"
+  status: "Status"
   new: "New"
   start: "Start"
   end: "End"
@@ -3685,6 +3777,7 @@ en_GB:
     editing_tax_category: "Editing tax category"
     editing_tax_rate: "Editing tax rate"
     editing_zone: "Editing zone"
+    editing_state: "Editing County"
     expiration: "Expiration"
     invalid_payment_provider: "Invalid payment provider"
     items_cannot_be_shipped: "Items cannot be shipped"
@@ -3693,9 +3786,9 @@ en_GB:
     more: "More"
     new_adjustment: "New adjustment"
     new_tax_category: "New Tax Category"
-    new_taxon: "New taxon"
     new_user: "New user"
     no_pending_payments: "No pending payments"
+    remove: "Remove"
     none: "None"
     not_found: "Not found"
     notice_messages:
@@ -3711,8 +3804,6 @@ en_GB:
       delivery: "Signed, sealed, delivered"
     start_date: "Start date"
     successfully_removed: "Successfully Removed"
-    taxonomy_edit: "Taxonomy edit"
-    tree: "Tree"
     updating: "Updating"
     your_order_is_empty_add_product: "Your order is empty, please search for and add a product above"
     add_product: "Add Product"
@@ -3720,6 +3811,7 @@ en_GB:
     resend: "Resend"
     back_to_orders_list: "Back To Orders List"
     back_to_payments_list: "Back To Payments List"
+    back_to_states_list: "Back To Counties List"
     return_authorizations: "Return Authorisations"
     cannot_create_returns: "Cannot create returns as this order has no shipped units."
     select_stock: "Select stock"
@@ -3809,7 +3901,6 @@ en_GB:
     tax_rate_amount_explanation: "Tax rates are a decimal amount to aid in calculations, (i.e. if the tax rate is 5% then enter 0.05)"
     included_in_price: "Included in Price"
     show_rate_in_label: "Show rate in label"
-    back_to_tax_rates_list: "Back to Tax Rates List"
     tax_settings: "Tax Settings"
     zones: "Zones"
     new_zone: "New Zone"
@@ -3822,14 +3913,11 @@ en_GB:
     iso_name: "ISO Name"
     states_required: "Counties Required"
     editing_country: "Editing Country"
-    back_to_countries_list: "Back to Countries List"
     states: "Counties"
     abbreviation: "Abbreviation"
     new_state: "New County"
     payment_methods: "Payment Methods"
-    taxonomies: "Taxonomies"
-    new_taxonomy: "New Taxonomy"
-    back_to_taxonomies_list: "Back to Taxonomies List"
+    taxons: "Product Categories"
     shipping_methods: "Shipping Methods"
     shipping_method: "Shipping Method"
     shipment: "Shipment"
@@ -3922,6 +4010,11 @@ en_GB:
     validation:
       must_be_int: "must be an integer"
     admin:
+      images:
+        edit:
+          title: Edit product photo
+          close: Back
+          upload: Upload photo
       mail_methods:
         send_testmail: "Send test email"
         testmail:
@@ -3936,6 +4029,7 @@ en_GB:
         bulk_order_management: "Bulk Order Management"
         subscriptions: "Subscriptions"
         products: "Products"
+        products_v3: "Products"
         option_types: "Option Types"
         properties: "Properties"
         variant_overrides: "Inventory"
@@ -3949,6 +4043,10 @@ en_GB:
         customers: "Customers"
         groups: "Groups"
         oidc_settings: "OIDC Settings"
+        overview: "Overview"
+        product_import: "Import"
+        enterprise_roles: "Roles"
+        payment_methods: "Payment Methods"
       product_properties:
         index:
           inherits_properties_checkbox_hint: "Inherit properties from %{supplier}? (unless overridden above)"
@@ -3979,7 +4077,6 @@ en_GB:
           continue: "Continue"
         new:
           new_return_authorization: "New Return Authorisation"
-          back_to_return_authorizations_list: "Back To Return Authorisation List"
           continue: "Continue"
         edit:
           receive: "receive"
@@ -4006,6 +4103,9 @@ en_GB:
         add_product:
           cannot_add_item_to_canceled_order: "Cannot add item to canceled order"
           include_out_of_stock_variants: "Include variants with no available stock"
+        shipment:
+          mark_as_shipped_message_html: "This will mark the order as Shipped.<br />Are you sure you want to proceed?"
+          mark_as_shipped_label_message: "Send a shipment/pick up notification email to the customer."
         index:
           listing_orders: "Listing Orders"
           new_order: "New Order"
@@ -4223,6 +4323,7 @@ en_GB:
           product_name: Product Name
         primary_taxon_form:
           product_category: Product Category
+          search_for_categories: "Search for categories"
         group_buy_form:
           group_buy: "Group Buy?"
           bulk_unit_size: Bulk unit size
@@ -4276,12 +4377,16 @@ en_GB:
           new_variant: "New Variant"
         form:
           sku: "Product Code"
-          price: "Price"
           unit_price: "Unit Price"
           display_as: "Display As"
           display_name: "Display Name"
           display_as_placeholder: 'eg. 2 kg'
           display_name_placeholder: 'eg. Tomatoes'
+          unit_scale: "Unit scale"
+          unit: Unit
+          price: Price
+          unit_value: Unit value
+          variant_category: Category
         autocomplete:
           out_of_stock: "Out of Stock"
           producer_name: "Producer"
@@ -4300,10 +4405,23 @@ en_GB:
           total: "Total"
           billing_address_name: "Name"
       taxons:
+        index:
+          title: "Product Categories"
+          new_taxon: 'New product category'
+        new:
+          title: "New Product Category"
+        edit:
+          title: "Edit Product Category"
+        destroy:
+          delete_taxon:
+            success: "Successfully deleted the product category"
         form:
           name: Name
-          permalink: Permalink
+          meta_title: Meta Title
+          meta_description: Meta Description
+          meta_keywords: Meta Keywords
           description: Description
+          dfc_id: DFC URI
       general_settings:
         edit:
           legal_settings: "Legal Settings"
@@ -4540,7 +4658,6 @@ en_GB:
       key_cleared: "Key cleared"
       shipment:
         cannot_ready: "Cannot ready shipment."
-      invalid_taxonomy_id: "Invalid taxonomy id."
       toggle_api_key_view: "Show API key view for user"
     activerecord:
       models:
@@ -4599,3 +4716,6 @@ en_GB:
     pagination:
       next: Next
       previous: Previous
+  invisible_captcha:
+    sentence_for_humans: "Please leave empty"
+    timestamp_error_message: "Please try again after 5 seconds."

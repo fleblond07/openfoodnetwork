@@ -30,7 +30,7 @@ module Spree
 
     def expiry=(expiry)
       self[:month], self[:year] = expiry.split(" / ")
-      self[:year] = "20" + self[:year]
+      self[:year] = "20#{self[:year]}"
     end
 
     def number=(num)
@@ -152,7 +152,7 @@ module Spree
     end
 
     def default_missing?
-      !user.credit_cards.exists?(is_default: true)
+      !user.credit_cards.where(is_default: true).exists?
     end
 
     def default_card_needs_updating?

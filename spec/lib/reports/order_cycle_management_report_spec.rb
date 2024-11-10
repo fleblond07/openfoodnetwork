@@ -5,7 +5,7 @@ require 'spec_helper'
 module Reporting
   module Reports
     module OrderCycleManagement
-      describe Base do
+      RSpec.describe Base do
         context "as a site admin" do
           subject { Base.new(user, params) }
           let(:params) { {} }
@@ -66,7 +66,7 @@ module Reporting
 
           describe "fetching orders" do
             let(:supplier) { create(:supplier_enterprise) }
-            let(:product) { create(:simple_product, supplier:) }
+            let(:product) { create(:simple_product, supplier_id: supplier.id) }
             let(:order) { create(:order, completed_at: 1.day.ago) }
 
             it "only shows orders managed by the current user" do

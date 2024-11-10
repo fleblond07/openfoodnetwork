@@ -5,7 +5,7 @@ require 'spec_helper'
 module Reporting
   module Reports
     module ProductsAndInventory
-      describe LettuceShare do
+      RSpec.describe LettuceShare do
         let(:user) { create(:user) }
         let(:report) { LettuceShare.new(user) }
         let(:variant) { create(:variant) }
@@ -79,9 +79,7 @@ module Reporting
               }
               rows = report.table_rows
               expect(rows.count).to eq 2
-              expect(rows.map{ |row|
-                       row[0]
-                     } ).to include variant.product.name, variant2.product.name
+              expect(rows.pluck(0) ).to include variant.product.name, variant2.product.name
             end
           end
         end

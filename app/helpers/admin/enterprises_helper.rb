@@ -14,6 +14,10 @@ module Admin
       producers.size == 1 ? producers.first.id : nil
     end
 
+    def managed_by_user?(enterprise)
+      enterprise.in?(spree_current_user.enterprises)
+    end
+
     def enterprise_side_menu_items(enterprise)
       is_shop = enterprise.sells != "none"
       show_properties = !!enterprise.is_primary_producer
@@ -22,7 +26,8 @@ module Admin
       show_enterprise_fees = can?(:manage_enterprise_fees,
                                   enterprise) && (is_shop || enterprise.is_primary_producer)
       show_connected_apps = can?(:manage_connected_apps, enterprise) &&
-                            feature?(:connected_apps, spree_current_user, enterprise)
+                            feature?(:connected_apps, spree_current_user, enterprise) &&
+                            Spree::Config.connected_apps_enabled.present?
 
       build_enterprise_side_menu_items(
         is_shop:,
@@ -32,6 +37,11 @@ module Admin
         show_enterprise_fees:,
         show_connected_apps:,
       )
+    end
+
+    def connected_apps_enabled
+      connected_apps_enabled = Spree::Config.connected_apps_enabled&.split(',') || []
+      ConnectedApp::TYPES & connected_apps_enabled
     end
 
     private
@@ -62,8 +72,8 @@ module Admin
         { name: 'inventory_settings', icon_class: "icon-list-ol", show: is_shop },
         { name: 'tag_rules', icon_class: "icon-random", show: is_shop },
         { name: 'shop_preferences', icon_class: "icon-shopping-cart", show: is_shop },
-        { name: 'users', icon_class: "icon-user", show: true },
         { name: 'white_label', icon_class: "icon-leaf", show: true },
+        { name: 'users', icon_class: "icon-user", show: true },
         { name: 'connected_apps', icon_class: "icon-puzzle-piece", show: show_connected_apps },
       ]
     end

@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-describe Admin::EnterprisesHelper, type: :helper do
+RSpec.describe Admin::EnterprisesHelper, type: :helper do
   let(:user) { build(:user) }
 
   before do
@@ -23,11 +23,13 @@ describe Admin::EnterprisesHelper, type: :helper do
       expect(visible_items.pluck(:name)).to eq %w[
         primary_details address contact social about business_details images
         vouchers enterprise_permissions inventory_settings tag_rules
-        shop_preferences users white_label
+        shop_preferences white_label users
       ]
     end
 
     it "lists enabled features when allowed", feature: :connected_apps do
+      allow(Spree::Config).to receive(:connected_apps_enabled).and_return "discover_regen"
+
       user.enterprises << enterprise
       expect(visible_items.pluck(:name)).to include "connected_apps"
     end

@@ -2,14 +2,14 @@
 
 require 'spec_helper'
 
-describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotals do
+RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotals do
   let!(:distributor) { create(:distributor_enterprise) }
 
   let!(:order) do
     create(:completed_order_with_totals, line_items_count: 1, distributor:)
   end
   let!(:supplier) do
-    order.line_items.first.variant.product.supplier
+    order.line_items.first.variant.supplier
   end
   let(:current_user) { distributor.owner }
   let(:params) { { display_summary_row: false, fields_to_hide: [] } }
@@ -34,8 +34,7 @@ describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotals do
     let(:variant) { item.variant }
 
     it "contains a sum of total items" do
-      variant.product.update!(variant_unit: "items", variant_unit_name: "bottle")
-      variant.update!(unit_value: 6) # six-pack
+      variant.update!(variant_unit: "items", variant_unit_name: "bottle", unit_value: 6) # six-pack
       item.update!(final_weight_volume: nil) # reset unit information
       item.update!(quantity: 3)
 
@@ -44,8 +43,7 @@ describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotals do
     end
 
     it "contains a sum of total weight" do
-      variant.product.update!(variant_unit: "weight")
-      variant.update!(unit_value: 200) # grams
+      variant.update!(variant_unit: "weight", unit_value: 200) # grams
       item.update!(final_weight_volume: nil) # reset unit information
       item.update!(quantity: 3)
 
@@ -57,8 +55,8 @@ describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotals do
       # This is not possible with the current code but was possible years ago.
       # So I'm using `update_columns` to save invalid data.
       # We still have lots of that data in our databases though.
-      variant.product.update(variant_unit: "items", variant_unit_name: "container")
-      variant.update_columns(unit_value: nil, unit_description: "vacuum")
+      variant.update_columns(variant_unit: "items", variant_unit_name: "container",
+                             unit_value: nil, unit_description: "vacuum")
       item.update!(final_weight_volume: nil) # reset unit information
 
       expect(table_headers[4]).to eq "Total Units"
@@ -69,8 +67,7 @@ describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotals do
       expect(report).to receive(:display_summary_row?).and_return(true)
       # assures product appears first on report table
       variant.product.update!(name: "Alpha-Product #000")
-      variant.product.update!(variant_unit: "weight")
-      variant.update!(unit_value: 200) # grams
+      variant.update!(variant_unit: "weight", unit_value: 200) # grams
       item.update!(final_weight_volume: nil) # reset unit information
       item.update!(quantity: 3)
 
@@ -89,8 +86,8 @@ describe Reporting::Reports::OrdersAndFulfillment::OrderCycleSupplierTotals do
       # This is not possible with the current code but was possible years ago.
       # So I'm using `update_columns` to save invalid data.
       # We still have lots of that data in our databases though.
-      variant.product.update(variant_unit: "items", variant_unit_name: "container")
-      variant.update_columns(unit_value: nil, unit_description: "vacuum")
+      variant.update_columns(variant_unit: "items", variant_unit_name: "container",
+                             unit_value: nil, unit_description: "vacuum")
       item.update!(final_weight_volume: nil) # reset unit information
 
       # This second line item will have a default a bigint value.

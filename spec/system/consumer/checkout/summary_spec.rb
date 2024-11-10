@@ -2,7 +2,7 @@
 
 require "system_helper"
 
-describe "As a consumer, I want to checkout my order" do
+RSpec.describe "As a consumer, I want to checkout my order" do
   include ShopWorkflow
   include CheckoutHelper
   include FileHelper
@@ -10,12 +10,13 @@ describe "As a consumer, I want to checkout my order" do
   include StripeStubs
   include PaypalHelper
   include AuthenticationHelper
+  include UIComponentHelper
 
   let!(:zone) { create(:zone_with_member) }
   let(:supplier) { create(:supplier_enterprise) }
   let(:distributor) { create(:distributor_enterprise, charges_sales_tax: true) }
   let(:product) {
-    create(:taxed_product, supplier:, price: 10, zone:, tax_rate_amount: 0.1)
+    create(:taxed_product, supplier_id: supplier.id, price: 10, zone:, tax_rate_amount: 0.1)
   }
   let(:variant) { product.variants.first }
   let!(:order_cycle) {
@@ -48,7 +49,6 @@ describe "As a consumer, I want to checkout my order" do
 
     before do
       login_as(user)
-      visit checkout_path
     end
 
     context "summary step" do
@@ -106,6 +106,41 @@ describe "As a consumer, I want to checkout my order" do
           expect(order.reload.state).to eq "complete"
 
           expect(page).to have_content "Shopping @ #{distributor.name}"
+        end
+      end
+
+      describe "navigating away from checkout summary page" do
+        it "navigates to new page when popup is confirmed" do
+          visit checkout_step_path(:summary)
+          expect(page).to have_content "Order summary"
+          within '.nav-main-menu' do
+            accept_alert do
+              click_link(href: '/groups')
+            end
+          end
+          expect(page).not_to have_content "Order summary"
+          expect(page).to have_content "Groups / regions"
+        end
+
+        it "doesn't navigate to new page when popup is canceled" do
+          visit checkout_step_path(:summary)
+          expect(page).to have_content "Order summary"
+          within '.nav-main-menu' do
+            dismiss_confirm do
+              click_link(href: '/groups')
+            end
+          end
+          expect(page).to have_content "Order summary"
+          expect(page).not_to have_content "Groups / regions"
+        end
+
+        it "opens correct order step when edit link is clicked" do
+          visit checkout_step_path(:summary)
+          expect(page).to have_content "Order summary"
+          click_link(href: '/checkout/details')
+
+          expect(page).to have_content "Contact information"
+          expect(page).not_to have_content "Groups / regions"
         end
       end
 

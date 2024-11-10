@@ -1,4 +1,5 @@
 %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}
+%meta{ name: "turbo-cache-control", content: "no-cache" }
 
 = csrf_meta_tags
 = action_cable_meta_tag
@@ -6,8 +7,10 @@
 %title
   - if content_for? :html_title
     = yield :html_title
+  - elsif content_for? :page_title
+    = strip_tags(yield(:page_title))
   - else
-    = t(controller.controller_name, :default => controller.controller_name.titleize)
+    = t("spree.admin.tab.#{controller.controller_name}", :default => controller.controller_name.titleize)
   = " - OFN #{t(:administration)}"
 
 %link{:href => "https://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600&subset=latin,cyrillic,greek,vietnamese", :rel => "stylesheet", :type => "text/css"}

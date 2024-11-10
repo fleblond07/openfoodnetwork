@@ -3,9 +3,19 @@
 require 'spec_helper'
 
 module Spree
-  describe LineItem do
+  RSpec.describe LineItem do
     let(:order) { create :order_with_line_items, line_items_count: 1 }
     let(:line_item) { order.line_items.first }
+
+    describe "associations" do
+      it { is_expected.to belong_to(:order).required }
+      it { is_expected.to have_one(:order_cycle).through(:order) }
+      it { is_expected.to belong_to(:variant).required }
+      it { is_expected.to have_one(:product).through(:variant) }
+      it { is_expected.to have_one(:supplier).through(:variant) }
+      it { is_expected.to belong_to(:tax_category).optional }
+      it { is_expected.to have_many(:adjustments) }
+    end
 
     context '#save' do
       it 'should update inventory, totals, and tax' do
@@ -144,11 +154,11 @@ module Spree
       let(:s1) { create(:supplier_enterprise) }
       let(:s2) { create(:supplier_enterprise) }
 
-      let(:p1) { create(:simple_product, supplier: s1) }
-      let(:p2) { create(:simple_product, supplier: s2) }
+      let(:variant1) { create(:variant, supplier: s1) }
+      let(:variant2) { create(:variant, supplier: s2) }
 
-      let(:li1) { create(:line_item, order: o, product: p1) }
-      let(:li2) { create(:line_item, order: o, product: p2) }
+      let(:li1) { create(:line_item, order: o, variant: variant1) }
+      let(:li2) { create(:line_item, order: o, variant: variant2) }
 
       let(:p3) { create(:product, name: 'Clear Honey') }
       let(:p4) { create(:product, name: 'Apricots') }
@@ -303,8 +313,8 @@ module Spree
           expect(order.shipment.manifest.first.variant).to eq line_item.variant
         end
 
-        it "does not reduce the variant's stock level" do
-          expect(variant_on_demand.reload.on_hand).to eq 1
+        it "reduces the variant's stock level" do
+          expect(variant_on_demand.reload.on_hand).to eq(-9)
         end
 
         it "does not mark inventory units as backorderd" do
@@ -339,7 +349,7 @@ module Spree
 
           it "draws stock from the variant override" do
             expect(vo.reload.count_on_hand).to eq 3
-            expect{ line_item.increment!(:quantity) }
+            expect{ line_item.update!(quantity: line_item.quantity + 1) }
               .not_to change{ Spree::Variant.find(variant.id).on_hand }
             expect(vo.reload.count_on_hand).to eq 2
           end
@@ -347,9 +357,9 @@ module Spree
 
         context "when a variant override does not apply" do
           it "draws stock from the variant" do
-            expect{ line_item.increment!(:quantity) }.to change{
-                                                           Spree::Variant.find(variant.id).on_hand
-                                                         }.by(-1)
+            expect{ line_item.update!(quantity: line_item.quantity + 1) }.to change{
+              Spree::Variant.find(variant.id).on_hand
+            }.by(-1)
           end
         end
       end
@@ -664,7 +674,7 @@ module Spree
         before { allow(li).to receive(:product) { p } }
 
         context "when full_name starts with the product name" do
-          before { allow(li).to receive(:full_name) { p.name + " - something" } }
+          before { allow(li).to receive(:full_name) { "#{p.name} - something" } }
 
           it "does not show the product name twice" do
             expect(li.product_and_full_name).to eq('product - something')
@@ -689,11 +699,11 @@ module Spree
 
       describe "getting unit for display" do
         let(:o) { create(:order) }
-        let(:p1) { create(:product, name: 'Clear Honey', variant_unit_scale: 1) }
-        let(:v1) { create(:variant, product: p1, unit_value: 500) }
+        let(:p1) { create(:product, name: 'Clear Honey') }
+        let(:v1) { create(:variant, product: p1, variant_unit_scale: 1, unit_value: 500) }
         let(:li1) { create(:line_item, order: o, product: p1, variant: v1) }
-        let(:p2) { create(:product, name: 'Clear United States Honey', variant_unit_scale: 453.6) }
-        let(:v2) { create(:variant, product: p2, unit_value: 453.6) }
+        let(:p2) { create(:product, name: 'Clear United States Honey') }
+        let(:v2) { create(:variant, product: p2, variant_unit_scale: 453.6, unit_value: 453.6) }
         let(:li2) { create(:line_item, order: o, product: p2, variant: v2) }
 
         before do
@@ -713,8 +723,11 @@ module Spree
       end
 
       context "when the line_item has a final_weight_volume set" do
-        let!(:p0) { create(:simple_product, variant_unit: 'weight', variant_unit_scale: 1) }
-        let!(:v) { create(:variant, product: p0, unit_value: 10, unit_description: 'bar') }
+        let!(:p0) { create(:simple_product) }
+        let!(:v) {
+          create(:variant, product: p0, variant_unit: 'weight', variant_unit_scale: 1,
+                           unit_value: 10, unit_description: 'bar')
+        }
 
         let!(:p) { create(:simple_product, variant_unit: 'weight', variant_unit_scale: 1) }
         let!(:li) { create(:line_item, product: p, final_weight_volume: 5) }
@@ -732,8 +745,11 @@ module Spree
       end
 
       context "when the variant already has a value set" do
-        let!(:p0) { create(:simple_product, variant_unit: 'weight', variant_unit_scale: 1) }
-        let!(:v) { create(:variant, product: p0, unit_value: 10, unit_description: 'bar') }
+        let!(:p0) { create(:simple_product) }
+        let!(:v) {
+          create(:variant, product: p0, variant_unit: 'weight', variant_unit_scale: 1,
+                           unit_value: 10, unit_description: 'bar')
+        }
 
         let!(:p) { create(:simple_product, variant_unit: 'weight', variant_unit_scale: 1) }
         let!(:li) { create(:line_item, product: p, final_weight_volume: 5) }
@@ -803,13 +819,15 @@ module Spree
     end
   end
 
-  describe "searching with ransack" do
+  RSpec.describe "searching with ransack" do
     let(:order_cycle1) { create(:order_cycle) }
     let(:order_cycle2) { create(:order_cycle) }
-    let(:product1) { create(:product, supplier: create(:supplier_enterprise)) }
-    let(:product2) { create(:product, supplier: create(:supplier_enterprise)) }
-    let!(:line_item1) { create(:line_item, variant: product1.variants.first) }
-    let!(:line_item2) { create(:line_item, variant: product2.variants.first) }
+    let(:variant1) { create(:variant, supplier: supplier1) }
+    let(:variant2) { create(:variant, supplier: supplier2) }
+    let(:supplier1) { create(:supplier_enterprise) }
+    let(:supplier2) { create(:supplier_enterprise) }
+    let!(:line_item1) { create(:line_item, variant: variant1) }
+    let!(:line_item2) { create(:line_item, variant: variant2) }
 
     let(:search_result) { Spree::LineItem.ransack(query).result }
 
@@ -819,7 +837,7 @@ module Spree
     end
 
     context "searching by supplier" do
-      let(:query) { { supplier_id_eq: line_item1.variant.product.supplier_id } }
+      let(:query) { { supplier_id_eq: line_item1.variant.supplier_id } }
 
       it "filters results" do
         expect(search_result.to_a).to eq [line_item1]

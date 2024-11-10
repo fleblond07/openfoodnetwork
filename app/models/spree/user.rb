@@ -42,6 +42,7 @@ module Spree
     has_many :credit_cards, dependent: :destroy
     has_many :report_rendering_options, class_name: "::ReportRenderingOptions", dependent: :destroy
     has_many :webhook_endpoints, dependent: :destroy
+    has_many :column_preferences, dependent: :destroy
     has_one :oidc_account, dependent: :destroy
 
     accepts_nested_attributes_for :enterprise_roles, allow_destroy: true
@@ -96,7 +97,7 @@ module Spree
     end
 
     def build_enterprise_roles
-      Enterprise.all.find_each do |enterprise|
+      Enterprise.find_each do |enterprise|
         unless enterprise_roles.find_by enterprise_id: enterprise.id
           enterprise_roles.build(enterprise:)
         end
@@ -154,6 +155,12 @@ module Spree
 
     def disabled=(value)
       self.disabled_at = value == '1' ? Time.zone.now : nil
+    end
+
+    def affiliate_enterprises
+      return [] unless Flipper.enabled?(:affiliate_sales_data, self)
+
+      Enterprise.joins(:connected_apps).merge(ConnectedApps::AffiliateSalesData.ready)
     end
 
     protected

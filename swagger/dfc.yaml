@@ -67,6 +67,65 @@ paths:
                     dfc-b:region: Victoria
         '404':
           description: not found
+  "/api/dfc/affiliate_sales_data":
+    parameters:
+    - name: startDate
+      in: query
+      schema:
+        type: string
+    - name: endDate
+      in: query
+      schema:
+        type: string
+    get:
+      summary: Show sales data of person's affiliate enterprises
+      tags:
+      - AffiliateSalesData
+      responses:
+        '200':
+          description: successful
+          content:
+            application/json:
+              examples:
+                test_example:
+                  value:
+                    "@context": https://www.datafoodconsortium.org
+                    "@id": http://test.host/api/dfc/affiliate_sales_data
+                    "@type": dfc-b:Person
+                    dfc-b:affiliates:
+                      "@type": dfc-b:Enterprise
+                      dfc-b:hasAddress:
+                        "@type": dfc-b:Address
+                        dfc-b:hasPostalCode: '20170'
+                      dfc-b:supplies:
+                        "@type": dfc-b:SuppliedProduct
+                        dfc-b:name: Tomato
+                        dfc-b:hasQuantity:
+                          "@type": dfc-b:QuantitativeValue
+                          dfc-b:hasUnit: dfc-m:Gram
+                          dfc-b:value: 1.0
+                        dfc-b:concernedBy:
+                          "@type": dfc-b:OrderLine
+                          dfc-b:quantity:
+                            "@type": dfc-b:QuantitativeValue
+                            dfc-b:hasUnit: dfc-m:Piece
+                            dfc-b:value: 1.0
+                          dfc-b:hasPrice:
+                            "@type": dfc-b:QuantitativeValue
+                            dfc-b:value: 10.0
+                          dfc-b:partOf:
+                            "@type": dfc-b:Order
+                            dfc-b:belongsTo:
+                              "@type": dfc-b:SaleSession
+                              dfc-b:objectOf:
+                                "@type": dfc-b:Coordination
+                                dfc-b:coordinatedBy:
+                                  "@type": dfc-b:Enterprise
+                                  dfc-b:hasAddress:
+                                    "@type": dfc-b:Address
+                                    dfc-b:hasPostalCode: '20170'
+        '400':
+          description: bad request
   "/api/dfc/enterprises/{enterprise_id}/catalog_items":
     parameters:
     - name: enterprise_id
@@ -100,6 +159,7 @@ paths:
                       dfc-b:hasDescription: Beautiful
                       dfc-b:manages: http://test.host/api/dfc/enterprises/10000/catalog_items/10001
                       dfc-b:supplies: http://test.host/api/dfc/enterprises/10000/supplied_products/10001
+                      dfc-b:hasMainContact: http://test.host/api/dfc/enterprises/10000#mainContact
                       ofn:long_description: "<p>Hello, world!</p><p>This is a paragraph.</p>"
                     - "@id": http://test.host/api/dfc/enterprises/10000/catalog_items/10001
                       "@type": dfc-b:CatalogItem
@@ -111,15 +171,10 @@ paths:
                       "@type": dfc-b:SuppliedProduct
                       dfc-b:name: Apple - 1g
                       dfc-b:description: Red
-                      dfc-b:hasType: dfc-pt:non-local-vegetable
                       dfc-b:hasQuantity:
                         "@type": dfc-b:QuantitativeValue
                         dfc-b:hasUnit: dfc-m:Gram
                         dfc-b:value: 1.0
-                      dfc-b:alcoholPercentage: 0.0
-                      dfc-b:lifetime: ''
-                      dfc-b:usageOrStorageCondition: ''
-                      dfc-b:totalTheoreticalStock: 0.0
                       ofn:spree_product_id: 90000
                       ofn:spree_product_uri: http://test.host/api/dfc/enterprises/10000?spree_product_id=90000
                     - "@id": http://test.host/api/dfc/enterprises/10000/offers/10001
@@ -305,7 +360,6 @@ paths:
                       "@type": dfc-b:Enterprise
                       dfc-b:name: Sustainable Farmers
                       dfc-b:hasDescription: this is a group
-                      dfc-b:VATnumber: ''
                       dfc-b:affiliatedBy: http://test.host/api/dfc/enterprises/10000
   "/api/dfc/enterprise_groups/{id}":
     get:
@@ -333,7 +387,6 @@ paths:
                       dfc-b:hasAddress: http://test.host/api/dfc/addresses/40000
                       dfc-b:name: Sustainable Farmers
                       dfc-b:hasDescription: this is a group
-                      dfc-b:VATnumber: ''
                       dfc-b:affiliatedBy: http://test.host/api/dfc/enterprises/10000
                     - "@id": http://test.host/api/dfc/addresses/40000
                       "@type": dfc-b:Address
@@ -368,18 +421,24 @@ paths:
                       dfc-b:hasAddress: http://test.host/api/dfc/addresses/40000
                       dfc-b:hasPhoneNumber: 0404 444 000 200
                       dfc-b:email: hello@example.org
-                      dfc-b:websitePage: openfoodnetwork.org
+                      dfc-b:websitePage: https://openfoodnetwork.org
                       dfc-b:hasSocialMedia: http://test.host/api/dfc/enterprises/10000/social_medias/facebook
+                      dfc-b:logo: http://test.host/rails/active_storage/url/logo.png
                       dfc-b:name: Fred's Farm
                       dfc-b:hasDescription: This is an awesome enterprise
                       dfc-b:VATnumber: 123 456
                       dfc-b:manages: http://test.host/api/dfc/enterprises/10000/catalog_items/10001
                       dfc-b:supplies: http://test.host/api/dfc/enterprises/10000/supplied_products/10001
+                      dfc-b:hasMainContact: http://test.host/api/dfc/enterprises/10000#mainContact
                       ofn:long_description: "<p>Hello, world!</p><p>This is a paragraph.</p>"
                       ofn:contact_name: Fred Farmer
                       ofn:logo_url: http://test.host/rails/active_storage/url/logo.png
                       ofn:promo_image_url: http://test.host/rails/active_storage/url/promo.png
                       dfc-b:affiliates: http://test.host/api/dfc/enterprise_groups/60000
+                    - "@id": http://test.host/api/dfc/enterprises/10000#mainContact
+                      "@type": dfc-b:Person
+                      dfc-b:firstName: Fred
+                      dfc-b:familyName: Farmer
                     - "@id": http://test.host/api/dfc/addresses/40000
                       "@type": dfc-b:Address
                       dfc-b:hasStreet: 42 Doveton Street
@@ -391,15 +450,11 @@ paths:
                       "@type": dfc-b:SuppliedProduct
                       dfc-b:name: Apple - 1g
                       dfc-b:description: Round
-                      dfc-b:hasType: dfc-pt:non-local-vegetable
                       dfc-b:hasQuantity:
                         "@type": dfc-b:QuantitativeValue
                         dfc-b:hasUnit: dfc-m:Gram
                         dfc-b:value: 1.0
-                      dfc-b:alcoholPercentage: 0.0
-                      dfc-b:lifetime: ''
-                      dfc-b:usageOrStorageCondition: ''
-                      dfc-b:totalTheoreticalStock: 0.0
+                      dfc-b:image: http://test.host/rails/active_storage/url/logo-white.png
                       ofn:spree_product_id: 90000
                       ofn:spree_product_uri: http://test.host/api/dfc/enterprises/10000?spree_product_id=90000
                       ofn:image: http://test.host/rails/active_storage/url/logo-white.png
@@ -549,12 +604,9 @@ paths:
                       "@type": dfc-b:QuantitativeValue
                       dfc-b:hasUnit: dfc-m:Gram
                       dfc-b:value: 6.0
-                    dfc-b:alcoholPercentage: 0.0
-                    dfc-b:lifetime: ''
-                    dfc-b:usageOrStorageCondition: ''
-                    dfc-b:totalTheoreticalStock: 0.0
                     ofn:spree_product_id: 90000
                     ofn:spree_product_uri: http://test.host/api/dfc/enterprises/10000?spree_product_id=90000
+                    dfc-b:image: http://test.host/rails/active_storage/url/logo-white.png
                     ofn:image: http://test.host/rails/active_storage/url/logo-white.png
       requestBody:
         content:
@@ -611,10 +663,7 @@ paths:
                       "@type": dfc-b:QuantitativeValue
                       dfc-b:hasUnit: dfc-m:Gram
                       dfc-b:value: 1.0
-                    dfc-b:alcoholPercentage: 0.0
-                    dfc-b:lifetime: ''
-                    dfc-b:usageOrStorageCondition: ''
-                    dfc-b:totalTheoreticalStock: 0.0
+                    dfc-b:image: http://test.host/rails/active_storage/url/logo-white.png
                     ofn:spree_product_id: 90000
                     ofn:spree_product_uri: http://test.host/api/dfc/enterprises/10000?spree_product_id=90000
                     ofn:image: http://test.host/rails/active_storage/url/logo-white.png

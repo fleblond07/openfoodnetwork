@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Enterprise do
+RSpec.describe Enterprise do
   describe "sending emails" do
     describe "on creation" do
       let!(:user) { create(:user) }
@@ -37,13 +37,14 @@ describe Enterprise do
       expect(EnterpriseRole.where(id: role.id)).to be_empty
     end
 
-    xit "destroys supplied products upon destroy" do
-      s = create(:supplier_enterprise)
-      p = create(:simple_product, supplier: s)
+    it "destroys supplied variants upon destroy" do
+      pending "Variant are soft deletable, see: https://github.com/openfoodfoundation/openfoodnetwork/issues/2971"
+      supplier = create(:supplier_enterprise)
+      variant = create(:variant, supplier:)
 
-      s.destroy
+      supplier.destroy
 
-      expect(Spree::Product.where(id: p.id)).to be_empty
+      expect(Spree::Variant.where(id: variant.id)).to be_empty
     end
 
     it "destroys relationships upon destroy" do
@@ -55,6 +56,63 @@ describe Enterprise do
       e.destroy
 
       expect(EnterpriseRelationship.where(id: [er1, er2])).to be_empty
+    end
+
+    it "raises a DeleteRestrictionError on destroy if distributed_orders exist" do
+      enterprise = create(:distributor_enterprise)
+      create_list(:order, 2, distributor: enterprise)
+
+      expect do
+        enterprise.destroy
+      end.to raise_error(ActiveRecord::DeleteRestrictionError,
+                         /Cannot delete record because of dependent distributed_orders/)
+        .and change { Spree::Order.count }.by(0)
+    end
+
+    it "raises an DeleteRestrictionError on destroy if distributor_payment_methods exist" do
+      enterprise = create(:distributor_enterprise)
+      create_list(:distributor_payment_method, 2, distributor: enterprise)
+
+      expect do
+        enterprise.destroy
+      end.to raise_error(ActiveRecord::DeleteRestrictionError,
+                         /Cannot delete record because of dependent distributor_payment_methods/)
+        .and change { DistributorPaymentMethod.count }.by(0)
+    end
+
+    it "raises an DeleteRestrictionError on destroy if distributor_shipping_methods exist" do
+      enterprise = create(:distributor_enterprise)
+      create_list(:distributor_shipping_method, 2, distributor: enterprise)
+
+      expect do
+        enterprise.destroy
+      end.to raise_error(ActiveRecord::DeleteRestrictionError,
+                         /Cannot delete record because of dependent distributor_shipping_methods/)
+        .and change { DistributorShippingMethod.count }.by(0)
+    end
+
+    it "does not destroy enterprise_fees upon destroy" do
+      enterprise = create(:enterprise)
+      create_list(:enterprise_fee, 2, enterprise:)
+
+      expect do
+        enterprise.destroy
+      end.to raise_error(ActiveRecord::DeleteRestrictionError,
+                         /Cannot delete record because of dependent enterprise_fees/)
+        .and change { EnterpriseFee.count }.by(0)
+    end
+
+    it "does not destroy vouchers upon destroy" do
+      enterprise = create(:enterprise)
+      (1..2).map do |code|
+        create(:voucher, enterprise:, code: "new code #{code}")
+      end
+
+      expect do
+        enterprise.destroy
+      end.to raise_error(ActiveRecord::DeleteRestrictionError,
+                         /Cannot delete record because of dependent vouchers/)
+        .and change { Voucher.count }.by(0)
     end
 
     describe "relationships to other enterprises" do
@@ -240,6 +298,24 @@ describe Enterprise do
       end
     end
 
+    describe "preferred_shopfront_message" do
+      it "sanitises HTML" do
+        enterprise = build(:enterprise, preferred_shopfront_message:
+                           'Hello <script>alert</script> dearest <b>monster</b>.')
+        expect(enterprise.preferred_shopfront_message)
+          .to eq "Hello alert dearest <b>monster</b>."
+      end
+    end
+
+    describe "preferred_shopfront_closed_message" do
+      it "sanitises HTML" do
+        enterprise = build(:enterprise, preferred_shopfront_closed_message:
+                           'Hello <script>alert</script> dearest <b>monster</b>.')
+        expect(enterprise.preferred_shopfront_closed_message)
+          .to eq "Hello alert dearest <b>monster</b>."
+      end
+    end
+
     describe "preferred_shopfront_taxon_order" do
       it "empty strings are valid" do
         enterprise = build(:enterprise, preferred_shopfront_taxon_order: "")
@@ -260,18 +336,18 @@ describe Enterprise do
 
       it "commas at the beginning and end are disallowed" do
         enterprise = build(:enterprise, preferred_shopfront_taxon_order: ",1,2,3")
-        expect(enterprise).to be_invalid
+        expect(enterprise).not_to be_valid
         enterprise = build(:enterprise, preferred_shopfront_taxon_order: "1,2,3,")
-        expect(enterprise).to be_invalid
+        expect(enterprise).not_to be_valid
       end
 
       it "any other characters are invalid" do
         enterprise = build(:enterprise, preferred_shopfront_taxon_order: "a1,2,3")
-        expect(enterprise).to be_invalid
+        expect(enterprise).not_to be_valid
         enterprise = build(:enterprise, preferred_shopfront_taxon_order: ".1,2,3")
-        expect(enterprise).to be_invalid
+        expect(enterprise).not_to be_valid
         enterprise = build(:enterprise, preferred_shopfront_taxon_order: " 1,2,3")
-        expect(enterprise).to be_invalid
+        expect(enterprise).not_to be_valid
       end
     end
 
@@ -295,18 +371,18 @@ describe Enterprise do
 
       it "commas at the beginning and end are disallowed" do
         enterprise = build(:enterprise, preferred_shopfront_producer_order: ",1,2,3")
-        expect(enterprise).to be_invalid
+        expect(enterprise).not_to be_valid
         enterprise = build(:enterprise, preferred_shopfront_producer_order: "1,2,3,")
-        expect(enterprise).to be_invalid
+        expect(enterprise).not_to be_valid
       end
 
       it "any other characters are invalid" do
         enterprise = build(:enterprise, preferred_shopfront_producer_order: "a1,2,3")
-        expect(enterprise).to be_invalid
+        expect(enterprise).not_to be_valid
         enterprise = build(:enterprise, preferred_shopfront_producer_order: ".1,2,3")
-        expect(enterprise).to be_invalid
+        expect(enterprise).not_to be_valid
         enterprise = build(:enterprise, preferred_shopfront_producer_order: " 1,2,3")
-        expect(enterprise).to be_invalid
+        expect(enterprise).not_to be_valid
       end
     end
 
@@ -336,18 +412,46 @@ describe Enterprise do
 
       it "does not validate if URL is invalid and can't be infered" do
         e = build(:enterprise, white_label_logo_link: 'with spaces')
-        expect(e).to be_invalid
+        expect(e).not_to be_valid
       end
     end
   end
 
+  describe "serialisation" do
+    it "sanitises HTML in long_description" do
+      subject.long_description = "Hello <script>alert</script> dearest <b>monster</b>."
+      expect(subject.long_description).to eq "Hello alert dearest <b>monster</b>."
+    end
+  end
+
   describe "callbacks" do
-    it "restores permalink to original value when it is changed and invalid" do
-      e1 = create(:enterprise, permalink: "taken")
-      e2 = create(:enterprise, permalink: "not_taken")
-      e2.permalink = "taken"
-      e2.save
-      expect(e2.reload.permalink).to eq "not_taken"
+    describe "restore_permalink" do
+      it "restores permalink to original value when it is changed and invalid" do
+        e1 = create(:enterprise, permalink: "taken")
+        e2 = create(:enterprise, permalink: "not_taken")
+        e2.permalink = "taken"
+        e2.save
+        expect(e2.reload.permalink).to eq "not_taken"
+      end
+    end
+
+    describe "touch_distributors" do
+      it "touches supplied variant distributors" do
+        enterprise = create(:enterprise)
+        variant = create(:variant)
+        enterprise.supplied_variants << variant
+
+        updated_at = 1.hour.ago
+        distributor1 = create(:distributor_enterprise, updated_at:)
+        distributor2 = create(:distributor_enterprise, updated_at:)
+
+        create(:simple_order_cycle, distributors: [distributor1], variants: [variant])
+        create(:simple_order_cycle, distributors: [distributor2], variants: [variant])
+
+        expect { enterprise.touch }
+          .to change { distributor1.reload.updated_at }
+          .and change { distributor2.reload.updated_at }
+      end
     end
   end
 
@@ -498,51 +602,49 @@ describe Enterprise do
       end
     end
 
-    describe "supplying_variant_in" do
+    describe ".supplying_variant_in" do
       it "finds producers by supply of variant" do
-        s = create(:supplier_enterprise)
-        p = create(:simple_product, supplier: s)
-        v = create(:variant, product: p)
+        supplier = create(:supplier_enterprise)
+        variant = create(:variant, supplier:)
 
-        expect(Enterprise.supplying_variant_in([v])).to eq([s])
+        expect(Enterprise.supplying_variant_in([variant])).to eq([supplier])
       end
 
       it "returns multiple enterprises when given multiple variants" do
-        s1 = create(:supplier_enterprise)
-        s2 = create(:supplier_enterprise)
-        p1 = create(:simple_product, supplier: s1)
-        p2 = create(:simple_product, supplier: s2)
+        supplier1 = create(:supplier_enterprise)
+        supplier2 = create(:supplier_enterprise)
+        variant1 = create(:variant, supplier: supplier1)
+        variant2 = create(:variant, supplier: supplier2)
 
-        expect(Enterprise.supplying_variant_in([p1.variants.first,
-                                                p2.variants.first])).to match_array [s1, s2]
+        expect(Enterprise.supplying_variant_in([variant1, variant2]))
+          .to match_array([supplier1, supplier2])
       end
 
       it "does not return duplicates" do
-        s = create(:supplier_enterprise)
-        p1 = create(:simple_product, supplier: s)
-        p2 = create(:simple_product, supplier: s)
+        supplier = create(:supplier_enterprise)
+        variant1 = create(:variant, supplier:)
+        variant2 = create(:variant, supplier:)
 
-        expect(Enterprise.supplying_variant_in([p1.variants.first, p2.variants.first])).to eq([s])
+        expect(Enterprise.supplying_variant_in([variant1, variant2])).to eq([supplier])
       end
     end
 
-    describe "distributing_products" do
+    describe "distributing_variants" do
       let(:distributor) { create(:distributor_enterprise) }
-      let(:product) { create(:product) }
+      let(:variant) { create(:variant) }
 
       it "returns enterprises distributing via an order cycle" do
-        order_cycle = create(:simple_order_cycle, distributors: [distributor],
-                                                  variants: [product.variants.first])
-        expect(Enterprise.distributing_products(product.id)).to eq([distributor])
+        order_cycle = create(:simple_order_cycle, distributors: [distributor], variants: [variant])
+        expect(Enterprise.distributing_variants(variant.id)).to eq([distributor])
       end
 
       it "does not return duplicate enterprises" do
-        another_product = create(:product)
+        another_variant = create(:variant)
         order_cycle = create(:simple_order_cycle, distributors: [distributor],
-                                                  variants: [product.variants.first,
-                                                             another_product.variants.first])
-        expect(Enterprise.distributing_products([product.id,
-                                                 another_product.id])).to eq([distributor])
+                                                  variants: [variant, another_variant])
+        expect(Enterprise.distributing_variants(
+                 [variant.id, another_variant.id]
+               )).to eq([distributor])
       end
     end
 
@@ -768,7 +870,7 @@ describe Enterprise do
       allow(Enterprise).to receive(:find_available_permalink).and_return("available_permalink")
       expect(Enterprise).to receive(:find_available_permalink).with("Name To Turn Into A Permalink")
       expect do
-        enterprise.send(:initialize_permalink)
+        enterprise.__send__(:initialize_permalink)
       end.to change { enterprise.permalink }.to("available_permalink")
     end
 

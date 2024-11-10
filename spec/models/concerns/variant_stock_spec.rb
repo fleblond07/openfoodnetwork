@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe VariantStock do
+RSpec.describe VariantStock do
   let(:variant) { create(:variant) }
 
   describe '#after_save' do
@@ -95,7 +95,7 @@ describe VariantStock do
         build_stubbed(
           :variant,
           stock_locations: [
-            build_stubbed(:stock_location, backorderable_default: false)
+            build_stubbed(:stock_location)
           ]
         )
       end

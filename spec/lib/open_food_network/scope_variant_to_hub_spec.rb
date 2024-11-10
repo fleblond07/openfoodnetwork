@@ -4,7 +4,7 @@ require 'spec_helper'
 require 'open_food_network/scope_variant_to_hub'
 
 module OpenFoodNetwork
-  describe ScopeVariantToHub do
+  RSpec.describe ScopeVariantToHub do
     let(:hub) { create(:distributor_enterprise) }
     let(:v)   { create(:variant, price: 11.11, on_hand: 1, on_demand: true, sku: "VARIANTSKU") }
     let(:v2)  { create(:variant, price: 22.22, on_hand: 5) }
@@ -181,9 +181,10 @@ module OpenFoodNetwork
             scoper.scope v2
           end
 
-          it "doesn't reduce variant's stock" do
+          it "reduces override stock, not variant's stock" do
             v2.move(-2)
             expect(Spree::Variant.find(v2.id).on_hand).to eq 5
+            expect(v2.on_hand).to eq(-2)
           end
         end
 

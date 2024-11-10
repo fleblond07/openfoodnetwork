@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Spree::Admin::OrdersHelper, type: :helper do
+RSpec.describe Spree::Admin::OrdersHelper, type: :helper do
   describe "#orders_links" do
     let(:order) { double(:order) }
     let(:distributor) { double(:enterprise) }
@@ -85,7 +85,7 @@ describe Spree::Admin::OrdersHelper, type: :helper do
       before { allow(order).to receive(:resumed?) { true } }
 
       it "includes a resend confirmation link" do
-        links = helper.order_links(order).map { |link| link[:name] }
+        links = helper.order_links(order).pluck(:name)
 
         expect(links).to match_array(["Edit Order", "Resend Confirmation"])
       end
@@ -94,7 +94,7 @@ describe Spree::Admin::OrdersHelper, type: :helper do
         before { enable_invoices }
 
         it "includes send invoice and print invoice links" do
-          links = helper.order_links(order).map { |link| link[:name] }
+          links = helper.order_links(order).pluck(:name)
 
           expect(links).to match_array(
             ["Edit Order", "Print Invoice", "Resend Confirmation", "Send Invoice"]

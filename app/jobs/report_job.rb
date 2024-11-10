@@ -9,12 +9,12 @@ class ReportJob < ApplicationJob
 
   NOTIFICATION_TIME = 5.seconds
 
-  def perform(report_class:, user:, params:, format:, filename:, channel: nil)
+  def perform(report_class:, user:, params:, format:, blob:, channel: nil)
     start_time = Time.zone.now
 
     report = report_class.new(user, params, render: true)
     result = report.render_as(format)
-    blob = ReportBlob.create!(filename, result)
+    blob.store(result)
 
     execution_time = Time.zone.now - start_time
 
@@ -39,10 +39,14 @@ class ReportJob < ApplicationJob
   end
 
   def broadcast_result(channel, format, blob)
-    cable_ready[channel].inner_html(
-      selector: "#report-table",
-      html: actioncable_content(format, blob)
-    ).broadcast
+    cable_ready[channel]
+      .inner_html(
+        selector: "#report-go",
+        html: Spree::Admin::BaseController.helpers.button(I18n.t(:go), "report__submit-btn")
+      ).inner_html(
+        selector: "#report-table",
+        html: actioncable_content(format, blob)
+      ).broadcast
   end
 
   def broadcast_error(channel)
@@ -53,7 +57,14 @@ class ReportJob < ApplicationJob
   end
 
   def actioncable_content(format, blob)
-    return blob.result if format.to_sym == :html
+    if format.to_sym == :html
+      return blob.result if blob.byte_size < 10**6 # 1 MB
+
+      return render(
+        partial: "admin/reports/display",
+        locals: { file_url: blob.expiring_service_url }
+      )
+    end
 
     render(partial: "admin/reports/download", locals: { file_url: blob.expiring_service_url })
   end

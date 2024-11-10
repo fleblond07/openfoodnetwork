@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Spree::User do
+RSpec.describe Spree::User do
   describe "associations" do
     it { is_expected.to have_many(:owned_enterprises) }
     it { is_expected.to have_many(:webhook_endpoints).dependent(:destroy) }
@@ -266,6 +266,36 @@ describe Spree::User do
       user = Spree::User.new(disabled_at: Time.zone.now)
       user.disabled = '0'
       expect(user.disabled).to be_falsey
+    end
+  end
+
+  describe "#affiliate_enterprises" do
+    let(:user) { create(:user) }
+    let(:affiliate_enterprise) { create(:enterprise) }
+    let(:other_connected_enterprise) { create(:enterprise) }
+    let(:other_enterprise) { create(:enterprise) }
+    subject{ user.affiliate_enterprises }
+
+    before do
+      ConnectedApps::AffiliateSalesData.create(enterprise: affiliate_enterprise, data: true)
+      ConnectedApp.create(enterprise: other_connected_enterprise, data: true)
+    end
+
+    context "user does not have feature" do
+      it { is_expected.to be_empty }
+    end
+
+    context "user has feature affiliate_sales_data" do
+      before do
+        Flipper.enable_actor(:affiliate_sales_data, user)
+        user.reload
+      end
+
+      it "includes only affiliate enterprises" do
+        is_expected.to include affiliate_enterprise
+        is_expected.not_to include other_connected_enterprise
+        is_expected.not_to include other_enterprise
+      end
     end
   end
 end

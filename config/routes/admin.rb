@@ -35,6 +35,8 @@ Openfoodnetwork::Application.routes.draw do
         patch :register
       end
 
+      resources :connected_apps, only: [:create, :destroy]
+
       resources :producer_properties do
         post :update_positions, on: :collection
       end
@@ -70,9 +72,15 @@ Openfoodnetwork::Application.routes.draw do
     resources :dfc_product_imports, only: [:index]
 
     constraints FeatureToggleConstraint.new(:admin_style_v3) do
-      resources :products, to: 'products_v3#index', only: :index do
-        patch :bulk_update, on: :collection
-      end
+      # This might be easier to arrange once we rename the controller to plain old "products"
+      post '/products/bulk_update', to: 'products_v3#bulk_update'
+      get '/products', to: 'products_v3#index'
+      # we already have DELETE admin/products/:id here
+      delete 'products_v3/:id', to: 'products_v3#destroy', as: 'product_destroy'
+      delete 'products_v3/destroy_variant/:id', to: 'products_v3#destroy_variant', as: 'destroy_variant'
+      post 'clone/:id', to: 'products_v3#clone', as: 'clone_product'
+
+      resources :product_preview, only: [:show]
     end
 
     resources :variant_overrides do
@@ -90,7 +98,7 @@ Openfoodnetwork::Application.routes.draw do
 
     resource :contents
 
-    resources :column_preferences, only: [], format: :json do
+    resources :column_preferences, only: [] do
       put :bulk_update, on: :collection
     end
 
@@ -101,6 +109,8 @@ Openfoodnetwork::Application.routes.draw do
     resource :terms_of_service_files
 
     resource :matomo_settings, only: [:edit, :update]
+
+    resource :connected_app_settings, only: [:edit, :update]
 
     resources :stripe_accounts, only: [:destroy] do
       get :connect, on: :collection
@@ -127,6 +137,7 @@ Openfoodnetwork::Application.routes.draw do
     end
 
     get '/reports', to: 'reports#index', as: :reports
-    match '/reports/:report_type(/:report_subtype)', to: 'reports#show', via: [:get, :post], as: :report
+    match '/reports/:report_type(/:report_subtype)', to: 'reports#show', via: :get, as: :report
+    match '/reports/:report_type(/:report_subtype)', to: 'reports#create', via: :post
   end
 end

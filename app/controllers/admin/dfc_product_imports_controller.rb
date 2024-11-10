@@ -20,31 +20,35 @@ module Admin
 
       catalog_url = params.require(:catalog_url)
 
-      json_catalog = DfcRequest.new(spree_current_user).get(catalog_url)
+      json_catalog = fetch_catalog(catalog_url)
       graph = DfcIo.import(json_catalog)
 
       # * First step: import all products for given enterprise.
       # * Second step: render table and let user decide which ones to import.
       imported = graph.map do |subject|
-        import_product(subject, enterprise)
+        next unless subject.is_a? DataFoodConsortium::Connector::SuppliedProduct
+
+        existing_variant = enterprise.supplied_variants.linked_to(subject.semanticId)
+
+        if existing_variant
+          SuppliedProductBuilder.update_product(subject, existing_variant)
+        else
+          SuppliedProductBuilder.store_product(subject, enterprise)
+        end
       end
 
       @count = imported.compact.count
+    rescue Faraday::Error,
+           Addressable::URI::InvalidURIError,
+           ActionController::ParameterMissing => e
+      flash[:error] = e.message
+      redirect_to admin_product_import_path
     end
 
     private
 
-    # Most of this code is the same as in the DfcProvider::SuppliedProductsController.
-    def import_product(subject, enterprise)
-      return unless subject.is_a? DataFoodConsortium::Connector::SuppliedProduct
-
-      variant = SuppliedProductBuilder.import_variant(subject, enterprise)
-      product = variant.product
-
-      product.save! if product.new_record?
-      variant.save! if variant.new_record?
-
-      variant
+    def fetch_catalog(url)
+      DfcRequest.new(spree_current_user).call(url)
     end
   end
 end

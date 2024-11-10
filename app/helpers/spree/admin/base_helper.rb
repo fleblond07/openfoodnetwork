@@ -33,8 +33,6 @@ module Spree
         when :boolean
           hidden_field_tag(name, 0) +
             check_box_tag(name, 1, value, preference_field_options(options))
-        when :string
-          text_field_tag(name, value, preference_field_options(options))
         when :password
           password_field_tag(name, value, preference_field_options(options))
         when :text
@@ -88,8 +86,6 @@ module Spree
             { size: 10, class: 'input_integer', step: :any }
           when :boolean
             {}
-          when :string
-            { size: 10, class: 'input_string fullwidth' }
           when :password
             { size: 10, class: 'password_string fullwidth' }
           when :text
@@ -112,7 +108,7 @@ module Spree
 
         object.preferences.keys.map { |key|
           preference_label = form.label("preferred_#{key}",
-                                        Spree.t(key.to_s.gsub("_from_list", "")) + ": ")
+                                        "#{Spree.t(key.to_s.gsub('_from_list', ''))}: ")
           preference_field = preference_field_for(
             form,
             "preferred_#{key}",
@@ -124,7 +120,7 @@ module Spree
 
       def link_to_add_fields(name, target, options = {})
         name = '' if options[:no_text]
-        css_classes = options[:class] ? options[:class] + " spree_add_fields" : "spree_add_fields"
+        css_classes = options[:class] ? "#{options[:class]} spree_add_fields" : "spree_add_fields"
         link_to_with_icon('icon-plus',
                           name,
                           'javascript:',

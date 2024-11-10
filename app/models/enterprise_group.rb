@@ -41,7 +41,7 @@ class EnterpriseGroup < ApplicationRecord
     if user.has_spree_role?('admin')
       where(nil)
     else
-      where('owner_id = ?', user.id)
+      where(owner_id: user.id)
     end
   }
 
@@ -72,6 +72,11 @@ class EnterpriseGroup < ApplicationRecord
 
   def to_param
     permalink
+  end
+
+  # Remove any unsupported HTML.
+  def long_description=(html)
+    super(HtmlSanitizer.sanitize_and_enforce_link_target_blank(html))
   end
 
   private

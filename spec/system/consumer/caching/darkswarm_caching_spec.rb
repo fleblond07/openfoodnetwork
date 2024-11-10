@@ -2,7 +2,7 @@
 
 require "system_helper"
 
-describe "Darkswarm data caching", caching: true do
+RSpec.describe "Darkswarm data caching", caching: true do
   let!(:taxon) { create(:taxon, name: "Cached Taxon") }
   let!(:property) { create(:property, presentation: "Cached Property") }
 
@@ -11,7 +11,7 @@ describe "Darkswarm data caching", caching: true do
     create(:distributor_enterprise, with_payment_and_shipping: true, is_primary_producer: true)
   }
   let!(:product) {
-    create(:simple_product, supplier: producer, primary_taxon: taxon,
+    create(:simple_product, supplier_id: producer.id, primary_taxon: taxon,
                             properties: [property])
   }
   let!(:order_cycle) {
