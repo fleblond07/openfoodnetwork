@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe UserRegistrationsController, type: :controller do
+RSpec.describe UserRegistrationsController, type: :controller do
   before do
     @request.env["devise.mapping"] = Devise.mappings[:spree_user]
   end
@@ -27,7 +27,7 @@ describe UserRegistrationsController, type: :controller do
 
     it "returns error when emailing fails" do
       allow(Spree::UserMailer).to receive(:confirmation_instructions).and_raise("Some error")
-      expect(OpenFoodNetwork::ErrorLogger).to receive(:notify)
+      expect(Alert).to receive(:raise)
 
       post :create, xhr: true, params: { spree_user: user_params, use_route: :spree }
 
@@ -48,15 +48,9 @@ describe UserRegistrationsController, type: :controller do
     end
 
     it "sets user.locale from cookie on create" do
-      original_i18n_locale = I18n.locale
-      original_locale_cookie = cookies[:locale]
-
       cookies[:locale] = "pt"
       post :create, xhr: true, params: { spree_user: user_params, use_route: :spree }
       expect(assigns[:user].locale).to eq("pt")
-
-      I18n.locale = original_i18n_locale
-      cookies[:locale] = original_locale_cookie
     end
   end
 end

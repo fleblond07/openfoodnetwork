@@ -15,18 +15,26 @@ class WeightsAndMeasures
 
   def system
     return "custom" unless scales = scales_for_variant_unit(ignore_available_units: true)
-    return "custom" unless product_scale = @variant.product.variant_unit_scale
 
-    scales[product_scale.to_f]['system']
+    variant_scale = @variant.variant_unit_scale&.to_f
+    return "custom" unless variant_scale.present? && variant_scale.positive?
+
+    scales[variant_scale]['system']
   end
 
   # @returns enumerable with label and value for select
   def self.variant_unit_options
     available_units_sorted.flat_map do |measurement, measurement_info|
       measurement_info.filter_map do |scale, unit_info|
+        # Our code is based upon English based number formatting
+        # Some language locales like +hu+ uses a comma(,) for decimal separator
+        # While in English, decimal separator is represented by a period.
+        # e.g. en: 0.001, hu: 0,001
+        # Hence the results become "weight_0,001" for hu while or code recognizes "weight_0.001"
         scale_clean =
-          ActiveSupport::NumberHelper.number_to_rounded(scale, precision: nil,
-                                                               strip_insignificant_zeros: true)
+          ActiveSupport::NumberHelper.number_to_rounded(scale, precision: nil, significant: false,
+                                                               strip_insignificant_zeros: true,
+                                                               locale: :en)
         [
           "#{I18n.t(measurement)} (#{unit_info['name']})", # Label (eg "Weight (g)")
           "#{measurement}_#{scale_clean}", # Scale ID (eg "weight_1")
@@ -84,9 +92,9 @@ class WeightsAndMeasures
   }.freeze
 
   def scales_for_variant_unit(ignore_available_units: false)
-    return @units[@variant.product.variant_unit] if ignore_available_units
+    return @units[@variant.variant_unit] if ignore_available_units
 
-    @units[@variant.product.variant_unit]&.reject { |_scale, unit_info|
+    @units[@variant.variant_unit]&.reject { |_scale, unit_info|
       self.class.available_units.exclude?(unit_info['name'])
     }
   end

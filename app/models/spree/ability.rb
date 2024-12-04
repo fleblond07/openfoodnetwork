@@ -29,17 +29,14 @@ module Spree
         can :update, Order do |order, token|
           order.user == user || (order.token && token == order.token)
         end
-        can [:index, :read], Product
         can [:index, :read], ProductProperty
         can [:index, :read], Property
         can :create, Spree::User
         can [:read, :update, :destroy], Spree::User, id: user.id
         can [:index, :read], State
         can [:index, :read], StockItem
-        can [:index, :read], StockLocation
         can [:index, :read], StockMovement
         can [:index, :read], Taxon
-        can [:index, :read], Taxonomy
         can [:index, :read], Variant
         can [:index, :read], Zone
       end
@@ -189,20 +186,22 @@ module Spree
            :seo, :group_buy_options,
            :bulk_update, :clone, :delete,
            :destroy], Spree::Product do |product|
-        OpenFoodNetwork::Permissions.new(user).managed_product_enterprises.include? product.supplier
+        OpenFoodNetwork::Permissions.new(user).managed_product_enterprises.include?(
+          product.variants.first.supplier
+        )
       end
 
-      can [:admin, :index], :products_v3
+      can [:admin, :index, :bulk_update, :destroy, :destroy_variant, :clone], :products_v3
 
       can [:create], Spree::Variant
       can [:admin, :index, :read, :edit,
            :update, :search, :delete, :destroy], Spree::Variant do |variant|
         OpenFoodNetwork::Permissions.new(user).
-          managed_product_enterprises.include? variant.product.supplier
+          managed_product_enterprises.include? variant.supplier
       end
 
       can [:admin, :index, :read, :update, :bulk_update, :bulk_reset], VariantOverride do |vo|
-        next false unless vo.hub.present? && vo.variant&.product&.supplier.present?
+        next false unless vo.hub.present? && vo.variant&.supplier.present?
 
         hub_auth = OpenFoodNetwork::Permissions.new(user).
           variant_override_hubs.
@@ -210,14 +209,14 @@ module Spree
 
         producer_auth = OpenFoodNetwork::Permissions.new(user).
           variant_override_producers.
-          include? vo.variant.product.supplier
+          include? vo.variant.supplier
 
         hub_auth && producer_auth
       end
 
       can [:admin, :create, :update], InventoryItem do |ii|
         next false unless ii.enterprise.present? &&
-                          ii.variant&.product&.supplier.present?
+                          ii.variant&.supplier.present?
 
         hub_auth = OpenFoodNetwork::Permissions.new(user).
           variant_override_hubs.
@@ -225,7 +224,7 @@ module Spree
 
         producer_auth = OpenFoodNetwork::Permissions.new(user).
           variant_override_producers.
-          include? ii.variant.product.supplier
+          include? ii.variant.supplier
 
         hub_auth && producer_auth
       end
@@ -242,10 +241,10 @@ module Spree
       can [:admin, :index], ::Admin::DfcProductImportsController
 
       # Reports page
-      can [:admin, :index, :show], ::Admin::ReportsController
-      can [:admin, :show, :customers, :orders_and_distributors, :group_buys, :payments,
+      can [:admin, :index, :show, :create], ::Admin::ReportsController
+      can [:admin, :show, :create, :customers, :orders_and_distributors, :group_buys, :payments,
            :orders_and_fulfillment, :products_and_inventory, :order_cycle_management,
-           :packing, :enterprise_fee_summary, :bulk_coop], :report
+           :packing, :enterprise_fee_summary, :bulk_coop, :suppliers], :report
     end
 
     def add_order_cycle_management_abilities(user)
@@ -323,7 +322,7 @@ module Spree
       end
 
       # Reports page
-      can [:admin, :index, :show], ::Admin::ReportsController
+      can [:admin, :index, :show, :create], ::Admin::ReportsController
       can [:admin, :customers, :group_buys, :sales_tax, :payments,
            :orders_and_distributors, :orders_and_fulfillment, :products_and_inventory,
            :order_cycle_management, :xero_invoices, :enterprise_fee_summary, :bulk_coop], :report

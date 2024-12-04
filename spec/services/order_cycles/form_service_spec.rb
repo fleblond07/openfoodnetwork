@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe OrderCycles::FormService do
+RSpec.describe OrderCycles::FormService do
   describe "save" do
     describe "creating a new order cycle from params" do
       let(:shop) { create(:enterprise) }
@@ -138,7 +138,7 @@ describe OrderCycles::FormService do
     let(:shipping_method) { create(:shipping_method, distributors: [distributor]) }
     let(:distributor_payment_method) { payment_method.distributor_payment_methods.first }
     let(:distributor_shipping_method) { shipping_method.distributor_shipping_methods.first }
-    let(:variant) { create(:variant, product: create(:product, supplier:)) }
+    let(:variant) { create(:variant, supplier:) }
     let(:params) { { name: 'Some new name' } }
     let(:form) { OrderCycles::FormService.new(order_cycle, params, user) }
     let(:outgoing_exchange_params) do

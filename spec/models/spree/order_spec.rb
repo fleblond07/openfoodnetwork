@@ -2,9 +2,12 @@
 
 require 'spec_helper'
 
-describe Spree::Order do
+RSpec.describe Spree::Order do
   let(:user) { build(:user, email: "spree@example.com") }
   let(:order) { build(:order, user:) }
+
+  it { is_expected.to have_one :exchange }
+  it { is_expected.to have_many :semantic_links }
 
   describe "#errors" do
     it "provides friendly error messages" do
@@ -140,23 +143,6 @@ describe Spree::Order do
     end
   end
 
-  context "#invoiceable?" do
-    it "should return true if the order is completed" do
-      allow(order).to receive_messages(complete?: true)
-      expect(order.invoiceable?).to be_truthy
-    end
-
-    it "should return true if the order is resumed" do
-      allow(order).to receive_messages(resumed?: true)
-      expect(order.invoiceable?).to be_truthy
-    end
-
-    it "should return false if the order is neither completed nor resumed" do
-      allow(order).to receive_messages(complete?: false, resumed?: false)
-      expect(order.invoiceable?).to be_falsy
-    end
-  end
-
   context '#changes_allowed?' do
     let(:order) { create(:order_ready_for_details) }
     let(:complete) { true }
@@ -233,35 +219,36 @@ describe Spree::Order do
     end
   end
 
-  context "#finalize!" do
-    let(:order) { Spree::Order.create }
+  describe "#finalize!" do
+    subject(:order) { Spree::Order.create }
+
     it "should set completed_at" do
-      expect(order).to receive(:touch).with(:completed_at)
-      order.finalize!
+      expect {
+        order.finalize!
+        order.reload
+      }.to change {
+        order.completed_at
+      }.from(nil)
     end
 
-    it "should sell inventory units" do
-      order.shipments.each do |shipment|
-        expect(shipment).to receive(:update!)
-        expect(shipment).to receive(:finalize!)
-      end
-      order.finalize!
-    end
+    it "updates shipments and decreases stock" do
+      order = create(:order_ready_for_confirmation)
+      shipment = order.shipments.first
+      shipment.update_columns(updated_at: 1.minute.ago)
 
-    it "should decrease the stock for each variant in the shipment" do
-      order.shipments.each do |shipment|
-        expect(shipment.stock_location).to receive(:decrease_stock_for_variant)
-      end
-      order.finalize!
+      expect {
+        order.finalize!
+      }.to change { order.variants.first.on_hand }.by(-1)
+        .and change { shipment.updated_at }
     end
 
     it "should change the shipment state to ready if order is paid" do
-      Spree::Shipment.create(order:)
-      order.shipments.reload
+      order = create(:order_ready_for_confirmation)
 
-      allow(order).to receive_messages(paid?: true, complete?: true)
-      order.finalize!
+      order.payments.first.capture!
+      order.next! # calls `finalize!`
       order.reload # reload so we're sure the changes are persisted
+
       expect(order.shipment_state).to eq 'ready'
     end
 
@@ -275,7 +262,6 @@ describe Spree::Order do
     end
 
     it "should freeze all adjustments" do
-      allow(Spree::OrderMailer).to receive_message_chain :confirm_email, :deliver_later
       adjustments = double
       allow(order).to receive_messages all_adjustments: adjustments
       expect(adjustments).to receive(:update_all).with(state: 'closed')
@@ -392,26 +378,51 @@ describe Spree::Order do
     end
   end
 
-  describe "#cancel" do
+  describe "#cancel!" do
     let(:order) { create(:order_with_totals_and_distribution, :completed) }
 
-    before { order.cancel! }
-
     it "should cancel the order" do
-      expect(order.state).to eq 'canceled'
+      expect { order.cancel! }.to change { order.state }.to("canceled")
     end
 
     it "should cancel the shipments" do
-      expect(order.shipments.pluck(:state)).to eq ['canceled']
+      expect { order.cancel! }.to change {
+        order.shipments.pluck(:state)
+      }.to(["canceled"])
     end
 
     context "when payment has not been taken" do
       context "and payment is in checkout state" do
         it "should change the state of the payment to void" do
-          order.payments.reload
-          expect(order.payments.pluck(:state)).to eq ['void']
+          expect {
+            order.cancel!
+            order.payments.reload
+          }.to change {
+            order.payments.pluck(:state)
+          }.to(["void"])
         end
       end
+    end
+
+    it "restocks items without reload" do
+      pending "Cancelling a newly created order updates shipments without callbacks"
+      # But in production, orders are always created in one request and
+      # cancelled in another request. This is only an issue in specs.
+
+      expect { order.cancel }.to change {
+        order.variants.first.on_hand
+      }.by(1)
+    end
+
+    it "restocks items" do
+      # If we don't reload the order, it keeps thinking that its shipping
+      # address changed and triggers a shipment update without shipment
+      # callbacks. This can be removed if the above spec passes.
+      order.reload
+
+      expect { order.cancel }.to change {
+        order.variants.first.on_hand
+      }.by(1)
     end
   end
 
@@ -457,8 +468,6 @@ describe Spree::Order do
   context "empty!" do
     it "should clear out all line items and adjustments" do
       order = build(:order)
-      allow(order).to receive_messages(line_items: line_items = [])
-      allow(order).to receive_messages(adjustments: adjustments = [])
       expect(order.line_items).to receive(:destroy_all)
       expect(order.all_adjustments).to receive(:destroy_all)
 
@@ -997,6 +1006,19 @@ describe Spree::Order do
   end
 
   describe "scopes" do
+    describe "invoiceable" do
+      it "finds only active orders" do
+        order_complete = create(:order, state: :complete)
+        order_canceled = create(:order, state: :canceled)
+        order_resumed = create(:order, state: :resumed)
+
+        expect(Spree::Order.invoiceable).to match_array [
+          order_complete,
+          order_resumed,
+        ]
+      end
+    end
+
     describe "not_state" do
       it "finds only orders not in specified state" do
         o = FactoryBot.create(:completed_order_with_totals,
@@ -1325,19 +1347,6 @@ describe Spree::Order do
     end
   end
 
-  describe "determining checkout steps for an order" do
-    let!(:enterprise) { create(:enterprise) }
-    let!(:order) { create(:order, distributor: enterprise) }
-    let!(:payment_method) {
-      create(:stripe_sca_payment_method, distributor_ids: [enterprise.id])
-    }
-    let!(:payment) { create(:payment, order:, payment_method:) }
-
-    it "does not include the :confirm step" do
-      expect(order.checkout_steps).not_to include "confirm"
-    end
-  end
-
   describe "payments" do
     let(:payment_method) { create(:payment_method) }
     let(:shipping_method) { create(:shipping_method) }
@@ -1479,10 +1488,10 @@ describe Spree::Order do
     let(:aaron) { create(:supplier_enterprise, name: "Aaron the farmer") }
     let(:zed) { create(:supplier_enterprise, name: "Zed the farmer") }
 
-    let(:aaron_apple) { create(:product, name: "Apple", supplier: aaron) }
-    let(:aaron_banana) { create(:product, name: "Banana", supplier: aaron) }
-    let(:zed_apple) { create(:product, name: "Apple", supplier: zed) }
-    let(:zed_banana) { create(:product, name: "Banana", supplier: zed) }
+    let(:aaron_apple) { create(:product, name: "Apple", supplier_id: aaron.id) }
+    let(:aaron_banana) { create(:product, name: "Banana", supplier_id: aaron.id) }
+    let(:zed_apple) { create(:product, name: "Apple", supplier_id: zed.id) }
+    let(:zed_banana) { create(:product, name: "Banana", supplier_id: zed.id) }
 
     let(:distributor) { create(:distributor_enterprise) }
     let(:order) do

@@ -16,10 +16,8 @@ gem "image_processing"
 
 gem 'activemerchant', '>= 1.78.0'
 gem 'angular-rails-templates', '>= 0.3.0'
-gem 'awesome_nested_set'
 gem 'ransack', '~> 4.1.0'
 gem 'responders'
-gem 'rexml'
 gem 'webpacker', '~> 5'
 
 gem 'i18n'
@@ -88,7 +86,7 @@ gem "active_model_serializers", "0.8.4"
 gem 'activerecord-session_store'
 gem 'acts-as-taggable-on'
 gem 'angularjs-file-upload-rails', '~> 2.4.1'
-gem 'bigdecimal', '3.0.2'
+gem 'bigdecimal'
 gem 'bootsnap', require: false
 gem 'geocoder'
 gem 'gmaps4rails'
@@ -103,8 +101,11 @@ gem 'redis'
 gem 'sidekiq'
 gem 'sidekiq-scheduler'
 
-gem "cable_ready", "5.0.1"
-gem "stimulus_reflex", "3.5.0.rc3"
+gem "cable_ready"
+gem "stimulus_reflex"
+
+gem "turbo_power"
+gem "turbo-rails"
 
 gem 'combine_pdf'
 gem 'wicked_pdf'
@@ -164,7 +165,7 @@ group :test, :development do
   gem 'rspec-sql'
   gem 'rswag'
   gem 'shoulda-matchers'
-  gem 'stimulus_reflex_testing'
+  gem 'stimulus_reflex_testing', github: "podia/stimulus_reflex_testing", branch: :main
   gem 'timecop'
 end
 

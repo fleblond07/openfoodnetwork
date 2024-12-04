@@ -2,7 +2,7 @@
 
 require "system_helper"
 
-describe "As a consumer, I want to checkout my order" do
+RSpec.describe "As a consumer, I want to checkout my order" do
   include ShopWorkflow
   include CheckoutHelper
   include FileHelper
@@ -10,12 +10,13 @@ describe "As a consumer, I want to checkout my order" do
   include StripeStubs
   include PaypalHelper
   include AuthenticationHelper
+  include UIComponentHelper
 
   let!(:zone) { create(:zone_with_member) }
   let(:supplier) { create(:supplier_enterprise) }
   let(:distributor) { create(:distributor_enterprise, charges_sales_tax: true) }
   let(:product) {
-    create(:taxed_product, supplier:, price: 10, zone:, tax_rate_amount: 0.1)
+    create(:taxed_product, supplier_id: supplier.id, price: 10, zone:, tax_rate_amount: 0.1)
   }
   let(:variant) { product.variants.first }
   let!(:order_cycle) {
@@ -48,7 +49,6 @@ describe "As a consumer, I want to checkout my order" do
 
     before do
       login_as(user)
-      visit checkout_path
     end
 
     context "summary step" do
@@ -106,6 +106,41 @@ describe "As a consumer, I want to checkout my order" do
           expect(order.reload.state).to eq "complete"
 
           expect(page).to have_content "Shopping @ #{distributor.name}"
+        end
+      end
+
+      describe "navigating away from checkout summary page" do
+        it "navigates to new page when popup is confirmed" do
+          visit checkout_step_path(:summary)
+          expect(page).to have_content "Order summary"
+          within '.nav-main-menu' do
+            accept_alert do
+              click_link(href: '/groups')
+            end
+          end
+          expect(page).not_to have_content "Order summary"
+          expect(page).to have_content "Groups / regions"
+        end
+
+        it "doesn't navigate to new page when popup is canceled" do
+          visit checkout_step_path(:summary)
+          expect(page).to have_content "Order summary"
+          within '.nav-main-menu' do
+            dismiss_confirm do
+              click_link(href: '/groups')
+            end
+          end
+          expect(page).to have_content "Order summary"
+          expect(page).not_to have_content "Groups / regions"
+        end
+
+        it "opens correct order step when edit link is clicked" do
+          visit checkout_step_path(:summary)
+          expect(page).to have_content "Order summary"
+          click_link(href: '/checkout/details')
+
+          expect(page).to have_content "Contact information"
+          expect(page).not_to have_content "Groups / regions"
         end
       end
 
@@ -309,6 +344,48 @@ describe "As a consumer, I want to checkout my order" do
           end
         end
       end
+
+      context "with a VINE voucher", feature: :connected_apps do
+        let!(:vine_connected_app) {
+          ConnectedApps::Vine.create(
+            enterprise: distributor, data: { api_key: "1234568", secret: "my_secret" }
+          )
+        }
+        let(:vine_voucher) {
+          create(:vine_voucher, code: 'some_vine_code', enterprise: distributor, amount: 0.01)
+        }
+
+        before do
+          allow(ENV).to receive(:fetch).and_call_original
+          allow(ENV).to receive(:fetch).with("VINE_API_URL")
+            .and_return("https://vine-staging.openfoodnetwork.org.au/api/v1")
+
+          add_voucher_to_order(vine_voucher, order)
+        end
+
+        it "shows the applied voucher" do
+          visit checkout_step_path(:summary)
+
+          within ".summary-right" do
+            expect(page).to have_content "some_vine_code"
+            expect(page).to have_content "-0.01"
+          end
+        end
+
+        context "when placing the order" do
+          it "completes the order", :vcr do
+            visit checkout_step_path(:summary)
+
+            place_order
+
+            within "#line-items" do
+              expect(page).to have_content "Voucher: some_vine_code"
+              expect(page).to have_content "$-0.01"
+            end
+            expect(order.reload.state).to eq "complete"
+          end
+        end
+      end
     end
 
     context "with previous open orders" do
@@ -358,53 +435,50 @@ describe "As a consumer, I want to checkout my order" do
       }
       let(:payment) { completed_order.payments.first }
 
-      shared_examples "order confirmation page" do |paid_state, paid_amount|
-        it "displays the relevant information" do
-          expect(page).to have_content paid_state.to_s
-          expect(page).to have_selector('strong', text: "Amount Paid")
-          expect(page).to have_selector('strong', text: with_currency(paid_amount))
-        end
-      end
-
       context "an order with balance due" do
         before { set_up_order(-10, "balance_due") }
 
-        it_behaves_like "order confirmation page", "NOT PAID", "40" do
-          before do
-            expect(page).to have_selector('h5', text: "Balance Due")
-            expect(page).to have_selector('h5', text: with_currency(10))
-          end
+        it "displays balance due and paid state" do
+          expect(page).to have_selector('h5', text: "Balance Due")
+          expect(page).to have_selector('h5', text: with_currency(10))
+
+          confirmation_page_expect_paid(paid_state: "NOT PAID", paid_amount: 40)
         end
       end
 
       context "an order with credit owed" do
         before { set_up_order(10, "credit_owed") }
 
-        it_behaves_like "order confirmation page", "PAID", "60" do
-          before do
-            expect(page).to have_selector('h5', text: "Credit Owed")
-            expect(page).to have_selector('h5', text: with_currency(-10))
-          end
+        it "displays Credit owned and paid state" do
+          expect(page).to have_selector('h5', text: "Credit Owed")
+          expect(page).to have_selector('h5', text: with_currency(-10))
+
+          confirmation_page_expect_paid(paid_state: "PAID", paid_amount: 60)
         end
       end
 
       context "an order with no outstanding balance" do
         before { set_up_order(0, "paid") }
 
-        it_behaves_like "order confirmation page", "PAID", "50" do
-          before do
-            expect(page).not_to have_selector('h5', text: "Credit Owed")
-            expect(page).not_to have_selector('h5', text: "Balance Due")
-          end
+        it "displays paid state" do
+          expect(page).not_to have_selector('h5', text: "Credit Owed")
+          expect(page).not_to have_selector('h5', text: "Balance Due")
+
+          confirmation_page_expect_paid(paid_state: "PAID", paid_amount: 50)
         end
       end
     end
   end
 
+  def confirmation_page_expect_paid(paid_state:, paid_amount:)
+    expect(page).to have_content paid_state.to_s
+    expect(page).to have_selector('strong', text: "Amount Paid")
+    expect(page).to have_selector('strong', text: with_currency(paid_amount))
+  end
+
   def add_voucher_to_order(voucher, order)
     voucher.create_adjustment(voucher.code, order)
-    VoucherAdjustmentsService.new(order).update
-    order.update_totals_and_states
+    OrderManagement::Order::Updater.new(order).update_voucher
   end
 
   def set_up_order(balance, state)

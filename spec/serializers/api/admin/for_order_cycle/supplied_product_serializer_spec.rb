@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-describe Api::Admin::ForOrderCycle::SuppliedProductSerializer do
+RSpec.describe Api::Admin::ForOrderCycle::SuppliedProductSerializer do
   let(:coordinator)         { create(:distributor_enterprise) }
   let(:order_cycle)         { double(:order_cycle, coordinator:) }
   let!(:product) { create(:simple_product) }
@@ -41,7 +41,7 @@ describe Api::Admin::ForOrderCycle::SuppliedProductSerializer do
     describe "supplied products" do
       it "renders variants regardless of whether they are in the coordinators inventory" do
         expect(serialized_product).to have_json_size(2).at_path 'variants'
-        variant_ids = parse_json(serialized_product)['variants'].map{ |v| v['id'] }
+        variant_ids = parse_json(serialized_product)['variants'].pluck('id')
         expect(variant_ids).to include non_inventory_variant.id, inventory_variant.id
       end
     end

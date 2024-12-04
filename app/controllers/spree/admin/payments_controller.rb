@@ -24,9 +24,12 @@ module Spree
       end
 
       def create
+        # Try to redeem VINE voucher first as we don't want to create a payment and complete
+        # the order if it fails
+        return redirect_to spree.admin_order_payments_path(@order) unless redeem_vine_voucher
+
         @payment = @order.payments.build(object_params)
         load_payment_source
-
         begin
           unless @payment.save
             redirect_to spree.admin_order_payments_path(@order)
@@ -51,6 +54,10 @@ module Spree
         event = params[:e]
         return unless event && @payment.payment_source
 
+        # capture_and_complete_order will complete the order, so we want to try to redeem VINE
+        # voucher first and exit if it fails
+        return if event == "capture_and_complete_order" && !redeem_vine_voucher
+
         # Because we have a transition method also called void, we do this to avoid conflicts.
         event = "void_transaction" if event == "void"
         if allowed_events.include?(event) && @payment.public_send("#{event}!")
@@ -60,7 +67,7 @@ module Spree
         end
       rescue StandardError => e
         logger.error e.message
-        Bugsnag.notify(e)
+        Alert.raise(e)
         flash[:error] = e.message
       ensure
         redirect_to request.referer
@@ -181,6 +188,22 @@ module Spree
       def allowed_events
         %w{capture void_transaction credit refund resend_authorization_email
            capture_and_complete_order}
+      end
+
+      def redeem_vine_voucher
+        vine_voucher_redeemer = Vine::VoucherRedeemerService.new(order: @order)
+        if vine_voucher_redeemer.redeem == false
+          # rubocop:disable Rails/DeprecatedActiveModelErrorsMethods
+          flash[:error] = if vine_voucher_redeemer.errors.keys.include?(:redeeming_failed)
+                            vine_voucher_redeemer.errors[:redeeming_failed]
+                          else
+                            I18n.t('checkout.errors.voucher_redeeming_error')
+                          end
+          # rubocop:enable Rails/DeprecatedActiveModelErrorsMethods
+          return false
+        end
+
+        true
       end
     end
   end

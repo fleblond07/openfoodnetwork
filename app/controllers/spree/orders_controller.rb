@@ -60,7 +60,7 @@ module Spree
       @insufficient_stock_lines = []
       @order = order_to_update
       unless @order
-        flash[:error] = t(:order_not_found)
+        flash[:error] = t(:order_not_updated)
         redirect_to(main_app.root_path) && return
       end
 
@@ -70,8 +70,7 @@ module Spree
         @order.recreate_all_fees! # Enterprise fees on line items and on the order itself
 
         # Re apply the voucher
-        VoucherAdjustmentsService.new(@order).update
-        @order.update_totals_and_states
+        OrderManagement::Order::Updater.new(@order).update_voucher
 
         if @order.complete?
           @order.update_payment_fees!
@@ -82,7 +81,7 @@ module Spree
           format.html do
             if params.key?(:checkout)
               @order.next_transition.run_callbacks if @order.cart?
-              redirect_to main_app.checkout_step_path(@order.checkout_steps.first)
+              redirect_to main_app.checkout_step_path("address")
             elsif @order.complete?
               redirect_to main_app.order_path(@order)
             else

@@ -5,6 +5,8 @@ it:
       spree/product: Prodotto
       spree/shipping_method: Metodo di spedizione
     attributes:
+      spree/image:
+        attachment: Allegato
       spree/order/ship_address:
         address1: "Dati di consegna - Indirizzo"
         address2: "Dati di consegna - continuazione indirizzo"
@@ -42,10 +44,12 @@ it:
       spree/product:
         name: "Nome Prodotto"
         price: "Prezzo"
-        primary_taxon: "Categoria Prodotto"
-        supplier: "Fornitore"
+        primary_taxon_id: "Categoria Prodotto"
         shipping_category_id: "Categoria Spedizioni"
-        variant_unit: "Unità Variante"
+      spree/variant:
+        primary_taxon: "Categoria Prodotto"
+        shipping_category_id: "Categoria Spedizioni"
+        supplier: "Fornitore"
         variant_unit_name: "Nome Unità Variante"
         unit_value: "Valore unità"
       spree/credit_card:
@@ -79,7 +83,6 @@ it:
         variant_override:
           count_on_hand:
             using_producer_stock_settings_but_count_on_hand_set: "deve restare vuoto perché si stanno utilizzando le impostazioni di magazzino del produttore"
-            on_demand_but_count_on_hand_set: "deve restare vuoto se su richiesta"
             limited_stock_but_no_count_on_hand: "deve essere specificato a causa di una disponibilità limitata"
       messages:
         blank: "non può essere lasciato vuoto"
@@ -273,6 +276,9 @@ it:
     integer_array_validator:
       not_array_error: "deve essere un array"
       invalid_element_error: "deve contenere solo numeri interi"
+  backorder_mailer:
+    backorder_failed:
+      product: "Prodotto"
   enterprise_mailer:
     confirmation_instructions:
       subject: "Per favore conferma l'indirizzo email di %{enterprise}"
@@ -428,7 +434,7 @@ it:
   password_confirmation: 'Conferma Password '
   reset_password_token: Token per il reset della password
   expired: è scaduto, si prega di richiederne uno nuovo
-  back_to_payments_list: "Torna alla Lista dei Pagamenti"
+  back_to_payments_list: "Torna Alla Lista Pagamenti"
   maestro_or_solo_cards: "Carte Maestro/Solo"
   backordered: "Ordini arretrati"
   on_hand: "Disponibile"
@@ -467,8 +473,10 @@ it:
         per_page: "%{count} articoli per pagina"
         colums: Colonne
       columns:
+        image: Immagine
         name: Nome
         unit: Unità
+        unit_value: Valore unità
         price: Prezzo
         producer: Produttore
         category: Categoria
@@ -494,8 +502,11 @@ it:
         edit: Modifica
         clone: Duplica
         delete: Annulla
+        remove: Rimuovi
       image:
         edit: Modifica
+      product_preview:
+        shop_tab: Negozio
     adjustments:
       skipped_changing_canceled_order: "Non puoi modificare una richiesta annullata"
     begins_at: Inizia a
@@ -549,7 +560,6 @@ it:
     show_n_more: Mostra %{num} di più
     choose: "Scegli..."
     please_select: Seleziona...
-    column_save_as_default: Salva Come Predefinito
     columns: Colonne
     actions: Azioni
     viewing: "Vista: %{current_view_name}"
@@ -700,7 +710,6 @@ it:
       variants:
         infinity: "Infinito"
         to_order_tip: "Gli articoli messi in ordine non hanno un livello di stock impostato, come ad esempio il Pane fresco su ordinazione."
-      back_to_products_list: "Indietro alla lista dei prodotti"
       editing_product: "Modifica prodotto"
       tabs:
         product_details: "Dettagli Prodotto"
@@ -712,19 +721,22 @@ it:
       index:
         header:
           title: Modifica prodotti tabella
-      sort:
-        pagination:
-          clear_search: Pulisci ricerca
       filters:
         producers:
           label: Produttori
         categories:
           label: categorie
         search: Cerca
-      table:
+      sort:
+        pagination:
+          clear_search: Pulisci ricerca
+      product_variant_row:
         new_variant: Nuova variante
-      edit_image:
-        close: Indietro
+      variant_row:
+        none_tax_category: Nessuno
+        category_field_name: "Categoria"
+        tax_category_field_name: "Categoria d'imposta"
+        producer_field_name: "Produttore"
     product_import:
       title: Importa prodotto
       file_not_found: Documento non trovato o non disponibile
@@ -1062,8 +1074,6 @@ it:
               Un messaggio opzionale per dare il benvenuto ai clienti e spiegare come
               acquistare. Il testo inserito qui verrà mostrato nel tab principale
               della vetrina.
-          shopfront_message_link_tooltip: "Inserisci / modifica link"
-          shopfront_message_link_prompt: "Per favore inserisci un URL"
           shopfront_closed_message: "Messaggio Chiusura Vetrina"
           shopfront_closed_message_placeholder: >
               Un messaggio che fornisce una spiegazione più dettagliata sul perché
@@ -1136,7 +1146,12 @@ it:
           customers: Cliente
           active: Attivo?
         connected_apps:
-          loading: "Caricamento"
+          affiliate_sales_data:
+            loading: "Caricamento"
+          discover_regen:
+            loading: "Caricamento"
+          vine:
+            enable: "Blog"
       actions:
         edit_profile: Impostazioni
         properties: Proprietà
@@ -1189,10 +1204,8 @@ it:
         contact_name: Nome contatto
       edit:
         editing: 'Impostazioni:'
-        back_link: Indietro alla lista delle aziende
       new:
         title: Nuova Azienda
-        back_link: Indietro alla lista delle aziende
       welcome:
         welcome_title: Benvenuto su Open Food Network!
         welcome_text: Hai creato con successo una
@@ -1229,6 +1242,8 @@ it:
         choose_products_from: "Scegli i prodotti da:"
         re_notify_producers: Ri-notifica i produttori
         notify_producers_tip: Sarà inviata una mail a ciascun produttore con la lista dei suoi ordini.
+      date_time_warning_modal_content:
+        cancel: 'Annulla'
       incoming:
         incoming: "In arrivo"
         supplier: "Fornitore"
@@ -1866,7 +1881,6 @@ it:
   label_account: "Account"
   label_more: "Mostra di più"
   label_less: "Mostra meno"
-  label_notices: "Avvisi"
   cart_items: "articoli"
   cart_headline: "Il tuo carrello"
   total: "Totale"
@@ -2619,7 +2633,6 @@ it:
   spree_admin_single_enterprise_hint: "Suggerimento: Per permettere alle persone di trovarti, abilita la tua visibilità sotto"
   spree_admin_eg_pickup_from_school: "es. \"Ritiro presso la Cooperativa\""
   spree_admin_eg_collect_your_order: "es. \"Prego ritira il tuo ordine in via Roma 45\""
-  spree_classification_primary_taxon_error: "La classificazione %{taxon} è la classificazione primaria di %{product} e non può essere cancellata"
   spree_order_availability_error: "Il distributore o il ciclo di richiesta non possono rifornire i prodotti nel tuo carrello"
   spree_order_populator_error: "Il distributore o il ciclo di richieste non hanno disponibilità di alcuni prodotti nel tuo carrello. Per favore scegline un altro."
   spree_order_cycle_error: "Per favore seleziona un ciclo di richieste per questa gentile richiesta."
@@ -2771,6 +2784,7 @@ it:
   report_header_quantity: Quantità
   report_header_max_quantity: Quantità massima
   report_header_variant: Variante
+  report_header_variant_unit_name: Nome Unità Variante
   report_header_variant_value: Valore della Variante
   report_header_variant_unit: Unità Variante
   report_header_total_available: Totale disponibile
@@ -2934,7 +2948,7 @@ it:
   order_cycles_no_permission_to_coordinate_error: "Nessuna delle tue aziende ha il permesso di coordinare un ciclo di richieste"
   order_cycles_no_permission_to_create_error: "Non hai il permesso di creare un ciclo di richieste coordinato da questa azienda"
   order_cycle_closed: "Il ciclo di richieste che hai selezionato è appena chiuso. Riprova per favore!"
-  back_to_orders_list: "Indietro alla lista delle gentili richieste"
+  back_to_orders_list: "Torna alla lista delle richieste"
   no_orders_found: "Nessuna gentile richiesta trovata"
   order_information: "Informazioni Gentile Richiesta"
   new_payment: "Nuovo pagamento"
@@ -3271,6 +3285,8 @@ it:
           Questo imposterà il livello delle scorte a zero su tutti i prodotti per questa
           impresa che non sono presenti nel file caricato.
     order_cycles:
+      unsaved_changes: "Hai modifiche non salvate"
+      bulk_save_error: "Oh no! non siamo riusciti a salvare le tue modifiche"
       create_failure: "Impossibile creare il ciclo dell'ordine"
       update_success: 'Il tuo ciclo di richieste è stato aggiornato'
       update_failure: "Impossibile aggiornare il ciclo dell'ordine"
@@ -3298,6 +3314,9 @@ it:
           C'è stato un problema nell'impostare la tua carta nel nostro portale di pagamento.
           Per favore aggiorna la pagina e prova ancora, se dovesse ripresentarsi l'errore,
           contattaci per avere supporto.
+    trix:
+      code: "Codice"
+      urlPlaceholder: "Per favore inserisci un URL"
   inflections:
     each:
       one: "ogni"
@@ -3476,7 +3495,7 @@ it:
   account: "Account"
   logout: "Logout"
   date_range: "Intervallo di date"
-  status: "stato"
+  status: "Stato"
   new: "Nuovo"
   start: "Inizio"
   end: "Fine"
@@ -3509,9 +3528,9 @@ it:
     more: "Di più"
     new_adjustment: "Nuovo aggiustamento"
     new_tax_category: "Nuova Categoria imposta"
-    new_taxon: "Nuova tassonomia"
     new_user: "Nuovo utente"
     no_pending_payments: "Nessun pagamento in sospeso"
+    remove: "Rimuovi"
     none: "Nessuno"
     not_found: "Non trovato"
     notice_messages:
@@ -3527,8 +3546,6 @@ it:
       delivery: "Firmato, sigillato, consegnato"
     start_date: "Data inizio"
     successfully_removed: "Rimosso con successo"
-    taxonomy_edit: "Modifica tassonomia"
-    tree: "Schema"
     updating: "In aggiornamento"
     your_order_is_empty_add_product: "Il tuo ordine è vuoto, cerca e aggiungi un prodotto qui sopra"
     add_product: "Aggiungi prodotto"
@@ -3624,7 +3641,6 @@ it:
     tax_rate_amount_explanation: "Le tariffe sono un importo decimale da utilizzare nei calcoli (ad esempio, se l'aliquota fiscale è del 5%, inserire 0,05)"
     included_in_price: "Incluso nel prezzo"
     show_rate_in_label: "Mostra tariffa in etichetta"
-    back_to_tax_rates_list: "Torna all'elenco delle tariffe"
     tax_settings: "Impostazione contributi"
     zones: "Zone"
     new_zone: "Nuova zona"
@@ -3637,14 +3653,11 @@ it:
     iso_name: "Nome ISO"
     states_required: "Provincia richiesta"
     editing_country: "Modifica Paese"
-    back_to_countries_list: "Torna all'elenco dei Paesi"
     states: "Stati"
     abbreviation: "Abbreviazione"
     new_state: "Nuovo Stato"
     payment_methods: "Metodi di pagamento"
-    taxonomies: "Tassonomie"
-    new_taxonomy: "Nuova tassonomia"
-    back_to_taxonomies_list: "Torna all'elenco delle tassonomie"
+    taxons: "Categorie Prodotti"
     shipping_methods: "Metodi di spedizione"
     shipping_method: "Metodo di spedizione"
     shipment: "Spedizione"
@@ -3736,6 +3749,9 @@ it:
     validation:
       must_be_int: "deve essere un numero intero"
     admin:
+      images:
+        edit:
+          close: Indietro
       mail_methods:
         send_testmail: "Invia mail prova"
         testmail:
@@ -3750,6 +3766,7 @@ it:
         bulk_order_management: "Gentili richieste - vista a tabella"
         subscriptions: "Abbonamenti"
         products: "Prodotti"
+        products_v3: "Prodotti"
         option_types: "Tipi di opzioni"
         properties: "Proprietà"
         variant_overrides: "Inventario"
@@ -3763,6 +3780,10 @@ it:
         customers: "Clienti"
         groups: "Reti"
         oidc_settings: "Impoostazioni"
+        overview: "Panoramica"
+        product_import: "Importazione"
+        enterprise_roles: "Ruoli"
+        payment_methods: "Metodi di Pagamento"
       product_properties:
         index:
           inherits_properties_checkbox_hint: "Eredita le proprietà da %{supplier}? (se non sovrascritto)"
@@ -3793,7 +3814,6 @@ it:
           continue: "Continua"
         new:
           new_return_authorization: "Nuova autorizzazione resi"
-          back_to_return_authorizations_list: "Torna alla lista di autorizzazioni resi"
           continue: "Continua"
         edit:
           receive: "ricevi"
@@ -4074,12 +4094,15 @@ it:
           new_variant: "Nuova variante"
         form:
           sku: "Codice ID"
-          price: "Prezzo"
           unit_price: "Prezzo unitario"
           display_as: "Visualizza come"
           display_name: "Nome da visualizzare"
           display_as_placeholder: 'es. 2 kg'
           display_name_placeholder: 'es. Pomodori'
+          unit: Unità
+          price: Prezzo
+          unit_value: Valore unità
+          variant_category: Categoria
         autocomplete:
           out_of_stock: "Esaurito"
           producer_name: "Produttore"
@@ -4098,9 +4121,10 @@ it:
           total: "Totale"
           billing_address_name: "Nome"
       taxons:
+        index:
+          title: "Categorie Prodotti"
         form:
           name: Nome
-          permalink: Permalink
           description: Descrizione
       general_settings:
         edit:
@@ -4328,7 +4352,6 @@ it:
       key_cleared: "Chiave cancellata"
       shipment:
         cannot_ready: "Impossibile spedizione immediata."
-      invalid_taxonomy_id: "ID tassonomia non valido."
       toggle_api_key_view: "Mostra la chiave API per l'utente"
     activerecord:
       models:

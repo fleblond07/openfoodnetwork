@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'stripe/credit_card_remover'
 
-describe Stripe::CreditCardRemover do
+RSpec.describe Stripe::CreditCardRemover do
   let(:credit_card) { create(:credit_card, gateway_payment_profile_id: pm_card.id, user:) }
 
   let!(:user) { create(:user, email: "apple.customer@example.com") }
@@ -35,6 +35,10 @@ describe Stripe::CreditCardRemover do
     end
 
     let(:cloner) { Stripe::CreditCardCloner.new(credit_card, connected_account.id) }
+
+    after do
+      Stripe::Account.delete(connected_account.id)
+    end
 
     context 'Stripe customer exists' do
       let(:payment_method_id) { pm_card.id }

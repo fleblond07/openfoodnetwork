@@ -2,7 +2,7 @@
 
 require 'system_helper'
 
-describe '
+RSpec.describe '
   As an Administrator
   I want to be able to manage orders in bulk
 ' do
@@ -69,11 +69,11 @@ describe '
       end
 
       it "orders by completion date" do
-        find("a", text: 'COMPLETED AT').click # sets ascending ordering
+        find("a", text: 'Completed at').click # sets ascending ordering
         expect(page).to have_content(
           /#{li2.product.name}.*#{li1.product.name}.*#{li22.product.name}.*#{li21.product.name}/m
         )
-        find("a", text: 'COMPLETED AT').click # sets descending ordering
+        find("a", text: 'Completed at').click # sets descending ordering
         expect(page).to have_content(
           /#{li21.product.name}.*#{li22.product.name}.*#{li1.product.name}.*#{li2.product.name}/m
         )
@@ -155,9 +155,9 @@ describe '
           expect(page).to have_content "Little Fish", count: 15
           expect(page).not_to have_content "Big Fish"
         end
-        find("a", text: "Clear").click # closes BOM box
-        expect(page).to have_content "Little Fish", count: 10
+        click_link "Clear" # closes BOM box
         expect(page).to have_content "Big Fish", count: 5
+        expect(page).to have_content "Little Fish", count: 10
       end
     end
 
@@ -174,13 +174,13 @@ describe '
       let!(:s1) { create(:supplier_enterprise) }
       let!(:s2) { create(:supplier_enterprise) }
       let!(:li1) {
-        create(:line_item_with_shipment, order: o1, product: create(:product, supplier: s1))
+        create(:line_item_with_shipment, order: o1, variant: create(:variant, supplier: s1))
       }
       let!(:li2) {
-        create(:line_item_with_shipment, order: o2, product: create(:product, supplier: s2))
+        create(:line_item_with_shipment, order: o2, variant: create(:variant, supplier: s2))
       }
       let!(:li3) {
-        create(:line_item_with_shipment, order: o2, product: create(:product, supplier: s2))
+        create(:line_item_with_shipment, order: o2, variant: create(:variant, supplier: s2))
       }
 
       before :each do
@@ -195,7 +195,7 @@ describe '
       end
 
       it "by supplier name" do
-        fill_in "quick_filter", with: li1.product.supplier.name
+        fill_in "quick_filter", with: li1.variant.supplier.name
         page.find('.filter-actions .button.icon-search').click
 
         expect_line_items_results [li1], [li2, li3]
@@ -311,7 +311,7 @@ describe '
       end
 
       it "displays a column for user's full name" do
-        expect(page).to have_selector "th.full_name", text: "NAME"
+        expect(page).to have_selector "th.full_name", text: "Name"
         expect(page)
           .to have_selector "td.full_name",
                             text: "#{o1.bill_address.last_name}, #{o1.bill_address.first_name}"
@@ -320,33 +320,33 @@ describe '
 
       it "displays a column for order date" do
         expect(page).to have_selector "th.date",
-                                      text: 'Completed at'.upcase
+                                      text: 'Completed at'
         expect(page).to have_selector "td.date", text: o1.completed_at.strftime('%B %d, %Y')
         expect(page).to have_selector "td.date", text: o2.completed_at.strftime('%B %d, %Y')
       end
 
       it "displays a column for producer" do
-        expect(page).to have_selector "th.producer", text: "PRODUCER"
-        expect(page).to have_selector "td.producer", text: li1.product.supplier.name
-        expect(page).to have_selector "td.producer", text: li2.product.supplier.name
+        expect(page).to have_selector "th.producer", text: "Producer"
+        expect(page).to have_selector "td.producer", text: li1.supplier.name
+        expect(page).to have_selector "td.producer", text: li2.supplier.name
       end
 
       it "displays a column for variant description, which shows only product name " \
          "when options text is blank" do
-        expect(page).to have_selector "th.variant", text: "PRODUCT: UNIT"
+        expect(page).to have_selector "th.variant", text: "Product: Unit"
         expect(page).to have_selector "td.variant", text: li1.product.name
         expect(page).to have_selector "td.variant",
                                       text: "#{li2.product.name}: #{li2.variant.options_text}"
       end
 
       it "displays a field for quantity" do
-        expect(page).to have_selector "th.quantity", text: "QUANTITY"
+        expect(page).to have_selector "th.quantity", text: "Quantity"
         expect(page).to have_field "quantity", with: li1.quantity.to_s
         expect(page).to have_field "quantity", with: li2.quantity.to_s
       end
 
       it "displays a column for max quantity" do
-        expect(page).to have_selector "th.max", text: "MAX"
+        expect(page).to have_selector "th.max", text: "Max"
         expect(page).to have_selector "td.max", text: li1.max_quantity.to_s
         expect(page).to have_selector "td.max", text: li2.max_quantity.to_s
       end
@@ -550,13 +550,13 @@ describe '
 
     context "using column display toggle" do
       it "displays the default selected columns" do
-        expect(page).to have_selector "th", text: "NAME"
+        expect(page).to have_selector "th", text: "Name"
         expect(page).to have_selector "th",
-                                      text: 'Completed at'.upcase
-        expect(page).to have_selector "th", text: "PRODUCER"
-        expect(page).to have_selector "th", text: "PRODUCT: UNIT"
-        expect(page).to have_selector "th", text: "QUANTITY"
-        expect(page).to have_selector "th", text: "MAX"
+                                      text: 'Completed at'
+        expect(page).to have_selector "th", text: "Producer"
+        expect(page).to have_selector "th", text: "Product: Unit"
+        expect(page).to have_selector "th", text: "Quantity"
+        expect(page).to have_selector "th", text: "Max"
       end
 
       context "hiding a column, by de-selecting it from the drop-down" do
@@ -565,13 +565,13 @@ describe '
         end
 
         it "shows all default columns, except the de-selected column" do
-          expect(page).not_to have_selector "th", text: "PRODUCER"
-          expect(page).to have_selector "th", text: "NAME"
+          expect(page).not_to have_selector "th", text: "Producer"
+          expect(page).to have_selector "th", text: "Name"
           expect(page).to have_selector "th",
-                                        text: 'Completed at'.upcase
-          expect(page).to have_selector "th", text: "PRODUCT: UNIT"
-          expect(page).to have_selector "th", text: "QUANTITY"
-          expect(page).to have_selector "th", text: "MAX"
+                                        text: 'Completed at'
+          expect(page).to have_selector "th", text: "Product: Unit"
+          expect(page).to have_selector "th", text: "Quantity"
+          expect(page).to have_selector "th", text: "Max"
         end
       end
     end
@@ -586,10 +586,10 @@ describe '
                                           order_cycle: create(:simple_order_cycle) )
         }
         let!(:li1) {
-          create(:line_item_with_shipment, order: o1, product: create(:product, supplier: s1) )
+          create(:line_item_with_shipment, order: o1, variant: create(:variant, supplier: s1) )
         }
         let!(:li2) {
-          create(:line_item_with_shipment, order: o1, product: create(:product, supplier: s2) )
+          create(:line_item_with_shipment, order: o1, variant: create(:variant, supplier: s2) )
         }
 
         before :each do
@@ -743,8 +743,9 @@ describe '
         let!(:d2) { create(:distributor_enterprise) }
         let!(:oc1) { create(:simple_order_cycle, suppliers: [s1], distributors: [d1] ) }
         let!(:oc2) { create(:simple_order_cycle, suppliers: [s2], distributors: [d2] ) }
-        let!(:p1) { create(:product, supplier: s1) }
-        let!(:p2) { create(:product, supplier: s2) }
+        let!(:v1) { create(:variant, supplier: s1) }
+        let!(:v2) { create(:variant, supplier: s2) }
+
         let!(:o1) {
           create(:order_with_distributor, state: 'complete', shipment_state: 'ready',
                                           completed_at: Time.zone.now, distributor: d1,
@@ -755,8 +756,8 @@ describe '
                                           completed_at: Time.zone.now, distributor: d2,
                                           order_cycle: oc2 )
         }
-        let!(:li1) { create(:line_item_with_shipment, order: o1, product: p1 ) }
-        let!(:li2) { create(:line_item_with_shipment, order: o2, product: p2 ) }
+        let!(:li1) { create(:line_item_with_shipment, order: o1, variant: v1 ) }
+        let!(:li2) { create(:line_item_with_shipment, order: o2, variant: v2 ) }
 
         before :each do
           visit_bulk_order_management
@@ -1209,7 +1210,7 @@ describe '
 
       context "clicking 'Clear' in group buy box" do
         before :each do
-          find("a", text: "Clear").click
+          click_link "Clear" # closes BOM box
         end
 
         it "shows all products and clears group buy box" do
@@ -1262,18 +1263,18 @@ describe '
                                       completed_at: Time.zone.now, distributor: d2 )
     }
     let!(:line_item_distributed) {
-      create(:line_item_with_shipment, order: o1, product: create(:product, supplier: s1) )
+      create(:line_item_with_shipment, order: o1, variant: create(:variant, supplier: s1) )
     }
     let!(:line_item_not_distributed) {
-      create(:line_item_with_shipment, order: o2, product: create(:product, supplier: s1) )
+      create(:line_item_with_shipment, order: o2, variant: create(:variant, supplier: s1) )
     }
 
     before(:each) do
-      @enterprise_user = create(:user)
-      @enterprise_user.enterprise_roles.build(enterprise: s1).save
-      @enterprise_user.enterprise_roles.build(enterprise: d1).save
+      enterprise_user = create(:user)
+      enterprise_user.enterprise_roles.build(enterprise: s1).save
+      enterprise_user.enterprise_roles.build(enterprise: d1).save
 
-      login_as @enterprise_user
+      login_as enterprise_user
     end
 
     it "displays a Bulk Management Tab under the Orders item" do

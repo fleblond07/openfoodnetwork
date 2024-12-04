@@ -29,10 +29,12 @@ es_US:
       spree/product:
         name: "nombre del producto"
         price: "Precio"
-        primary_taxon: "categoría del producto"
-        supplier: "Proveedora"
+        primary_taxon_id: "categoría del producto"
         shipping_category_id: "Categoría de envío"
-        variant_unit: "Unidad Variante"
+      spree/variant:
+        primary_taxon: "categoría del producto"
+        shipping_category_id: "Categoría de envío"
+        supplier: "Proveedor"
         variant_unit_name: "Nombre de la unidad de la variante"
       spree/credit_card:
         base: "Tarjeta de crédito"
@@ -65,7 +67,6 @@ es_US:
         variant_override:
           count_on_hand:
             using_producer_stock_settings_but_count_on_hand_set: "debe estar en blanco porque estás usando la configuración de estoc de la productora"
-            on_demand_but_count_on_hand_set: "debe estar en blanco si está bajo demanda"
             limited_stock_but_no_count_on_hand: "se debe especificar porque se ha definido estoc limitado"
       messages:
         blank: "no puede estar vacío"
@@ -224,6 +225,9 @@ es_US:
     integer_array_validator:
       not_array_error: "debe ser una matriz"
       invalid_element_error: "debe contener solo enteros válidos"
+  backorder_mailer:
+    backorder_failed:
+      product: "Producto"
   enterprise_mailer:
     confirmation_instructions:
       subject: "Confirma la dirección de correo electrónico de %{enterprise}"
@@ -379,7 +383,7 @@ es_US:
   password_confirmation: Confirmación de contraseña
   reset_password_token: token de restablecimiento de contraseña
   expired: ha expirado, por favor solicite una nueva
-  back_to_payments_list: "Volver a la lista de pagos"
+  back_to_payments_list: "Regresar a la lista de pagos"
   maestro_or_solo_cards: "Tarjetas Maestro/Solo"
   backordered: "Reabastecido"
   on_hand: "Disponibles"
@@ -415,6 +419,7 @@ es_US:
           title: Productoras
         colums: Columnas
       columns:
+        image: Imagen
         name: Nombre
         unit: Unidad
         price: Precio
@@ -442,8 +447,11 @@ es_US:
         edit: Editar
         clone: Duplicar
         delete: Borrar
+        remove: Eliminar
       image:
         edit: Editar
+      product_preview:
+        shop_tab: Tienda
     adjustments:
       skipped_changing_canceled_order: "No puede modificar un pedido cancelado."
     begins_at: Empieza en
@@ -497,7 +505,6 @@ es_US:
     show_n_more: Mostrar %{num} más
     choose: "Escoger..."
     please_select: Por favor selecciona ...
-    column_save_as_default: Guardar por defecto
     columns: Columnas
     actions: Acciones
     viewing: "Viendo: %{current_view_name}"
@@ -643,7 +650,6 @@ es_US:
       variants:
         infinity: "infinito"
         to_order_tip: "Los artículos hechos según demanda no tienen un nivel de stock, como por ejemplo panes hechos según demanda."
-      back_to_products_list: "Volver a la lista de productos"
       editing_product: "Editando producto"
       tabs:
         product_details: "Detalles del Producto"
@@ -655,19 +661,22 @@ es_US:
       index:
         header:
           title: Editar varios Productos
-      sort:
-        pagination:
-          clear_search: Limpiar la búsqueda
       filters:
         producers:
           label: Productoras
         categories:
           label: Categorías
         search: Buscar
-      table:
+      sort:
+        pagination:
+          clear_search: Limpiar la búsqueda
+      product_variant_row:
         new_variant: Nueva variante
-      edit_image:
-        close: Atrás
+      variant_row:
+        none_tax_category: Ninguno
+        category_field_name: "Categoría"
+        tax_category_field_name: "Categoría del impuesto"
+        producer_field_name: "Productora"
     product_import:
       title: Importación de productos
       file_not_found: Archivo no encontrado o no se pudo abrir
@@ -989,8 +998,6 @@ es_US:
               en el sitio. si el texto se agrega en este campo, va a ser mostrado
               en la pestaña de inicio cuando los clientes ingresen por primera vez
               a la tienda.
-          shopfront_message_link_tooltip: "Insertar / editar enlace"
-          shopfront_message_link_prompt: "Por favor introduzca una URL para insertar"
           shopfront_closed_message: "Mensaje de tienda cerrada"
           shopfront_closed_message_placeholder: >
               Un mensaje que proporciona una explicación más detallada sobre por qué
@@ -1061,7 +1068,12 @@ es_US:
           customers: Consumidora
           active: ¿Activo?
         connected_apps:
-          loading: "Cargando"
+          affiliate_sales_data:
+            loading: "Cargando"
+          discover_regen:
+            loading: "Cargando"
+          vine:
+            enable: "Conectar"
       actions:
         edit_profile: Configuración
         properties: Propiedades
@@ -1114,10 +1126,8 @@ es_US:
         contact_name: Nombre de Contacto
       edit:
         editing: 'Configuración:'
-        back_link: Volver a la lista de organizaciones
       new:
         title: Nueva Organización
-        back_link: Volver a la lista de organizaciones
       welcome:
         welcome_title: Bienvenida a Open Food Network!
         welcome_text: Has creado correctamente un
@@ -1154,6 +1164,8 @@ es_US:
         choose_products_from: "Escoger Productos desde:"
         re_notify_producers: Re notificar a productores
         notify_producers_tip: Esto enviará un correo electrónico a cada productor con la lista de sus pedidos.
+      date_time_warning_modal_content:
+        cancel: 'Cancelar'
       incoming:
         incoming: "Entrante"
         supplier: "Proveedora"
@@ -1716,7 +1728,6 @@ es_US:
   label_account: "Cuenta"
   label_more: "Mostrar más"
   label_less: "Mostrar menos"
-  label_notices: "Noticias"
   cart_items: "elementos"
   cart_headline: "Su carrito de compras"
   total: "Total"
@@ -2457,7 +2468,6 @@ es_US:
   spree_admin_single_enterprise_hint: "Sugerencia: Para permitir que la gente te encuentre, activa tu visibilidad"
   spree_admin_eg_pickup_from_school: "p.ej. 'Recogida en la Cooperativa'"
   spree_admin_eg_collect_your_order: "p.ej. 'Por favor recoge tu pedido en la Calle del Hormiguero nº3'"
-  spree_classification_primary_taxon_error: "La clasificación %{taxon} es la clasificación primaria de %{product} y no puede ser eliminada"
   spree_order_availability_error: "El Distribuidor o el Ciclo de Pedido no pueden suministrar los productos en su carrito"
   spree_order_populator_error: "Este Distribuidor o Ciclo de Pedido no puede suministrar todos los productos en tu carrito. Por favor, elige otro."
   spree_order_cycle_error: "Elija un ciclo de pedido para este pedido."
@@ -2588,6 +2598,7 @@ es_US:
   report_header_quantity: Cantidad
   report_header_max_quantity: Cantidad máxima
   report_header_variant: Variante
+  report_header_variant_unit_name: Nombre de la unidad de la variante
   report_header_variant_value: Valor de la variante
   report_header_variant_unit: Unidad Variante
   report_header_total_available: Total disponible
@@ -3067,6 +3078,8 @@ es_US:
           Esto establecerá el nivel de stock a cero en todos los productos para este
           organización no está presente en el archivo subido.
     order_cycles:
+      unsaved_changes: "Tienes cambios sin guardar"
+      bulk_save_error: "¡Vaya! No se ha podido guardar los cambios."
       create_failure: "Error al crear el ciclo de pedido"
       update_success: 'Se ha actualizado su ciclo de pedido.'
       update_failure: "Error al actualizar el ciclo de pedido"
@@ -3092,6 +3105,9 @@ es_US:
     stripe_elements:
       unknown_error_from_stripe: |
           Hubo un problema al configurar su tarjeta en nuestra pasarela de pagos. Actualice la página y vuelva a intentarlo; si falla por segunda vez, comuníquese con nosotros para obtener asistencia.
+    trix:
+      code: "Código"
+      urlPlaceholder: "Por favor introduzca una URL para insertar"
   inflections:
     each:
       one: "each"
@@ -3264,7 +3280,7 @@ es_US:
   account: "Cuenta"
   logout: "Cerrar sesión"
   date_range: "Rango de fechas"
-  status: "estado"
+  status: "Estado"
   new: "Nuevo"
   start: "Inicio"
   end: "Final"
@@ -3297,6 +3313,7 @@ es_US:
     new_tax_category: "Nueva categoría de impuestos"
     new_user: "Nuevo usuario"
     no_pending_payments: "No tiene pagos pendientes"
+    remove: "Eliminar"
     none: "Ninguno"
     not_found: "no encontrado"
     notice_messages:
@@ -3305,7 +3322,6 @@ es_US:
     resend_authorization_email: "Reenviar email de autorización"
     refund: "Reembolso"
     server_error: "Error del Servidor"
-    tree: "Árbol"
     updating: "Actualizando"
     your_order_is_empty_add_product: "Su pedido está vacío, busque y añada un producto arriba"
     add_product: "Añadir Producto"
@@ -3400,7 +3416,6 @@ es_US:
     tax_rate_amount_explanation: "Las tasas de impuestos son una cantidad decimal para ayudar en los cálculos (es decir, si la tasa de impuestos es del 5%, introduzca 0.05)"
     included_in_price: "Incluido en el precio"
     show_rate_in_label: "Mostrar impuesto en la etiqueta"
-    back_to_tax_rates_list: "Volver a la lista de impuestos"
     tax_settings: "Configuración de Impuestos"
     zones: "Zonas"
     new_zone: "Nueva zona"
@@ -3413,14 +3428,11 @@ es_US:
     iso_name: "Nombre ISO"
     states_required: "Estados requeridos"
     editing_country: "Editar país"
-    back_to_countries_list: "Volver a la lista de países"
     states: "Estados"
     abbreviation: "Abreviatura"
     new_state: "Nuevo estado"
     payment_methods: "Métodos de Pago"
-    taxonomies: "Taxonomias"
-    new_taxonomy: "Nueva taxonomía"
-    back_to_taxonomies_list: "Volver a la Lista de Taxonomías"
+    taxons: "Categorías de Producto"
     shipping_methods: "Métodos de envío"
     shipping_method: "Método de envío"
     shipment: "Envío"
@@ -3510,6 +3522,9 @@ es_US:
     validation:
       must_be_int: "debe ser un entero"
     admin:
+      images:
+        edit:
+          close: Atrás
       mail_methods:
         send_testmail: "Enviar email de prueba"
         testmail:
@@ -3524,6 +3539,7 @@ es_US:
         bulk_order_management: "Gestión de pedidos en bloque"
         subscriptions: "Suscripciones"
         products: "Productos"
+        products_v3: "Productos"
         option_types: "Tipos de opciones"
         properties: "Propiedades"
         variant_overrides: "Inventario"
@@ -3536,6 +3552,10 @@ es_US:
         enterprise_relationships: "Permisos"
         customers: "Consumidoras"
         groups: "Redes"
+        overview: "Visión general"
+        product_import: "Importar"
+        enterprise_roles: "Roles"
+        payment_methods: "Métodos de Pago"
       product_properties:
         index:
           inherits_properties_checkbox_hint: "¿Heredar propiedades desde %{supplier}? (a menos que sea anulado arriba)"
@@ -3566,7 +3586,6 @@ es_US:
           continue: "Continuar"
         new:
           new_return_authorization: "Nueva autorización de devolución"
-          back_to_return_authorizations_list: "Back To Return Authorization List"
           continue: "Continuar"
         edit:
           receive: "recibir"
@@ -3830,12 +3849,14 @@ es_US:
           new_variant: "Nueva Variante"
         form:
           sku: "SKU"
-          price: "Precio"
           unit_price: "Precio por unidad"
           display_as: "Mostrar como"
           display_name: "Nombre para mostrar"
           display_as_placeholder: 'p. ej. 2 Kg'
           display_name_placeholder: 'p. ej. Tomates'
+          unit: Unidad
+          price: Precio
+          variant_category: Categoría
         autocomplete:
           out_of_stock: "Agotado"
           producer_name: "Productora"
@@ -3854,9 +3875,10 @@ es_US:
           total: "Total"
           billing_address_name: "Nombre"
       taxons:
+        index:
+          title: "Categorías de Producto"
         form:
           name: Nombre
-          permalink: Enlace permanente
           description: Descripción
       general_settings:
         edit:
@@ -4073,7 +4095,6 @@ es_US:
       key_cleared: "valor borrado"
       shipment:
         cannot_ready: "No se puede completar envío"
-      invalid_taxonomy_id: "El identificador de taxonomía es inválido."
     activerecord:
       models:
         spree/payment:

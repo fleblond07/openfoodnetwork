@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
+RSpec.describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
   subject(:report) { Reporting::Reports::SalesTax::SalesTaxTotalsByOrder.new(user, {}) }
 
   let(:user) { create(:user) }
@@ -55,7 +55,7 @@ describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
   end
 
   before do
-    product.update!(supplier_id: supplier.id)
+    variant.update!(supplier: )
 
     order.update!(
       number: 'ORDER_NUMBER_1',
@@ -145,7 +145,8 @@ describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
         total = report.total_excl_tax(query_row)
 
         # discounted order total - discounted order tax
-        expect(total).to eq((113.3 - 10) - (3.3 - 0.29))
+        # (113.3 - 10) - (3.3 - 0.29)
+        expect(total).to eq 100.29
       end
     end
   end
@@ -271,8 +272,7 @@ describe "Reporting::Reports::SalesTax::SalesTaxTotalsByOrder" do
   def add_voucher(order, voucher)
     # Add voucher to the order
     voucher.create_adjustment(voucher.code, order)
-    VoucherAdjustmentsService.new(order).update
-    order.update_totals_and_states
+    OrderManagement::Order::Updater.new(order).update_voucher
 
     Orders::WorkflowService.new(order).complete!
   end

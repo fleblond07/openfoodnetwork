@@ -10,7 +10,6 @@
 @import "~jquery-ui/themes/base/resizable";
 @import "vendor/assets/stylesheets/jquery-ui-theme";
 @import "~jquery-ui/themes/base/dialog";
-@import "../shared/textAngular";
 @import "../shared/ng-tags-input.min";
 @import "vendor/assets/stylesheets/select2.css.scss";
 @import "~flatpickr/dist/flatpickr";
@@ -39,7 +38,6 @@
 
 @import "plugins/flatpickr-customization"; // admin_v3
 @import "plugins/powertip"; // admin_v3
-@import "../admin/plugins/jstree";
 
 @import "sections/orders"; // admin_v3
 @import "../admin/sections/products";
@@ -76,7 +74,6 @@
 @import "../admin/components/todo";
 @import "../admin/components/tooltip";
 @import "../admin/components/wizard_progress";
-@import "components/text-angular"; // admin_v3
 
 @import "../admin/pages/enterprise_form";
 @import "../admin/pages/subscription_form";
@@ -94,6 +91,7 @@
 @import "../admin/dialog";
 @import "../admin/disabled";
 @import "components/dropdown"; // admin_v3
+@import "pages/edit_variant"; // admin_v3
 @import "pages/enterprise_index_panels"; // admin_v3
 @import "../admin/enterprises";
 @import "../admin/filters_and_controls";
@@ -133,3 +131,5 @@
 @import "app/webpacker/css/admin/trix.scss";
 
 @import "terms_of_service_banner"; // admin_v3
+
+@import "pages/product_preview"; // admin_v3

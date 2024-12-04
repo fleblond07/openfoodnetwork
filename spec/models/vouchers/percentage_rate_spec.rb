@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Vouchers::PercentageRate do
+RSpec.describe Vouchers::PercentageRate do
   describe 'validations' do
     subject { build(:voucher_percentage_rate) }
 
@@ -12,6 +12,7 @@ describe Vouchers::PercentageRate do
         .is_greater_than(0)
         .is_less_than_or_equal_to(100)
     end
+    it_behaves_like 'has a unique code per enterprise', "voucher_percentage_rate"
   end
 
   describe '#compute_amount' do

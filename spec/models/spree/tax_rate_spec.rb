@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 module Spree
-  describe TaxRate do
+  RSpec.describe TaxRate do
     describe "#match" do
       let!(:zone) { create(:zone_with_member) }
       let!(:order) { create(:order, distributor: hub, bill_address: create(:address)) }
@@ -385,6 +385,16 @@ module Spree
               it "should create a tax refund for each tax rate" do
                 Spree::TaxRate.adjust(order, order.line_items)
                 expect(line_item.adjustments.credit.count).to eq 2
+              end
+
+              it "notifies bugsnag" do
+                # there are two tax rate
+                expect(Bugsnag).to receive(:notify).with(
+                  "Notice: Tax refund should not be possible, please check the default zone and " \
+                  "the tax rate zone configuration"
+                ).twice.and_call_original
+
+                Spree::TaxRate.adjust(order, order.line_items)
               end
             end
           end

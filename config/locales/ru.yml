@@ -8,6 +8,8 @@ ru:
       spree/product: Товар
       spree/shipping_method: Способ Доставки
     attributes:
+      spree/image:
+        attachment: Вложение
       spree/order/ship_address:
         address1: "Адрес доставки (Улица + Номер дома)"
         address2: "2 строка адреса доставки"
@@ -45,10 +47,12 @@ ru:
       spree/product:
         name: "Имя Товара"
         price: "Цена"
-        primary_taxon: "Категория Продукта"
-        supplier: "Поставщик"
+        primary_taxon_id: "Категория Товара"
         shipping_category_id: "Категория Доставки"
-        variant_unit: "Единица Варианта"
+      spree/variant:
+        primary_taxon: "Категория Товара"
+        shipping_category_id: "Категория Доставки"
+        supplier: "Поставщик"
         variant_unit_name: "Название Единицы Варианта"
         unit_value: "Значение товара"
       spree/credit_card:
@@ -76,8 +80,6 @@ ru:
         white_label_logo_link: "Ссылка на логотип, используемый на витрине магазина"
     errors:
       models:
-        enterprise_fee:
-          inherit_tax_requires_per_item_calculator: "Для наследования налоговой категории требуется поэлементный калькулятор."
         spree/image:
           attributes:
             attachment:
@@ -101,7 +103,6 @@ ru:
         variant_override:
           count_on_hand:
             using_producer_stock_settings_but_count_on_hand_set: "должно быть пустым, потому что используются настройки склада производителя"
-            on_demand_but_count_on_hand_set: "должен быть пустым, если по требованию'"
             limited_stock_but_no_count_on_hand: "необходимо указать, поскольку принудительный ограниченный запас"
       messages:
         confirmation: "не соответствует %{attribute}"
@@ -138,7 +139,8 @@ ru:
     unprocessable_entity:
       title: "Требуемое изменение было отклонено (422)"
       message_html: "<p>Требуемое изменение было отклонено. Возможно, вы пытались изменить что-то, к чему у вас нет доступа.<br><h3> <a href='/' >Вернуться домой</a></h3></p>"
-    stimulus_reflex_error: "Нам очень жаль, но что-то пошло не так.\n\n Возможно, это временная проблема, поэтому повторите попытку или перезагрузите страницу.\n Мы записываем все ошибки и возможно уже работаем над их исправлением.\n Если проблема не устранена или срочная, пожалуйста, свяжитесь с нами."
+    general_error:
+      message: "Нам очень жаль, но что-то пошло не так.\n\n Возможно, это временная проблема, поэтому повторите попытку или перезагрузите страницу.\n Мы записываем все ошибки и возможно уже работаем над их исправлением.\n Если проблема не устранена или срочная, пожалуйста, свяжитесь с нами."
   stripe:
     error_code:
       incorrect_number: "Номер карты неверный."
@@ -303,6 +305,9 @@ ru:
     report_failed: |
         Ошибка создания отчета. Возможно, он слишком велик для обработки.
         Мы рассмотрим эту проблему, но, пожалуйста, сообщите нам, если проблема не исчезнет.
+  backorder_mailer:
+    backorder_failed:
+      product: "Товар"
   enterprise_mailer:
     confirmation_instructions:
       subject: "Пожалуйста, подтвердите адрес электронной почты для %{enterprise}"
@@ -470,7 +475,7 @@ ru:
   password_confirmation: Подтверждение Пароля
   reset_password_token: Сброс пароля токена
   expired: истёк, пожалуйста запросите новый
-  back_to_payments_list: "Назад к Списку Платежей"
+  back_to_payments_list: "Вернуться К Списку Платежей"
   maestro_or_solo_cards: "Дебитовые карты"
   backordered: "Предзаказано"
   on_hand: "В наличии"
@@ -509,9 +514,12 @@ ru:
         per_page: "%{count} элементов на странице"
         colums: Колонки
       columns:
+        image: Изображение
         name: Название
         unit_scale: Единицы
         unit: Единица измерения
+        unit_value: Значение товара
+        display_as: Отображать единицы как
         price: Цена
         producer: Производитель
         category: Категория
@@ -537,8 +545,11 @@ ru:
         edit: Изменить
         clone: Клонировать
         delete: Удалить
+        remove: Удалить
       image:
         edit: Изменить
+      product_preview:
+        shop_tab: Магазин
     adjustments:
       skipped_changing_canceled_order: "Вы не можете изменить отмененный заказ."
     begins_at: Начинается С
@@ -592,7 +603,6 @@ ru:
     show_n_more: Показать %{num} больше
     choose: "Выбрать..."
     please_select: Пожалуйста выберите...
-    column_save_as_default: Сохранить По Умолчанию
     columns: Колонки
     actions: Действия
     viewing: "Просмотр: %{current_view_name}"
@@ -603,6 +613,9 @@ ru:
     has_n_rules: "имеет %{num} правил"
     unsaved_confirm_leave: "На этой странице есть несохранённые изменения. Продолжить без сохранения?"
     available_units: "Доступные Единицы"
+    terms_of_service_have_been_updated_html: "Обновлены Условия Сервиса Открытой Сети Продуктов: %{tos_link}"
+    terms_of_service: Прочтите Условия Сервиса
+    accept_terms_of_service: Принять Условия Сервиса
     shopfront_settings:
       embedded_shopfront_settings: "Настройки Встроенного Магазина"
       enable_embedded_shopfronts: "Включить Встроенные Витрины"
@@ -690,6 +703,10 @@ ru:
         your_content: Ваше Содержимое
         user_guide: Руководство Пользователя
         map: Карта
+    dfc_product_imports:
+      index:
+        title: "Импорт каталога продуктов DFC"
+        imported_products: "Внесенные товары:"
     enterprise_fees:
       index:
         title: "Сборы Предприятия"
@@ -743,7 +760,6 @@ ru:
       variants:
         infinity: "Безграничный"
         to_order_tip: "Товары, изготовленные на заказ, не имеют определенного уровня запасов, например, буханки хлеба, приготовленные на заказ."
-      back_to_products_list: "Назад к списку товаров"
       editing_product: "Изменение Товара"
       tabs:
         product_details: "Информация о Товаре"
@@ -755,23 +771,70 @@ ru:
       index:
         header:
           title: Массовое редактирование товаров
+      content:
         loading: Загрузка ваших товаров
-      sort:
-        pagination:
-          clear_search: Сбросить поиск
+      delete_modal:
+        delete_product_modal:
+          heading: "Удалить товар"
+          prompt: "Это навсегда удалит его из вашего списка."
+          confirmation_text: "Удалить товар"
+          cancellation_text: "Сохранить товар"
+        delete_variant_modal:
+          heading: "Удалить вариант"
+          prompt: "Это навсегда удалит его из вашего списка."
+          confirmation_text: "Удалить вариант"
+          cancellation_text: "Сохранить вариант"
       filters:
+        search_products: Поиск товаров
+        search_for_producers: Поиск производителей
+        all_producers: Все производители
+        search_for_categories: Поиск категорий
+        all_categories: Все категории
         producers:
           label: Производители
         categories:
           label: Категории
         search: Поиск
+      sort:
+        pagination:
+          per_page:
+            show: Показывать
+            per_page: "%{num} на странице"
+          clear_search: Сбросить поиск
       no_products:
         no_products_found: Товары не найдены
         import_products: Импорт нескольких товаров
+        no_products_found_for_search: По вашим критериям поиска товары не найдены
       table:
+        changed_summary:
+          one: "%{count} товар изменен."
+          other: "%{count} товары изменены."
+        error_summary:
+          saved:
+            one: "%{count} товар был сохранен правильно, но "
+            other: "%{count} товары сохранились корректно, но "
+          invalid:
+            one: "%{count} продукт не удалось сохранить. Пожалуйста, просмотрите ошибки и повторите попытку."
+            few: "%{count} продукты не удалось сохранить. Пожалуйста, просмотрите ошибки и повторите попытку."
+            many: "%{count} продукты не удалось сохранить. Пожалуйста, просмотрите ошибки и повторите попытку."
+            other: "%{count} товары не удалось сохранить. Пожалуйста, просмотрите ошибки и повторите попытку."
+        reset: Отменить изменения
+        save: Сохранить изменения
+      product_variant_row:
         new_variant: Новый вариант
-      edit_image:
-        close: Назад
+      bulk_update:
+        success: Изменения сохранены
+      delete_product:
+        success: Товар успешно удален
+        error: Невозможно удалить товар
+      delete_variant:
+        success: Вариант успешно удален.
+        error: Невозможно удалить вариант
+      variant_row:
+        none_tax_category: Нет
+        category_field_name: "Категория"
+        tax_category_field_name: "Налоговая Категория"
+        producer_field_name: "Производитель"
     product_import:
       title: Импорт Товара
       file_not_found: Файл не найден или не может быть открыт
@@ -814,7 +877,9 @@ ru:
         tax_categories: Налоговые Категории
         shipping_categories: Категории Доставки
       dfc_import_form:
+        title: "Импорт из каталога DFC"
         enterprise: "Предприятие"
+        catalog_url: "URL-адрес каталога DFC"
         import: "Импорт"
       import:
         review: Просмотр
@@ -917,6 +982,7 @@ ru:
     orders:
       edit:
         order_sure_want_to: Вы уверены, что хотите %{event} этот заказ?
+        voucher_tax_included_in_price: "%{label} (налог включен в купон)"
       invoice_email_sent: 'Письмо Счета отправлено'
       order_email_resent: 'Письмо Заказа отправлено'
       bulk_management:
@@ -1019,6 +1085,7 @@ ru:
         images:
           legend: "Изображения"
           logo: Логотип
+          logo_size: "300 х 300 пикселей"
           promo_image_placeholder: 'Это изображение будет отображаться в "О Нас"'
           promo_image_note1: 'ОБРАТИТЕ ВНИМАНИЕ:'
           promo_image_note2: Любое загруженное здесь промо изображение будет обрезано до 1200x260.
@@ -1110,8 +1177,6 @@ ru:
               Дополнительное сообщение, чтобы приветствовать клиентов и объяснить,
               как у Вас делать покупки. Если текст введен здесь, он будет отображаться
               на главной вкладке, когда клиенты впервые придут в Ваш магазин.
-          shopfront_message_link_tooltip: "Вставить / изменить ссылку"
-          shopfront_message_link_prompt: "Пожалуйста, введите URL для вставки"
           shopfront_closed_message: "Сообщение при Закрытии Витрины"
           shopfront_closed_message_placeholder: >
               Сообщение, которое содержит более подробное объяснение того, почему
@@ -1123,6 +1188,7 @@ ru:
           open_date: "Время Открытия"
           close_date: "Время Закрытия"
           display_ordering_in_shopfront: "Отображение заказа на витрине:"
+          shopfront_sort_by_product: "По товару"
           shopfront_sort_by_category: "По категории"
           shopfront_sort_by_producer: "По производителю"
           shopfront_sort_by_category_placeholder: "Категория"
@@ -1205,7 +1271,24 @@ ru:
           custom_tab_title: "Название пользовательской вкладки"
           custom_tab_content: "Контент для пользовательской вкладки"
         connected_apps:
-          loading: "Загружается"
+          legend: "Подключенные приложения"
+          affiliate_sales_data:
+            enable: "Разрешить обмен данными"
+            disable: "Прекратить обмен данными"
+            loading: "Загружается"
+          discover_regen:
+            title: "Discover Regenerative"
+            tagline: "Разрешите Discover Regenerative публиковать информацию о вашем предприятии."
+            enable: "Разрешить обмен данными"
+            disable: "Прекратить обмен данными"
+            loading: "Загружается"
+            note: |
+                Ваша учетная запись Открытой Сети Продуктов подключена к Discover Regenerative.
+                Добавьте или обновите информацию о своем списке Discover Regenerative здесь.
+            link_label: "Управление списком"
+          vine:
+            enable: "Подключить"
+            disable: "Отключить"
       actions:
         edit_profile: Настройки
         properties: Свойства
@@ -1258,10 +1341,8 @@ ru:
         contact_name: Имя Контакта
       edit:
         editing: 'Настройки:'
-        back_link: Назад к списку Предприятий
       new:
         title: Новое Предприятие
-        back_link: Назад к списку Предприятий
       welcome:
         welcome_title: Добро пожаловать в Открытую Сеть Продуктов!
         welcome_text: Вы успешно создали
@@ -1298,6 +1379,8 @@ ru:
         choose_products_from: "Выбрать Товары Из:"
         re_notify_producers: Повторно уведомить производителей
         notify_producers_tip: Каждому производителю будет отправлено электронное письмо со списком их заказов.
+      date_time_warning_modal_content:
+        cancel: 'Выход'
       incoming:
         incoming: "Входящие"
         supplier: "Поставщик"
@@ -1435,6 +1518,8 @@ ru:
         has_no_payment_methods: "%{enterprise} не имеет способов оплаты"
         has_no_shipping_methods: "%{enterprise} не имеет способов доставки"
         has_no_enterprise_fees: "%{enterprise} не имеет сборов предприятия"
+      flashes:
+        dismiss: Отклонять
       side_menu:
         enterprise:
           primary_details: "Основная Информация"
@@ -1455,6 +1540,7 @@ ru:
           users: "Пользователи"
           vouchers: Купоны
           white_label: "Белая Этикетка"
+          connected_apps: "Подключенные приложения"
         enterprise_group:
           primary_details: "Основная Информация"
           users: "Пользователи"
@@ -1538,6 +1624,7 @@ ru:
         name: "Сводка Сборов Предприятия"
         description: "Сводная Информация о Сборах с Предприятия"
       enterprise_fees_with_tax_report_by_order: "Сборы Предприятия с Налоговым Отчетом по Заказу"
+      enterprise_fees_with_tax_report_by_producer: "Комиссионные Сборы Предприятия С Налоговым Отчетом По Производителю"
       errors:
         no_report_type: "Укажите тип отчета"
         report_not_found: "Отчет не найден"
@@ -1574,9 +1661,15 @@ ru:
       index:
         title: "Настройки OIDC"
         connect: "Подключить свою учетную запись"
+        disconnect: "Отключить"
+        connected: "Ваша учетная запись связана с %{uid} ."
         les_communs_link: "Les Communs Open ID сервер"
         link_your_account: "Сначала вам необходимо связать свою учетную запись с поставщиком авторизации, используемым DFC (Les Communs Open ID Connect)."
         link_account_button: "Свяжите свою учетную запись Les Communs OIDC"
+        note_expiry: |
+            Срок действия токенов для доступа к подключенным приложениям истек. Пожалуйста, обновите ваше
+            подключение учетной записи для поддержания работы всех интеграций.
+        refresh: "Обновить авторизацию"
         view_account: "Чтобы просмотреть свою учетную запись, см.:"
     subscriptions:
       index:
@@ -1681,6 +1774,9 @@ ru:
         save: Сохранить
         voucher_code: Код Купона
         voucher_amount: Количество
+        voucher_type: Тип Купона
+        flat_rate: Плоский
+        percentage_rate: Процент (%)
     controllers:
       enterprises:
         stripe_connect_cancelled: "Подключение к Stripe было отменено"
@@ -1887,21 +1983,26 @@ ru:
   invoice_column_price: "Цена"
   invoice_column_item: "Позиция"
   invoice_column_qty: "Кол-во"
+  invoice_column_weight_volume: "Вес / ОБЪЕМ."
   invoice_column_unit_price_with_taxes: "Цена за единицу (Вкл. налоги)"
   invoice_column_unit_price_without_taxes: "Цена за единицу (Искл. налоги)"
   invoice_column_price_with_taxes: "Итоговая цена (Искл. налоги)"
   invoice_column_price_without_taxes: "Итоговая цена (Вкл. налоги)"
+  invoice_column_price_per_unit_without_taxes: "Цена За Единицу (без налога)"
   invoice_column_tax_rate: "Налоговая ставка"
   invoice_tax_total: "Всего налогов:"
+  invoice_cancel_and_replace_invoice: "отменяет и заменяет счет"
   tax_invoice: "СЧЁТ"
   tax_total: "Всего налога (%{rate}):"
   invoice_shipping_category_delivery: "Доставка"
   invoice_shipping_category_pickup: "Самовывоз"
   total_excl_tax: "Всего (Искл. налог):"
   total_incl_tax: "Всего (Вкл. налог):"
+  total_all_tax: "Общий налог:"
   abn: "ИНН"
   acn: "Юридическое название"
   invoice_issued_on: "Счёт выписан:"
+  order_number: "Номер заказа:"
   date_of_transaction: "Дата операции:"
   menu_1_title: "Магазины"
   menu_1_url: "/shops"
@@ -1984,7 +2085,6 @@ ru:
   label_account: "Профиль"
   label_more: "Показать больше"
   label_less: "Показать меньше"
-  label_notices: "Уведомления"
   cart_items: "позиции"
   cart_headline: "Ваша корзина"
   total: "Всего"
@@ -2114,6 +2214,9 @@ ru:
   order_back_to_store: Назад В Магазин
   order_back_to_cart: Назад В Корзину
   order_back_to_website: Вернуться На Сайт
+  checkout_details_title: Детали Заказа
+  checkout_payment_title: Оплата Заказа
+  checkout_summary_title: Информация по заказу
   bom_tip: "Используйте эту страницу для изменения количества товара в нескольких заказах. Если необходимо, Товары могут быть полностью удалены из заказов."
   unsaved_changes_warning: "Есть несохраненные изменения, которые будут потеряны, если вы продолжите."
   unsaved_changes_error: "Поля с красными границами содержат ошибки."
@@ -2739,7 +2842,6 @@ ru:
   spree_admin_single_enterprise_hint: "Подсказка: чтобы люди могли вас найти, включите видимость в"
   spree_admin_eg_pickup_from_school: "напр. 'Самовывоз у школы'"
   spree_admin_eg_collect_your_order: "напр. 'Пожалуйста, заберите свой заказ по адресу: ул. Школьная д.1, Воронеж'"
-  spree_classification_primary_taxon_error: "Taxon %{taxon} is the primary taxon of %{product} and cannot be deleted"
   spree_order_availability_error: "Дистрибьютор или цикл заказа не могут поставить продукты в Вашей корзине"
   spree_order_populator_error: "Этот дистрибьютор или цикл заказа не может поставить все продукты в Вашей корзине. Пожалуйста, выберите другой."
   spree_order_cycle_error: "Выберите цикл для этого заказа."
@@ -2891,6 +2993,7 @@ ru:
   report_header_quantity: Количество
   report_header_max_quantity: Max Количество
   report_header_variant: Вариант
+  report_header_variant_unit_name: Название Единицы Варианта
   report_header_variant_value: Значение Варианта
   report_header_variant_unit: Единица Варианта
   report_header_total_available: Всего доступно
@@ -2976,6 +3079,11 @@ ru:
   report_header_transaction_fee: Комиссия за Операцию (без налога)
   report_header_total_untaxable_admin: Всего необлагаемых налогом административных корректировок (без налогов)
   report_header_total_taxable_admin: Всего налогооблагаемых административных корректировок (включая налоги)
+  report_header_voucher_label: Этикетка Купона
+  report_header_voucher_amount: "Сумма Купона ( %{currency_symbol} )"
+  report_line_cost_of_produce: Стоимость продукции
+  report_line_line_items: позиции
+  report_header_last_completed_order_date: Дата последнего выполненного заказа
   report_xero_configuration: Xero Конфигурация
   initial_invoice_number: "Начальный номер счета"
   invoice_date: "Дата Счёта"
@@ -3054,14 +3162,16 @@ ru:
   order_cycles_no_permission_to_coordinate_error: "Ни одно из ваших Предприятий не имеет разрешения координировать цикл заказа"
   order_cycles_no_permission_to_create_error: "У вас нет разрешения на создание цикла заказов, координируемого этим Предприятием"
   order_cycle_closed: "Выбранный вами цикл заказов закрылся. Пожалуйста, попробуйте еще раз!"
-  back_to_orders_list: "Назад к списку заказов"
+  back_to_orders_list: "Назад К Списку Заказов"
   no_orders_found: "Заказов Не Найдено"
   order_information: "Информация по Заказу"
   new_payment: "Новый Платёж"
+  create_or_update_invoice: "Создать или Обновить счет"
   date_completed: "Дата Завершения"
   amount: "К оплате"
   invoice_number: "Номер Счета"
   invoice_file: "Файл"
+  invalid_url: "&#39; %{url} &#39; — неверный URL-адрес."
   state_names:
     ready: Готово
     pending: В ожидании
@@ -3233,6 +3343,8 @@ ru:
           select_all_variants: "Выбрать Все %{total_number_of_variants} Варианты"
           variants_loaded: "Загружено %{num_of_variants_loaded} из %{total_number_of_variants} Вариантов"
           loading_variants: "Загрузка Вариантов"
+          no_variants: "Для этого товара нет доступных вариантов (скрыт в настройках инвентаря)."
+          some_variants_hidden: "(Некоторые варианты могут быть скрыты в настройках инвентаря)"
       tag_rules:
         shipping_method_tagged_top: "Способы доставки помечены"
         shipping_method_tagged_bottom: "являются:"
@@ -3289,6 +3401,7 @@ ru:
           processing: "в обработке"
           void: "аннулирован"
           invalid: "Недействительный"
+        quantity_unavailable: "Недостаточно товаров на складе. Позиция не сохранена!"
         quantity_unchanged: "Количество не изменилось по сравнению с предыдущим."
         cancel_the_order_html: "Это отменит текущий заказ.<br /> Вы уверены, что хотите продолжить?"
         cancel_the_order_send_cancelation_email: "Отправить клиенту электронное письмо об отмене"
@@ -3400,6 +3513,8 @@ ru:
           Это установит нулевой уровень запасов для всех продуктов этого
           предприятия, которых нет в загруженном файле.
     order_cycles:
+      unsaved_changes: "Есть не сохраненные изменения"
+      bulk_save_error: "Ой! Не удалось сохранить  Ваши изменения"
       create_failure: "Не удалось создать цикл заказа"
       update_success: 'Ваш цикл заказа был обновлен.'
       update_failure: "Не удалось обновить цикл заказа"
@@ -3427,6 +3542,9 @@ ru:
           При настройке вашей карты в нашем платежном шлюзе возникла проблема.
           Обновите страницу и попробуйте еще раз, если это не удастся второй раз,
           свяжитесь с нами для получения поддержки.
+    trix:
+      code: "Код"
+      urlPlaceholder: "Пожалуйста, введите URL для вставки"
   inflections:
     each:
       one: "каждый"
@@ -3645,6 +3763,7 @@ ru:
       success: Конечная точка веб-хука успешно удалена
       error: Не удалось удалить конечную точку веб-хука.
   spree:
+    order_updated: "Заказ Обновлен"
     add_country: "Добавить страну"
     add_state: "Добавить область"
     adjustment: "Корректирование"
@@ -3669,9 +3788,9 @@ ru:
     more: "Ещё"
     new_adjustment: "Новая корректировка"
     new_tax_category: "Новая Налоговая Категория"
-    new_taxon: "Новая таксономия"
     new_user: "Новый пользователь"
     no_pending_payments: "Нет ожидающих платежей"
+    remove: "Удалить"
     none: "Нет"
     not_found: "Не найден"
     notice_messages:
@@ -3687,8 +3806,6 @@ ru:
       delivery: "Подписано, запечатано, доставлено"
     start_date: "Дата начала"
     successfully_removed: "Успешно удалено"
-    taxonomy_edit: "Изменить таксономию"
-    tree: "Дерево"
     updating: "Обновление"
     your_order_is_empty_add_product: "Ваша корзина пуста, пожалуйста, найдите и добавьте товар выше"
     add_product: "Добавить Товар"
@@ -3740,6 +3857,7 @@ ru:
     credit_card: "Кредитная Карта"
     new_payment: "Новый Платёж"
     capture: "Capture"
+    capture_and_complete_order: "Применить и завершить заказ"
     void: "Void"
     login: "Войти"
     password: "Пароль"
@@ -3784,7 +3902,6 @@ ru:
     tax_rate_amount_explanation: "Налоговые ставки представляют собой десятичную сумму для помощи в расчетах (т.е. если налоговая ставка составляет 5%, введите 0,05)"
     included_in_price: "Включено в Стоимость"
     show_rate_in_label: "Показывать ставку в метке"
-    back_to_tax_rates_list: "Назад к Списку Налоговых Ставок"
     tax_settings: "Настройки Налогов"
     zones: "Торговая зона"
     new_zone: "Новая Торговая зона"
@@ -3797,14 +3914,11 @@ ru:
     iso_name: "ISO Имя"
     states_required: "Области Обязательны"
     editing_country: "Редактирование Страны"
-    back_to_countries_list: "Назад к Списку Стран"
     states: "Регионы"
     abbreviation: "Сокращение"
     new_state: "Новый Регион"
     payment_methods: "Способы Оплаты"
-    taxonomies: "Таксономии"
-    new_taxonomy: "Новая Таксономия"
-    back_to_taxonomies_list: "Назад к Списку Таксономий"
+    taxons: "Категории Товаров"
     shipping_methods: "Способы Доставки"
     shipping_method: "Способ Доставки"
     shipment: "Доставка"
@@ -3897,6 +4011,11 @@ ru:
     validation:
       must_be_int: "должно быть целым числом"
     admin:
+      images:
+        edit:
+          title: Изменить фотографию товара
+          close: Назад
+          upload: Загрузить фото
       mail_methods:
         send_testmail: "Отправить тестовое письмо"
         testmail:
@@ -3911,6 +4030,7 @@ ru:
         bulk_order_management: "Пакетное Управление Заказами"
         subscriptions: "Подписки"
         products: "Товары"
+        products_v3: "Товары"
         option_types: "Типы Опций"
         properties: "Свойства"
         variant_overrides: "Товарная номенклатура"
@@ -3924,6 +4044,10 @@ ru:
         customers: "Клиенты"
         groups: "Группы"
         oidc_settings: "Настройки OIDC"
+        overview: "Введение"
+        product_import: "Импорт"
+        enterprise_roles: "Роли"
+        payment_methods: "Способы Оплаты"
       product_properties:
         index:
           inherits_properties_checkbox_hint: "Наследовать свойства от %{supplier}? (если не отменено выше)"
@@ -3954,7 +4078,6 @@ ru:
           continue: "Продолжить"
         new:
           new_return_authorization: "Новое разрешение на возврат"
-          back_to_return_authorizations_list: "Назад К Списку Разрешений На Возврат"
           continue: "Продолжить"
         edit:
           receive: "получить"
@@ -3981,6 +4104,9 @@ ru:
         add_product:
           cannot_add_item_to_canceled_order: "Невозможно добавить товар в отмененный заказ"
           include_out_of_stock_variants: "Включить варианты, которых нет в наличии"
+        shipment:
+          mark_as_shipped_message_html: "Заказ будет помечен как Отправленный.<br /> Вы уверены, что хотите продолжить?"
+          mark_as_shipped_label_message: "Отправить клиенту сообщение об отправке/выдаче."
         index:
           listing_orders: "Список Заказов"
           new_order: "Новый Заказ"
@@ -4021,10 +4147,12 @@ ru:
           from: "От"
           to: "Плательщик"
           shipping: "Доставка"
+          order_number: "Номер Заказа"
           invoice_number: "Номер Счета"
           payments_list:
             date_time: "Дата/Время"
             payment_method: "Способ оплаты"
+            payment_state: "Состояние оплаты"
             amount: "Количество"
         note:
           note_label: "Примечание:"
@@ -4037,6 +4165,9 @@ ru:
           line_item_adjustments: "Корректировки позиции"
           order_adjustments: "Корректировки Заказа"
           order_total: "Весь заказ"
+      invoices:
+        index:
+          order_has_changed: "Заказ изменился с момента последнего обновления счета. Показанный здесь счет, возможно, уже неактуален."
       overview:
         enterprises_header:
           ofn_with_tip: Предприятия являются Производителями и/или Центрами и являются основной единицей организации в рамках Открытой Сети Продуктов.
@@ -4045,6 +4176,7 @@ ru:
           has_no_payment_methods: "нет способов оплаты"
           has_no_shipping_methods: "нет способов доставки"
         products:
+          products_tip: "Товары, которые вы продаете через Открытую Сеть Продуктов."
           active_products:
             zero: "У Вас нет активных товаров."
             one: "У Вас один активный товар."
@@ -4192,11 +4324,14 @@ ru:
           product_name: Имя Товара
         primary_taxon_form:
           product_category: Категория Товара
+          search_for_categories: "Поиск категорий"
         group_buy_form:
           group_buy: "Групповая покупка?"
           bulk_unit_size: Размер оптовой еденицы
         display_as:
           display_as: Показывать Как
+        clone:
+          success: Товар клонирован
       reports:
         table:
           select_and_search: "Для получения данных, выберите фильры и нажмите на %{option}."
@@ -4224,6 +4359,7 @@ ru:
           enterprise_limit: "Ограничение Предприятий"
           confirm_password: "Подтвердить пароль"
           password: "Пароль"
+          locale: "Язык"
         email_confirmation:
           confirmation_pending: "Ожидается подтверждение по электронной почте. Мы отправили электронное письмо с подтверждением на %{address}."
       variants:
@@ -4242,12 +4378,16 @@ ru:
           new_variant: "Новый Вариант"
         form:
           sku: "SKU"
-          price: "Цена"
           unit_price: "Цена за единицу"
           display_as: "Показать как"
           display_name: "Показать имя"
           display_as_placeholder: 'напр. 2 кг'
           display_name_placeholder: 'напр. Помидоры'
+          unit_scale: "Единицы"
+          unit: Единица измерения
+          price: Цена
+          unit_value: Значение товара
+          variant_category: Категория
         autocomplete:
           out_of_stock: "Нет в Наличии"
           producer_name: "Производитель"
@@ -4266,9 +4406,10 @@ ru:
           total: "Всего"
           billing_address_name: "Название"
       taxons:
+        index:
+          title: "Категории Товаров"
         form:
           name: Название
-          permalink: Постоянная ссылка
           description: Описание
       general_settings:
         edit:
@@ -4507,7 +4648,6 @@ ru:
       key_cleared: "Ключ очищен"
       shipment:
         cannot_ready: "Не может готовая отгрузка."
-      invalid_taxonomy_id: "Неверный ID таксономии."
       toggle_api_key_view: "Показать ключ API для пользователя"
     activerecord:
       models:

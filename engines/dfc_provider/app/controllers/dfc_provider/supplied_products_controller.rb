@@ -14,14 +14,10 @@ module DfcProvider
 
       return head :bad_request unless supplied_product
 
-      variant = SuppliedProductBuilder.import_variant(
+      variant = SuppliedProductBuilder.store_product(
         supplied_product,
         current_enterprise,
       )
-      product = variant.product
-
-      product.save! if product.new_record?
-      variant.save! if variant.new_record?
 
       supplied_product = SuppliedProductBuilder.supplied_product(variant)
       render json: DfcIo.export(supplied_product)
@@ -37,10 +33,7 @@ module DfcProvider
 
       return head :bad_request unless supplied_product
 
-      SuppliedProductBuilder.apply(supplied_product, variant)
-
-      variant.product.save!
-      variant.save!
+      SuppliedProductBuilder.update_product(supplied_product, variant)
     end
 
     private

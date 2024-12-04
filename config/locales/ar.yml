@@ -5,6 +5,8 @@ ar:
       spree/product: المنتج
       spree/shipping_method: طريقة الشحن
     attributes:
+      spree/image:
+        attachment: المرفقات
       spree/order/ship_address:
         address1: "عنوان الشحن (الشارع + رقم المنزل)"
         address2: "عنوان الشحن 2"
@@ -42,10 +44,12 @@ ar:
       spree/product:
         name: "اسم المنتج"
         price: "السعر"
-        primary_taxon: "نوع المنتج "
-        supplier: "المورد"
+        primary_taxon_id: "نوع المنتج "
         shipping_category_id: "نوع الشحن"
-        variant_unit: "وحدة النوع"
+      spree/variant:
+        primary_taxon: "نوع المنتج "
+        shipping_category_id: "نوع الشحن"
+        supplier: "المورد"
         variant_unit_name: "اسم وحدة النوع"
         unit_value: "قيمةالوحدة"
       spree/credit_card:
@@ -79,7 +83,6 @@ ar:
         variant_override:
           count_on_hand:
             using_producer_stock_settings_but_count_on_hand_set: "يجب أن تكون فارغة بسبب استخدام إعدادات المخزون للمنتج"
-            on_demand_but_count_on_hand_set: "يجب أن تكون فارغة إذا كانت عند الطلب"
             limited_stock_but_no_count_on_hand: "يجب ان تكون تحديد بسبب فرض مدودية المخزون"
       messages:
         blank: "لا يمكن أن تكون فارغة"
@@ -252,6 +255,9 @@ ar:
     integer_array_validator:
       not_array_error: "يجب أن يكون مصفوفة"
       invalid_element_error: "يجب أن يحتوي فقط على أعداد صحيحة فاعلة"
+  backorder_mailer:
+    backorder_failed:
+      product: "المنتج"
   enterprise_mailer:
     confirmation_instructions:
       subject: "يرجى تأكيد عنوان البريد الإلكتروني ل %{enterprise}"
@@ -446,8 +452,10 @@ ar:
         per_page: "%{count} عنصر في كل صفحة"
         colums: أعمدة
       columns:
+        image: الصورة
         name: الاسم
         unit: وحدة
+        unit_value: قيمةالوحدة
         price: السعر
         producer: المنتج
         category: الفئة
@@ -473,8 +481,11 @@ ar:
         edit: تعديل
         clone: استنساخ
         delete: حذف
+        remove: إزالة
       image:
         edit: تعديل
+      product_preview:
+        shop_tab: المتجر
     adjustments:
       skipped_changing_canceled_order: "لا يمكنك تغيير الطلب الذي تم إلغاؤه."
     begins_at: يبدأ عند
@@ -528,7 +539,6 @@ ar:
     show_n_more: عرض %{num} أكثر
     choose: "أختر..."
     please_select: الرجاء اختيار ...
-    column_save_as_default: إحفظ كافتراض اساسي
     columns: أعمدة
     actions: أجراءات
     viewing: "عرض: %{current_view_name}"
@@ -679,7 +689,6 @@ ar:
       variants:
         infinity: "ما لا نهاية"
         to_order_tip: "لا تحتوي المواد التي تريد طلبها  على مستوى مخزون محدد ، مثل أرغفة الخبز المصنوعة طازجة حسب الطلب."
-      back_to_products_list: "العودة إلى قائمة المنتجات"
       editing_product: "تحرير المنتج"
       tabs:
         product_details: "تفاصيل المنتج"
@@ -691,19 +700,22 @@ ar:
       index:
         header:
           title: تحرير المنتجات بالجملة
-      sort:
-        pagination:
-          clear_search: مسح البحث
       filters:
         producers:
           label: المنتجين
         categories:
           label: التصنيفات
         search: بحث
-      table:
+      sort:
+        pagination:
+          clear_search: مسح البحث
+      product_variant_row:
         new_variant: نوع جديد
-      edit_image:
-        close: عودة
+      variant_row:
+        none_tax_category: لا شيء
+        category_field_name: "الفئة"
+        tax_category_field_name: "الفئة الضريبية"
+        producer_field_name: "المنتج"
     product_import:
       title: استيراد المنتج
       file_not_found: لم يتم العثور على الملف أو تعذر فتحه
@@ -1041,8 +1053,6 @@ ar:
               رسالة اختيارية للترحيب بالعملاء وشرح كيفية التسوق معك. إذا تم إدخال
               النص هنا ، فسيتم عرضه في علامة تبويب الصفحة الرئيسية عندما يصل العملاء
               إلى واجهة المتجر الخاصة بك.
-          shopfront_message_link_tooltip: "إدراج / تحرير الرابط"
-          shopfront_message_link_prompt: "الرجاء إدخال عنوان URL لإدراجه"
           shopfront_closed_message: "واجهة المتجر رسالة مغلقة"
           shopfront_closed_message_placeholder: >
               الرسالة تقدم شرحًا أكثر تفصيلًا حول سبب إغلاق متجرك و / أو متى يمكن
@@ -1123,7 +1133,21 @@ ar:
           add_new: اضف جديد
           no_voucher_yet: لا قسائم حتى الآن
         connected_apps:
-          loading: "جار التحميل"
+          affiliate_sales_data:
+            loading: "جار التحميل"
+          discover_regen:
+            tagline: "By clicking ‘Allow data sharing’, you are sharing data between Open Food Network and the Discover Regenerative Portal, and agreeing to make specific data public on the Portal, which will also be publicly available on the API.\nIMPORTANT: Before you stop sharing and remove your listing, please first contact hello@regenerative.org.au to request a copy of your Discover Regenerative data."
+            loading: "جار التحميل"
+            description_html: |
+                <p>
+                Discover Regenerative is a showcase of Australia’s Regenerative Farmers, their produce/products, outcomes and achievements. It simplifies how business-to-business (B2B) / wholesale buyers can find regenerative produce and directly connect with Producers.
+                </p>
+                <p>
+                <a href="https://regenerative.org.au/" target="_blank"><b>Visit Discover Regenerative</b>
+                <i class="icon-external-link"></i></a>
+                </p>
+          vine:
+            enable: "الاتصال"
       actions:
         edit_profile: الإعدادات
         properties: الخصائص
@@ -1176,10 +1200,8 @@ ar:
         contact_name: اسم جهة الاتصال
       edit:
         editing: 'الإعدادات:'
-        back_link: العودة إلى قائمة المؤسسات
       new:
         title: شركة جديدة
-        back_link: العودة إلى قائمة المؤسسات
       welcome:
         welcome_title: مرحبا بكم في شبكة الغذاء المفتوح الاردن - فلاحة جو !
         welcome_text: لقد نجحت في إنشاء
@@ -1216,6 +1238,8 @@ ar:
         choose_products_from: "اختر المنتجات من:"
         re_notify_producers: إعادة إخطار المنتجين
         notify_producers_tip: سيؤدي هذا إلى إرسال بريد إلكتروني إلى كل منتج مع قائمة طلباتهم.
+      date_time_warning_modal_content:
+        cancel: 'إلغاء'
       incoming:
         incoming: "الوارد"
         supplier: "المورد"
@@ -1877,7 +1901,6 @@ ar:
   label_account: "الحساب"
   label_more: "أظهر المزيد"
   label_less: "عرض أقل"
-  label_notices: "إشعارات"
   cart_items: "العناصر"
   cart_headline: "سلة التسوق الخاصة بك"
   total: "مجموع"
@@ -2630,7 +2653,6 @@ ar:
   spree_admin_single_enterprise_hint: "لمحة: للسماح للأشخاص بالعثور عليك ، قم بتشغيل الرؤية الخاصة بك أسفل"
   spree_admin_eg_pickup_from_school: "على سبيل المثال. &quot;البيك اب من المدرسة الابتدائية&quot;"
   spree_admin_eg_collect_your_order: "على سبيل المثال. &quot;يرجى جمع طلبك من 123 Imaginary St، Northcote ، 3070&quot;"
-  spree_classification_primary_taxon_error: "Taxon %{taxon} هو التصنيف الأساسي %{product} ولا يمكن حذفه"
   spree_order_availability_error: "لا يمكن لموزع أو دورة طلب توفير المنتجات في سلة التسوق"
   spree_order_populator_error: "لا يمكن لهذا الموزع أو دورة الطلب توفير جميع المنتجات في سلة التسوق. الرجاء اختيار آخر."
   spree_order_cycle_error: "الرجاء اختيار دورة الطلب لهذا الطلب."
@@ -2782,6 +2804,7 @@ ar:
   report_header_quantity: الكمية
   report_header_max_quantity: اعلى كمية
   report_header_variant: النوع
+  report_header_variant_unit_name: اسم وحدة النوع
   report_header_variant_value: قيمة النوع
   report_header_variant_unit: وحدة النوع
   report_header_total_available: القيمة الكلية متاحة
@@ -2943,7 +2966,7 @@ ar:
   order_cycles_no_permission_to_coordinate_error: "لا تملك أي من مؤسساتك إذنًا لتنسيق دورة الطلب"
   order_cycles_no_permission_to_create_error: "ليس لديك إذن لإنشاء دورة طلب تنسقها تلك المؤسسة"
   order_cycle_closed: "تم إغلاق دورة الطلب التي حددتها للتو. حاول مرة اخرى!"
-  back_to_orders_list: "العودة إلى قائمة الطلب"
+  back_to_orders_list: "العودة إلى قائمة الطلبات"
   no_orders_found: "لم يتم العثور على أية طلبات"
   order_information: "معلومات الطلب"
   new_payment: "دفعة جديد"
@@ -3279,6 +3302,8 @@ ar:
           سيؤدي ذلك إلى ضبط مستوى المخزون لصفر على جميع المنتجات
           المؤسسة غير موجودة في الملف الذي تم تحميله.
     order_cycles:
+      unsaved_changes: "لم تحفظ التغييرات"
+      bulk_save_error: "عذرا لا! لم أستطع حفظ تغييراتك."
       create_failure: "فشل في تكوين دورة الطلب"
       update_success: 'تم تحديث دورة الطلب.'
       update_failure: "فشل في تحديث دورة الطلب"
@@ -3306,6 +3331,9 @@ ar:
           كانت هناك مشكلة في إعداد بطاقتك في بوابة المدفوعات الخاصة بنا.
           يرجى تحديث الصفحة والمحاولة مرة أخرى ، إذا فشلت مرة أخرى ،
           يرجى الاتصال بنا للحصول على الدعم.
+    trix:
+      code: "الشفرة"
+      urlPlaceholder: "الرجاء إدخال عنوان URL لإدراجه"
   inflections:
     each:
       zero: "كل"
@@ -3596,9 +3624,9 @@ ar:
     more: "أكثر"
     new_adjustment: "تعديل جديد"
     new_tax_category: "فئة ضريبية جديدة"
-    new_taxon: "اصنوفة جديدة"
     new_user: "مستخدم جديد"
     no_pending_payments: "لا توجد دفعات معلقة"
+    remove: "إزالة"
     none: "لا شيء"
     not_found: "غير موجود"
     notice_messages:
@@ -3614,8 +3642,6 @@ ar:
       delivery: "موقعة ومختومة وتم التسليم"
     start_date: "تاريخ البدء"
     successfully_removed: "تمت الإزالة بنجاح"
-    taxonomy_edit: "التصنيف"
-    tree: "شجرة"
     updating: "تحديث"
     your_order_is_empty_add_product: "طلبك فارغ ، يرجى البحث عن المنتج أعلاه وإضافته"
     add_product: "أضف منتج"
@@ -3711,7 +3737,6 @@ ar:
     tax_rate_amount_explanation: "معدلات الضرائب هي مبلغ عشري للمساعدة في العمليات الحسابية ، (أي إذا كان معدل الضريبة 5٪ ، فأدخل 0.05)"
     included_in_price: "المدرجة في السعر"
     show_rate_in_label: "عرض السعر في التسمية"
-    back_to_tax_rates_list: "العودة إلى قائمة أسعار الضرائب"
     tax_settings: "الإعدادات الضريبية"
     zones: "مناطق"
     new_zone: "منطقة جديدة"
@@ -3724,14 +3749,11 @@ ar:
     iso_name: "اسم شهادة ISO"
     states_required: "المنطقة مطلوبة"
     editing_country: "تحرير الدولة"
-    back_to_countries_list: "العودة إلى قائمة الدول"
     states: "محافظات"
     abbreviation: "الاختصار"
     new_state: "محافظة جديدة"
     payment_methods: "طرق الدفع"
-    taxonomies: "التصنيفات"
-    new_taxonomy: "تصنيف جديد"
-    back_to_taxonomies_list: "العودة إلى قائمة التصنيفات"
+    taxons: "فئات المنتجات"
     shipping_methods: "طرق الشحن"
     shipping_method: "طريقة الشحن"
     shipment: "الشحنة"
@@ -3823,6 +3845,9 @@ ar:
     validation:
       must_be_int: "يجب أن يكون رقما صحيحا"
     admin:
+      images:
+        edit:
+          close: عودة
       mail_methods:
         send_testmail: "إرسال بريد إلكتروني تجريبي"
         testmail:
@@ -3837,6 +3862,7 @@ ar:
         bulk_order_management: "ادارة طلب الجملة "
         subscriptions: "الاشتراكات"
         products: "منتجات"
+        products_v3: "منتجات"
         option_types: "أنواع الخيارات"
         properties: "الخصائص"
         variant_overrides: "المخزون"
@@ -3850,6 +3876,10 @@ ar:
         customers: "العملاء"
         groups: "مجموعات"
         oidc_settings: "إعدادات OIDC"
+        overview: "نظرة عامة"
+        product_import: "استيراد"
+        enterprise_roles: "الأدوار"
+        payment_methods: "طرق الدفع"
       product_properties:
         index:
           inherits_properties_checkbox_hint: "وراثة الخصائص من %{supplier}؟ (ما لم يتم تجاوزه أعلاه)"
@@ -3880,7 +3910,6 @@ ar:
           continue: "تابع"
         new:
           new_return_authorization: "عودة الترخيص جديد"
-          back_to_return_authorizations_list: "العودة إلى قائمة عودة الترخيص"
           continue: "تابع"
         edit:
           receive: "استلام"
@@ -4164,12 +4193,15 @@ ar:
           new_variant: "نوع جديد"
         form:
           sku: "SKU"
-          price: "السعر"
           unit_price: "سعر الوحدة"
           display_as: "عرض ب"
           display_name: "اسم العرض"
           display_as_placeholder: 'على سبيل المثال 2 كجم'
           display_name_placeholder: 'على سبيل المثال طماطم'
+          unit: وحدة
+          price: السعر
+          unit_value: قيمةالوحدة
+          variant_category: الفئة
         autocomplete:
           out_of_stock: "غير متوفر"
           producer_name: "المنتج"
@@ -4188,9 +4220,10 @@ ar:
           total: "المجموع"
           billing_address_name: "الاسم"
       taxons:
+        index:
+          title: "فئات المنتجات"
         form:
           name: الاسم
-          permalink: الرابط الثابت
           description: وصف
       general_settings:
         edit:
@@ -4428,7 +4461,6 @@ ar:
       key_cleared: "تم مسح المفتاح"
       shipment:
         cannot_ready: "لا يمكن تجهيز الشحنة"
-      invalid_taxonomy_id: "معرف التصنيف غير صالح."
       toggle_api_key_view: "إظهار عرض مفتاح API للمستخدم"
     activerecord:
       models:

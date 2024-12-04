@@ -2,7 +2,7 @@
 
 require "system_helper"
 
-describe "As a consumer, I want to checkout my order" do
+RSpec.describe "As a consumer, I want to checkout my order" do
   include ShopWorkflow
   include CheckoutHelper
   include FileHelper
@@ -15,7 +15,7 @@ describe "As a consumer, I want to checkout my order" do
   let(:supplier) { create(:supplier_enterprise) }
   let(:distributor) { create(:distributor_enterprise, charges_sales_tax: true) }
   let(:product) {
-    create(:taxed_product, supplier:, price: 10, zone:, tax_rate_amount: 0.1)
+    create(:taxed_product, supplier_id: supplier.id, price: 10, zone:, tax_rate_amount: 0.1)
   }
   let(:variant) { product.variants.first }
   let!(:order_cycle) {
@@ -170,6 +170,37 @@ describe "As a consumer, I want to checkout my order" do
                 click_button("Apply")
 
                 expect(page).to have_content("Voucher code Not found")
+              end
+            end
+
+            context "with a VINE voucher", :vcr, feature: :connected_apps do
+              let!(:vine_connected_app) {
+                ConnectedApps::Vine.create(
+                  enterprise: distributor, data: { api_key: "1234568", secret: "my_secret" }
+                )
+              }
+              before do
+                allow(ENV).to receive(:fetch).and_call_original
+                allow(ENV).to receive(:fetch).with("VINE_API_URL").and_return("https://vine-staging.openfoodnetwork.org.au/api/v1")
+              end
+
+              it "adds a voucher to the order" do
+                apply_voucher "CI3922"
+
+                expect(page).to have_content "$5.00 Voucher"
+                expect(order.reload.voucher_adjustments.length).to eq(1)
+                expect(Vouchers::Vine.find_by(code: "CI3922",
+                                              enterprise: distributor)).not_to be_nil
+              end
+
+              context "with an invalid voucher" do
+                it "show an error" do
+                  fill_in "Enter voucher code", with: "KM1891"
+                  click_button("Apply")
+
+                  expect(page).to have_content("There was an error while adding the voucher")
+                  expect(Vouchers::Vine.find_by(code: "KM1891", enterprise: distributor)).to be_nil
+                end
               end
             end
           end
@@ -353,7 +384,6 @@ describe "As a consumer, I want to checkout my order" do
 
   def add_voucher_to_order(voucher, order)
     voucher.create_adjustment(voucher.code, order)
-    VoucherAdjustmentsService.new(order).update
-    order.update_totals_and_states
+    OrderManagement::Order::Updater.new(order).update_voucher
   end
 end

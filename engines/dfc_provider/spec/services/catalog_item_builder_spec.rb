@@ -2,13 +2,13 @@
 
 require_relative "../spec_helper"
 
-describe DfcBuilder do
+RSpec.describe DfcBuilder do
   let(:variant) { build(:variant) }
 
   describe ".catalog_item" do
     it "assigns a semantic id" do
       variant.id = 5
-      variant.product.supplier_id = 7
+      variant.supplier_id = 7
 
       item = DfcBuilder.catalog_item(variant)
 
@@ -19,7 +19,7 @@ describe DfcBuilder do
 
     it "refers to a supplied product" do
       variant.id = 5
-      variant.product.supplier_id = 7
+      variant.supplier_id = 7
 
       item = DfcBuilder.catalog_item(variant)
 

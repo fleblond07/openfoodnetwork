@@ -2,7 +2,7 @@
 
 require 'system_helper'
 
-describe "Payments Reports" do
+RSpec.describe "Payments Reports" do
   include AuthenticationHelper
 
   let(:order) do
@@ -23,7 +23,7 @@ describe "Payments Reports" do
     )
   end
   let(:order_cycle) { create(:simple_order_cycle) }
-  let(:product) { create(:product, supplier:) }
+  let(:product) { create(:product, supplier_id: supplier.id) }
   let(:supplier) { create(:supplier_enterprise) }
 
   before do
@@ -46,7 +46,7 @@ describe "Payments Reports" do
         "Shipping Total ($)",
         "Outstanding Balance ($)",
         "Total ($)"
-      ].join(" ").upcase)
+      ].join(" "))
 
       expect(page.find("table.report__table tbody tr").text).to have_content([
         order.payment_state,
@@ -83,7 +83,7 @@ describe "Payments Reports" do
         "EFT ($)",
         "PayPal ($)",
         "Outstanding Balance ($)"
-      ].join(" ").upcase)
+      ].join(" "))
 
       expect(page.find("table.report__table tbody tr").text).to have_content([
         "credit owed",

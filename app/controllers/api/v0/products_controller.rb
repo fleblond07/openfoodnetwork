@@ -21,7 +21,7 @@ module Api
         authorize! :create, Spree::Product
         @product = Spree::Product.new(product_params)
 
-        if @product.save
+        if @product.save(context: :create_and_create_standard_variant)
           render json: @product, serializer: Api::Admin::ProductSerializer, status: :created
         else
           invalid_resource!(@product)
@@ -42,8 +42,9 @@ module Api
         authorize! :delete, Spree::Product
         @product = product_finder.find_product
         authorize! :delete, @product
+        @product.destroyed_by = current_api_user
         @product.destroy
-        render json: @product, serializer: Api::Admin::ProductSerializer, status: :no_content
+        head :no_content
       end
 
       def bulk_products
@@ -53,7 +54,7 @@ module Api
       end
 
       def overridable
-        @products = product_finder.paged_products_for_producers
+        @products = product_finder.products_for_producers
 
         render_paged_products @products, ::Api::Admin::ProductSimpleSerializer
       end

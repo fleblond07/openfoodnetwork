@@ -8,6 +8,8 @@ de_DE:
       spree/product: Produkt
       spree/shipping_method: Lieferoption
     attributes:
+      spree/image:
+        attachment: Datei hochladen
       spree/order/ship_address:
         address1: "Lieferadresse Straße + Hausnummer"
         address2: "Lieferadresse Adresszusatz"
@@ -45,10 +47,12 @@ de_DE:
       spree/product:
         name: "Produktname"
         price: "Preis"
-        primary_taxon: "Produktkategorie"
-        supplier: "Lieferant"
+        primary_taxon_id: "Produktkategorie"
         shipping_category_id: "Lieferkategorie"
-        variant_unit: "Varianteneinheit"
+      spree/variant:
+        primary_taxon: "Produktkategorie"
+        shipping_category_id: "Lieferkategorie"
+        supplier: "Lieferant"
         variant_unit_name: "Name der Varianteneinheit"
         unit_value: "Menge"
       spree/credit_card:
@@ -76,8 +80,6 @@ de_DE:
         white_label_logo_link: "Verlinkungsziel des Logos im Online-Shop"
     errors:
       models:
-        enterprise_fee:
-          inherit_tax_requires_per_item_calculator: "Um die Steuerkategorie des Produkts zu übernehmen, muss in der Spalte \"Berechnung\" eine Auswahl mit Zusatz \"pro Artikel\" verwendet werden."
         spree/user:
           attributes:
             email:
@@ -97,7 +99,6 @@ de_DE:
         variant_override:
           count_on_hand:
             using_producer_stock_settings_but_count_on_hand_set: "muss leer sein, da die Einstellungen des Produzentenbestands verwendet werden"
-            on_demand_but_count_on_hand_set: "muss leer sein, wenn unbegrenzt verfügbar oder die Produktion auf Bestellung erfolgt"
             limited_stock_but_no_count_on_hand: "muss angegeben werden, da nur begrenzte Lagerbestände verfügbar sind"
       messages:
         confirmation: "stimmt nicht mit %{attribute} überein"
@@ -134,7 +135,8 @@ de_DE:
     unprocessable_entity:
       title: "Die gewünschte Änderung wurde abgelehnt (422). "
       message_html: "<p>Die gewünschte Änderung wurde abgelehnt. Vielleicht haben Sie versucht, etwas zu ändern, auf das Sie keinen Zugriff haben.<br><h3> <a href='/' >Zur Startseite zurückkehren</a></h3></p>"
-    stimulus_reflex_error: "Es tut uns leid, etwas ist schief gelaufen. \n\nDies könnte ein vorübergehendes Problem sein. Bitte versuchen Sie es erneut oder laden Sie die Seite neu. \nWir erfassen alle Fehler und arbeiten möglicherweise bereits an einer Lösung. \nWenn das Problem weiterhin besteht oder Ihr Anliegen dringend ist, kontaktieren Sie uns bitte."
+    general_error:
+      message: "Es tut uns leid, etwas ist schief gelaufen. \n\nDies könnte ein vorübergehendes Problem sein. Bitte versuchen Sie es erneut oder laden Sie die Seite neu. \nWir erfassen alle Fehler und arbeiten möglicherweise bereits an einer Lösung. \nWenn das Problem weiterhin besteht oder Ihr Anliegen dringend ist, kontaktieren Sie uns bitte."
   stripe:
     error_code:
       incorrect_number: "Die Kreditkartennummer ist fehlerhaft."
@@ -298,6 +300,9 @@ de_DE:
     report_failed: |
         Die Erstellung des Berichts ist fehlgeschlagen. Möglicherweise ist er zu groß für die Verarbeitung.
         Wir werden der Sache nachgehen, teilen Sie uns aber bitte mit, wenn das Problem weiterhin besteht.
+  backorder_mailer:
+    backorder_failed:
+      product: "Produkt"
   enterprise_mailer:
     confirmation_instructions:
       subject: "Bitte bestätigen Sie die E-Mail-Adresse von %{enterprise} im Open Food Network"
@@ -503,8 +508,10 @@ de_DE:
         per_page: "%{count} Produkte pro Seite"
         colums: Spalten
       columns:
+        image: Bild
         name: Name
         unit: Einheit
+        unit_value: Menge
         price: Preis
         producer: Produzent
         category: Kategorie
@@ -530,8 +537,11 @@ de_DE:
         edit: Bearbeiten
         clone: Duplizieren
         delete: Löschen
+        remove: Löschen
       image:
         edit: Bearbeiten
+      product_preview:
+        shop_tab: Produkte
     adjustments:
       skipped_changing_canceled_order: "Eine stornierte Bestellung kann nicht geändert werden."
     begins_at: Beginnt
@@ -585,7 +595,6 @@ de_DE:
     show_n_more: Zeige %{num} weitere
     choose: "Bitte Auswählen ..."
     please_select: Bitte auswählen ...
-    column_save_as_default: Als Standard speichern
     columns: Spalten
     actions: Aktionen
     viewing: "%{current_view_name}"
@@ -633,7 +642,7 @@ de_DE:
         configuration_explanation_html: Detaillierte Anweisungen zur Konfiguration der Stripe Connect-Integration finden Sie in der <a href='https://github.com/openfoodfoundation/openfoodnetwork/wiki/Setting-up-Stripe-on-an-OFN-instance' target='_blank'>Anleitung</a>.
         status: Status
         ok: OK
-        instance_secret_key: Instanzgeheimschlüssel
+        instance_secret_key: Geheimer Schlüssel der Instanz
         account_id: Konto-ID
         business_name: Unternehmensname
         charges_enabled: Gebühren aktiviert
@@ -739,7 +748,6 @@ de_DE:
       variants:
         infinity: "Unbegrenzt"
         to_order_tip: "Artikel, die auf Anfrage hergestellt werden, haben keinen festgelegten Lagerbestand."
-      back_to_products_list: "Zurück zur Produktliste"
       editing_product: "Produkt bearbeiten"
       tabs:
         product_details: "Produktdetails"
@@ -751,14 +759,8 @@ de_DE:
       index:
         header:
           title: Produkte verwalten
+      content:
         loading: Produkte werden geladen...
-      sort:
-        pagination:
-          total_html: "<strong>%{total} Produkte</strong> für Ihre Suchkriterien gefunden. Zeige %{from} bis %{to}."
-          per_page:
-            show: Zeige
-            per_page: "%{num} pro Seite"
-          clear_search: Suche zurücksetzen
       filters:
         search_products: Nach Produkten suchen
         all_producers: Alle Produzenten
@@ -768,6 +770,12 @@ de_DE:
         categories:
           label: Lieferkategorien
         search: Suche
+      sort:
+        pagination:
+          per_page:
+            show: Zeige
+            per_page: "%{num} pro Seite"
+          clear_search: Suche zurücksetzen
       no_products:
         no_products_found: Keine Produkte gefunden.
         import_products: Produkte importieren
@@ -785,11 +793,15 @@ de_DE:
             other: "%{count} Produkte konnten nicht gespeichert werden. Bitte überprüfen Sie die Fehler und versuchen Sie es erneut."
         reset: Änderungen verwerfen
         save: Änderungen speichern
+      product_variant_row:
         new_variant: Neue Produktvariante
       bulk_update:
         success: Die Änderungen wurden gespeichert.
-      edit_image:
-        close: Zurück
+      variant_row:
+        none_tax_category: Nichts
+        category_field_name: "Kategorie"
+        tax_category_field_name: "Steuerkategorie"
+        producer_field_name: "Produzent"
     product_import:
       title: Produkte importieren
       file_not_found: Die Datei konnte nicht gefunden oder nicht geöffnet werden.
@@ -1130,8 +1142,6 @@ de_DE:
               wie sie bei Ihnen einkaufen können. Wenn hier Text eingegeben wird,
               wird dieser auf einer Startseite in Ihrem Laden angezeigt, wenn Kunden
               ihn zum ersten Mal besuchen.
-          shopfront_message_link_tooltip: "Link einfügen/bearbeiten"
-          shopfront_message_link_prompt: "Bitte geben Sie die einzufügende URL ein:"
           shopfront_closed_message: "'Laden geschlossen'-Nachricht im Laden"
           shopfront_closed_message_placeholder: >
               Eine Nachricht, die eine detailliertere Erklärung liefert, warum Ihr
@@ -1226,7 +1236,12 @@ de_DE:
           custom_tab_content: "Inhalt des Reiters"
         connected_apps:
           legend: "Verknüpfte Apps"
-          loading: "Wird geladen ..."
+          affiliate_sales_data:
+            loading: "Wird geladen ..."
+          discover_regen:
+            loading: "Wird geladen ..."
+          vine:
+            enable: "Über OFN"
       actions:
         edit_profile: Einstellungen
         properties: Eigenschaften
@@ -1279,10 +1294,8 @@ de_DE:
         contact_name: Kontaktname
       edit:
         editing: 'Einstellungen:'
-        back_link: Zurück zur Unternehmensliste
       new:
         title: Neues Unternehmen
-        back_link: Zurück zur Unternehmensliste
       welcome:
         welcome_title: Willkommen im Open Food Network!
         welcome_text: 'Erfolgreich erstellt:'
@@ -1319,6 +1332,8 @@ de_DE:
         choose_products_from: "Wählen Sie Produkte von:"
         re_notify_producers: Produzenten erneut benachrichtigen
         notify_producers_tip: Benachrichtigen Sie die Produzenten per E-Mail über in diesem Bestellzyklus erhaltene Bestellungen.
+      date_time_warning_modal_content:
+        cancel: 'Abbrechen'
       incoming:
         incoming: "Eingehend"
         supplier: "Lieferant"
@@ -2009,7 +2024,6 @@ de_DE:
   label_account: "Konto"
   label_more: "Mehr anzeigen"
   label_less: "Weniger anzeigen"
-  label_notices: "Ankündigungen"
   cart_items: "Artikel"
   cart_headline: "Ihr Warenkorb"
   total: "Summe"
@@ -2764,7 +2778,6 @@ de_DE:
   spree_admin_single_enterprise_hint: "Tipp: Damit andere Nutzer Sie finden können, aktivieren Sie Ihre Sichtbarkeit unter:"
   spree_admin_eg_pickup_from_school: "z. B. \"Abholung von der Grundschule\""
   spree_admin_eg_collect_your_order: "z. B. 'Bitte holen Sie Ihre Bestellung in der Gartenstraße 123 in 30701 Nordwestheim ab.'"
-  spree_classification_primary_taxon_error: "Kategorie %{taxon} ist die primäre Kategorie von %{product} und kann nicht gelöscht werden."
   spree_order_availability_error: "Verteilstelle oder Bestellzyklus kann die Produkte in Ihrem Warenkorb nicht liefern"
   spree_order_populator_error: "Diese Verteilstelle oder dieser Bestellzyklus kann nicht alle Produkte aus Ihrem Warenkorb liefern. Bitte ändern Sie Ihre Auswahl."
   spree_order_cycle_error: "Bitte wählen Sie einen Bestellzyklus für diese Bestellung aus."
@@ -2883,7 +2896,7 @@ de_DE:
   report_header_billing_state: Rechnungsadresse Bundesland
   report_header_incoming_transport: Eingehender Transport
   report_header_special_instructions: Besondere Hinweise
-  report_header_order_number: Bestell-Nummer
+  report_header_order_number: Bestellnummer
   report_header_date: Datum
   report_header_confirmation_date: Bestätigungsdatum
   report_header_tags: Stichwörter
@@ -2916,6 +2929,7 @@ de_DE:
   report_header_quantity: Menge
   report_header_max_quantity: Max Menge
   report_header_variant: Produktvariante
+  report_header_variant_unit_name: Name der Varianteneinheit
   report_header_variant_value: Wert der Produktvarianten
   report_header_variant_unit: Varianteneinheit
   report_header_total_available: Insgesamt verfügbar
@@ -2958,7 +2972,7 @@ de_DE:
   report_header_units_required: Benötigte Einheiten
   report_header_remainder: Rest
   report_header_order_date: Bestelldatum
-  report_header_order_id: Bestell-Nummer
+  report_header_order_id: Bestellnummer
   report_header_item_name: Produktname
   report_header_temp_controlled_items: Temperaturüberwachte Produkte?
   report_header_customer_name: Kundenname
@@ -3082,7 +3096,7 @@ de_DE:
   order_cycles_no_permission_to_coordinate_error: "Keines Ihrer Unternehmen ist berechtigt, einen Bestellzyklus zu koordinieren."
   order_cycles_no_permission_to_create_error: "Sie sind nicht berechtigt, einen von diesem Unternehmen koordinierten Bestellzyklus zu erstellen."
   order_cycle_closed: "Der von Ihnen ausgewählte Bestellzyklus wurde gerade geschlossen. Bitte versuchen Sie es später noch einmal!"
-  back_to_orders_list: "Zurück zur Bestellliste"
+  back_to_orders_list: "Zurück zur Bestellübersicht"
   no_orders_found: "Keine Bestellungen gefunden."
   order_information: "Bestellinformationen"
   new_payment: "Neue Zahlung"
@@ -3435,6 +3449,8 @@ de_DE:
           Dadurch wird der Lagerbestand für alle Produkte dieses Unternehmens,
           die in der hochgeladenen Datei nicht vorhanden sind, auf Null gesetzt.
     order_cycles:
+      unsaved_changes: "Sie haben nicht gespeicherte Änderungen."
+      bulk_save_error: "Ihre Änderungen konnten leider nicht gespeichert werden."
       create_failure: "Fehler beim Erstellen des Bestellzyklus."
       update_success: 'Ihr Bestellzyklus wurde aktualisiert.'
       update_failure: "Fehler beim Aktualisieren des Bestellzyklus."
@@ -3461,6 +3477,9 @@ de_DE:
       unknown_error_from_stripe: |
           Beim Einrichten Ihrer Kreditkarte in unserem Zahlungsgateway ist ein Problem aufgetreten.
           Bitte laden Sie die Seite neu und versuchen Sie es erneut. Wenn dies ein zweites Mal fehlschlägt, kontaktieren Sie uns bitte, um Unterstützung zu erhalten.
+    trix:
+      code: "Code"
+      urlPlaceholder: "Bitte geben Sie die einzufügende URL ein:"
   inflections:
     each:
       one: "jeder"
@@ -3518,7 +3537,7 @@ de_DE:
       other: "Schalen"
     piece:
       one: "Stück"
-      other: "Stücke"
+      other: "Stück"
     pot:
       one: "Topf"
       other: "Töpfe"
@@ -3656,9 +3675,9 @@ de_DE:
     more: "Mehr"
     new_adjustment: "Neue Anpassung"
     new_tax_category: "Neue Steuerkategorie"
-    new_taxon: "Neue Kategorie"
     new_user: "Neuer Benutzer"
     no_pending_payments: "Keine ausstehenden Zahlungen."
+    remove: "Löschen"
     none: "Keine"
     not_found: "Nicht gefunden"
     notice_messages:
@@ -3674,14 +3693,12 @@ de_DE:
       delivery: "Lieferung"
     start_date: "Anfangsdatum"
     successfully_removed: "Erfolgreich gelöscht"
-    taxonomy_edit: "Kategorien bearbeiten"
-    tree: "Struktur"
     updating: "Aktualisierung"
     your_order_is_empty_add_product: "Ihre Bestellung ist leer. Suchen Sie oben ein Produkt und fügen Sie es hinzu."
     add_product: "Produkt hinzufügen"
     name_or_sku: "Produktname oder Artikelnummer (geben Sie mindestens die ersten 3 Zeichen des Produktnamens ein)"
     resend: "Erneut senden"
-    back_to_orders_list: "Zurück zur Bestellliste"
+    back_to_orders_list: "Zurück zur Bestellübersicht"
     back_to_payments_list: "Zurück zur Zahlungsliste"
     return_authorizations: "Retouren"
     cannot_create_returns: "Retouren können nicht erstellt werden, da für diese Bestellung keine Lieferung bestätigt wurde."
@@ -3772,7 +3789,6 @@ de_DE:
     tax_rate_amount_explanation: "Eingabe als Dezimalbetrag (d. h. bei Steuersatz 5 %, geben Sie 0.05 ein)."
     included_in_price: "Im Preis enthalten"
     show_rate_in_label: "Steuersatz im Namen anzeigen"
-    back_to_tax_rates_list: "Zurück zur Liste der Steuersätze"
     tax_settings: "Steuereinstellungen"
     zones: "Zonen"
     new_zone: "Neue Zone"
@@ -3785,14 +3801,11 @@ de_DE:
     iso_name: "ISO-Name"
     states_required: "Staaten/Bundesländer/Regionen erforderlich"
     editing_country: "Land bearbeiten"
-    back_to_countries_list: "Zurück zur Länderliste"
     states: "Bundesländer"
     abbreviation: "Abkürzung"
     new_state: "Neues Bundesland"
     payment_methods: "Zahlungsarten"
-    taxonomies: "Kategorien"
-    new_taxonomy: "Neue Kategorie"
-    back_to_taxonomies_list: "Zurück zur Kategorieliste"
+    taxons: "Produktkategorien"
     shipping_methods: "Lieferoptionen"
     shipping_method: "Lieferoption"
     shipment: "Lieferung"
@@ -3885,6 +3898,9 @@ de_DE:
     validation:
       must_be_int: "muss eine ganze Zahl sein"
     admin:
+      images:
+        edit:
+          close: Zurück
       mail_methods:
         send_testmail: "Test-E-Mail senden"
         testmail:
@@ -3899,6 +3915,7 @@ de_DE:
         bulk_order_management: "Massenbearbeitung von Bestellungen"
         subscriptions: "Abonnements"
         products: "Produkte"
+        products_v3: "Produkte"
         option_types: "Optionstypen"
         properties: "Eigenschaften"
         variant_overrides: "Katalog"
@@ -3912,6 +3929,10 @@ de_DE:
         customers: "Kunden"
         groups: "Gruppen"
         oidc_settings: "OIDC-Einstellungen"
+        overview: "Übersicht"
+        product_import: "Importieren"
+        enterprise_roles: "Rollen"
+        payment_methods: "Zahlungsarten"
       product_properties:
         index:
           inherits_properties_checkbox_hint: "Übernahme der Eigenschaften von %{supplier} (außer oben überschrieben)?"
@@ -3934,7 +3955,7 @@ de_DE:
         index:
           new_return_authorization: "Neue Retour"
           return_authorizations: "Retouren"
-          back_to_orders_list: "Zurück zur Bestellliste"
+          back_to_orders_list: "Zurück zur Bestellübersicht"
           rma_number: "RMA-Nummer"
           status: "Status"
           amount: "Betrag"
@@ -3942,7 +3963,6 @@ de_DE:
           continue: "Weiter"
         new:
           new_return_authorization: "Neue Retour"
-          back_to_return_authorizations_list: "Zurück zur Retourenliste"
           continue: "Weiter"
         edit:
           receive: "erhalten"
@@ -4233,12 +4253,15 @@ de_DE:
           new_variant: "Neue Produktvariante"
         form:
           sku: "Artikelnummer"
-          price: "Preis"
           unit_price: "Grundpreis"
           display_as: "Anzeigen als"
           display_name: "Variantenname"
           display_as_placeholder: 'z. B. 2 kg'
           display_name_placeholder: 'z. B. Tomaten'
+          unit: Einheit
+          price: Preis
+          unit_value: Menge
+          variant_category: Kategorie
         autocomplete:
           out_of_stock: "nicht vorrätig"
           producer_name: "Produzent"
@@ -4257,9 +4280,10 @@ de_DE:
           total: "Gesamt"
           billing_address_name: "Name"
       taxons:
+        index:
+          title: "Produktkategorien"
         form:
           name: Name
-          permalink: Permalink
           description: Beschreibung
       general_settings:
         edit:
@@ -4496,7 +4520,6 @@ de_DE:
       key_cleared: "Schlüssel gelöscht"
       shipment:
         cannot_ready: "Versand nicht möglich."
-      invalid_taxonomy_id: "Ungültige Kategorie-ID"
       toggle_api_key_view: "API-Schlüssel dem Benutzer anzeigen"
     activerecord:
       models:

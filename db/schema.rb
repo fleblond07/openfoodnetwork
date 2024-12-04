@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
+ActiveRecord::Schema[7.0].define(version: 2024_11_12_230401) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_stat_statements"
   enable_extension "plpgsql"
@@ -68,6 +68,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
     t.json "data"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "type", default: "ConnectedApp", null: false
     t.index ["enterprise_id"], name: "index_connected_apps_on_enterprise_id"
   end
 
@@ -204,11 +205,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
     t.string "abn", limit: 255
     t.string "acn", limit: 255
     t.integer "address_id"
-    t.text "pickup_times"
-    t.string "next_collection_at", limit: 255
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.text "distributor_info"
     t.string "facebook", limit: 255
     t.string "instagram", limit: 255
     t.string "linkedin", limit: 255
@@ -258,9 +256,9 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
   end
 
   create_table "exchanges", id: :serial, force: :cascade do |t|
-    t.integer "order_cycle_id"
-    t.integer "sender_id"
-    t.integer "receiver_id"
+    t.integer "order_cycle_id", null: false
+    t.integer "sender_id", null: false
+    t.integer "receiver_id", null: false
     t.text "pickup_time"
     t.text "pickup_instructions"
     t.datetime "created_at", precision: nil, null: false
@@ -282,7 +280,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
   create_table "flipper_gates", id: :serial, force: :cascade do |t|
     t.string "feature_key", null: false
     t.string "key", null: false
-    t.string "value"
+    t.text "value"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.index ["feature_key", "key", "value"], name: "index_flipper_gates_on_feature_key_and_key_and_value", unique: true
@@ -330,16 +328,18 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
   end
 
   create_table "order_cycles", id: :serial, force: :cascade do |t|
-    t.string "name", limit: 255
+    t.string "name", limit: 255, null: false
     t.datetime "orders_open_at", precision: nil
     t.datetime "orders_close_at", precision: nil
-    t.integer "coordinator_id"
+    t.integer "coordinator_id", null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.datetime "processed_at", precision: nil
     t.boolean "automatic_notifications", default: false
     t.boolean "mails_sent", default: false
     t.datetime "opened_at", precision: nil
+    t.index ["orders_close_at"], name: "index_order_cycles_on_orders_close_at"
+    t.index ["orders_open_at"], name: "index_order_cycles_on_orders_open_at"
   end
 
   create_table "order_cycles_distributor_payment_methods", id: false, force: :cascade do |t|
@@ -401,10 +401,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
   end
 
   create_table "semantic_links", force: :cascade do |t|
-    t.bigint "variant_id", null: false
+    t.bigint "variant_id"
     t.string "semantic_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "subject_type", null: false
+    t.bigint "subject_id", null: false
+    t.index ["subject_type", "subject_id"], name: "index_semantic_links_on_subject"
     t.index ["variant_id"], name: "index_semantic_links_on_variant_id"
   end
 
@@ -420,15 +423,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
   create_table "spree_addresses", id: :serial, force: :cascade do |t|
     t.string "firstname", limit: 255
     t.string "lastname", limit: 255
-    t.string "address1", limit: 255
+    t.string "address1", limit: 255, null: false
     t.string "address2", limit: 255
-    t.string "city", limit: 255
+    t.string "city", limit: 255, null: false
     t.string "zipcode", limit: 255
-    t.string "phone", limit: 255
+    t.string "phone", limit: 255, null: false
     t.string "state_name", limit: 255
     t.string "alternative_phone", limit: 255
     t.integer "state_id"
-    t.integer "country_id"
+    t.integer "country_id", null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.string "company", limit: 255
@@ -544,8 +547,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
   end
 
   create_table "spree_line_items", id: :serial, force: :cascade do |t|
-    t.integer "order_id"
-    t.integer "variant_id"
+    t.integer "order_id", null: false
+    t.integer "variant_id", null: false
     t.integer "quantity", null: false
     t.decimal "price", precision: 10, scale: 2, null: false
     t.datetime "created_at", precision: nil, null: false
@@ -674,8 +677,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
 
   create_table "spree_product_properties", id: :serial, force: :cascade do |t|
     t.string "value", limit: 255
-    t.integer "product_id"
-    t.integer "property_id"
+    t.integer "product_id", null: false
+    t.integer "property_id", null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.integer "position", default: 0
@@ -698,7 +701,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
     t.float "variant_unit_scale"
     t.string "variant_unit_name", limit: 255
     t.text "notes"
-    t.integer "primary_taxon_id", null: false
+    t.integer "primary_taxon_id"
     t.boolean "inherits_properties", default: true, null: false
     t.string "sku", limit: 255, default: "", null: false
     t.index ["deleted_at"], name: "index_products_on_deleted_at"
@@ -718,7 +721,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
     t.string "number", limit: 255
     t.string "state", limit: 255
     t.decimal "amount", precision: 10, scale: 2, default: "0.0", null: false
-    t.integer "order_id"
+    t.integer "order_id", null: false
     t.text "reason"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -814,12 +817,12 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
   create_table "spree_states", id: :serial, force: :cascade do |t|
     t.string "name", limit: 255
     t.string "abbr", limit: 255
-    t.integer "country_id"
+    t.integer "country_id", null: false
   end
 
   create_table "spree_stock_items", id: :serial, force: :cascade do |t|
-    t.integer "stock_location_id"
-    t.integer "variant_id"
+    t.integer "stock_location_id", null: false
+    t.integer "variant_id", null: false
     t.integer "count_on_hand", default: 0, null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -849,8 +852,8 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
   end
 
   create_table "spree_stock_movements", id: :serial, force: :cascade do |t|
-    t.integer "stock_item_id"
-    t.integer "quantity", default: 0
+    t.integer "stock_item_id", null: false
+    t.integer "quantity", default: 0, null: false
     t.string "action", limit: 255
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
@@ -871,7 +874,7 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
   create_table "spree_tax_rates", id: :serial, force: :cascade do |t|
     t.decimal "amount", precision: 8, scale: 5
     t.integer "zone_id"
-    t.integer "tax_category_id"
+    t.integer "tax_category_id", null: false
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
     t.boolean "included_in_price", default: false
@@ -880,31 +883,18 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
     t.datetime "deleted_at", precision: nil
   end
 
-  create_table "spree_taxonomies", id: :serial, force: :cascade do |t|
-    t.string "name", limit: 255, null: false
-    t.datetime "created_at", precision: nil, null: false
-    t.datetime "updated_at", precision: nil, null: false
-    t.integer "position", default: 0
-  end
-
   create_table "spree_taxons", id: :serial, force: :cascade do |t|
-    t.integer "parent_id"
     t.integer "position", default: 0
     t.string "name", limit: 255, null: false
     t.string "permalink", limit: 255
-    t.integer "taxonomy_id"
     t.datetime "created_at", precision: nil, null: false
     t.datetime "updated_at", precision: nil, null: false
-    t.integer "lft"
-    t.integer "rgt"
     t.text "description"
     t.string "meta_title", limit: 255
     t.string "meta_description", limit: 255
     t.string "meta_keywords", limit: 255
     t.string "dfc_id"
-    t.index ["parent_id"], name: "index_taxons_on_parent_id"
     t.index ["permalink"], name: "index_taxons_on_permalink"
-    t.index ["taxonomy_id"], name: "index_taxons_on_taxonomy_id"
   end
 
   create_table "spree_tokenized_permissions", id: :serial, force: :cascade do |t|
@@ -979,9 +969,15 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
     t.datetime "updated_at", default: -> { "now()" }, null: false
     t.bigint "tax_category_id"
     t.bigint "shipping_category_id"
+    t.bigint "primary_taxon_id"
+    t.bigint "supplier_id"
+    t.float "variant_unit_scale"
+    t.string "variant_unit_name", limit: 255
+    t.index ["primary_taxon_id"], name: "index_spree_variants_on_primary_taxon_id"
     t.index ["product_id"], name: "index_variants_on_product_id"
     t.index ["shipping_category_id"], name: "index_spree_variants_on_shipping_category_id"
     t.index ["sku"], name: "index_spree_variants_on_sku"
+    t.index ["supplier_id"], name: "index_spree_variants_on_supplier_id"
     t.index ["tax_category_id"], name: "index_spree_variants_on_tax_category_id"
     t.check_constraint "unit_value > 0::double precision", name: "positive_unit_value"
   end
@@ -1114,7 +1110,10 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
     t.datetime "deleted_at", precision: nil
     t.decimal "amount", precision: 10, scale: 2, default: "0.0", null: false
     t.string "type", limit: 255, default: "Vouchers::FlatRate", null: false
-    t.index ["code", "enterprise_id"], name: "index_vouchers_on_code_and_enterprise_id", unique: true
+    t.uuid "external_voucher_id"
+    t.uuid "external_voucher_set_id"
+    t.index ["code", "enterprise_id", "external_voucher_id"], name: "index_vouchers_on_code_and_enterprise_id_and_ext_voucher_id"
+    t.index ["code", "enterprise_id"], name: "index_vouchers_on_code_and_enterprise_id"
     t.index ["deleted_at"], name: "index_vouchers_on_deleted_at"
     t.index ["enterprise_id"], name: "index_vouchers_on_enterprise_id"
   end
@@ -1218,13 +1217,13 @@ ActiveRecord::Schema[7.0].define(version: 2024_02_13_044159) do
   add_foreign_key "spree_stock_movements", "spree_stock_items", column: "stock_item_id"
   add_foreign_key "spree_tax_rates", "spree_tax_categories", column: "tax_category_id", name: "spree_tax_rates_tax_category_id_fk"
   add_foreign_key "spree_tax_rates", "spree_zones", column: "zone_id", name: "spree_tax_rates_zone_id_fk"
-  add_foreign_key "spree_taxons", "spree_taxonomies", column: "taxonomy_id", name: "spree_taxons_taxonomy_id_fk"
-  add_foreign_key "spree_taxons", "spree_taxons", column: "parent_id", name: "spree_taxons_parent_id_fk"
   add_foreign_key "spree_users", "spree_addresses", column: "bill_address_id", name: "spree_users_bill_address_id_fk"
   add_foreign_key "spree_users", "spree_addresses", column: "ship_address_id", name: "spree_users_ship_address_id_fk"
+  add_foreign_key "spree_variants", "enterprises", column: "supplier_id"
   add_foreign_key "spree_variants", "spree_products", column: "product_id", name: "spree_variants_product_id_fk"
   add_foreign_key "spree_variants", "spree_shipping_categories", column: "shipping_category_id"
   add_foreign_key "spree_variants", "spree_tax_categories", column: "tax_category_id"
+  add_foreign_key "spree_variants", "spree_taxons", column: "primary_taxon_id"
   add_foreign_key "spree_zone_members", "spree_zones", column: "zone_id", name: "spree_zone_members_zone_id_fk"
   add_foreign_key "subscription_line_items", "spree_variants", column: "variant_id", name: "subscription_line_items_variant_id_fk"
   add_foreign_key "subscription_line_items", "subscriptions", name: "subscription_line_items_subscription_id_fk"

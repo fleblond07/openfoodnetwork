@@ -29,10 +29,12 @@ en_US:
       spree/product:
         name: "Product Name"
         price: "Price"
-        primary_taxon: "Product Category"
-        supplier: "Supplier"
+        primary_taxon_id: "Product Category"
         shipping_category_id: "Shipping Category"
-        variant_unit: "Variant Unit"
+      spree/variant:
+        primary_taxon: "Product Category"
+        shipping_category_id: "Shipping Category"
+        supplier: "Supplier"
         variant_unit_name: "Variant Unit Name"
       spree/credit_card:
         base: "Credit Card"
@@ -65,7 +67,6 @@ en_US:
         variant_override:
           count_on_hand:
             using_producer_stock_settings_but_count_on_hand_set: "must be blank because using producer stock settings"
-            on_demand_but_count_on_hand_set: "must be blank if on demand"
             limited_stock_but_no_count_on_hand: "must be specified because forcing limited stock"
       messages:
         blank: "can't be blank"
@@ -225,6 +226,9 @@ en_US:
     integer_array_validator:
       not_array_error: "must be an array"
       invalid_element_error: "must contain only valid integers"
+  backorder_mailer:
+    backorder_failed:
+      product: "Product"
   enterprise_mailer:
     confirmation_instructions:
       subject: "Please confirm the email address for %{enterprise}"
@@ -380,7 +384,7 @@ en_US:
   password_confirmation: Password Confirmation
   reset_password_token: Reset password token
   expired: has expired, please request a new one
-  back_to_payments_list: "Back to Payments List"
+  back_to_payments_list: "Back To Payments List"
   maestro_or_solo_cards: "Debit cards"
   backordered: "Backordered"
   on_hand: "On Hand"
@@ -416,6 +420,7 @@ en_US:
           title: Producers
         colums: Columns
       columns:
+        image: Image
         name: Name
         unit: Unit
         price: Price
@@ -443,8 +448,11 @@ en_US:
         edit: Edit
         clone: Clone
         delete: Delete
+        remove: Remove
       image:
         edit: Edit
+      product_preview:
+        shop_tab: Shop
     adjustments:
       skipped_changing_canceled_order: "You can't change a cancelled order."
     begins_at: Begins At
@@ -498,7 +506,6 @@ en_US:
     show_n_more: Show %{num} more
     choose: "Choose..."
     please_select: Please select...
-    column_save_as_default: Save As Default
     columns: Columns
     actions: Actions
     viewing: "Viewing: %{current_view_name}"
@@ -645,7 +652,6 @@ en_US:
       variants:
         infinity: "Infinity"
         to_order_tip: "Items made to order do not have a set stock level, such as loaves of bread made fresh to order."
-      back_to_products_list: "Back to products list"
       editing_product: "Editing Product"
       tabs:
         product_details: "Product Details"
@@ -657,19 +663,22 @@ en_US:
       index:
         header:
           title: Bulk Edit Products
-      sort:
-        pagination:
-          clear_search: Clear search
       filters:
         producers:
           label: Producers
         categories:
           label: Categories
         search: Search
-      table:
+      sort:
+        pagination:
+          clear_search: Clear search
+      product_variant_row:
         new_variant: New variant
-      edit_image:
-        close: Back
+      variant_row:
+        none_tax_category: None
+        category_field_name: "Category"
+        tax_category_field_name: "Tax Category"
+        producer_field_name: "Producer"
     product_import:
       title: Product Import
       file_not_found: File not found or could not be opened
@@ -990,8 +999,6 @@ en_US:
               An optional message to welcome customers and explain how to shop with
               you. If text is entered here it will be displayed in a home tab when
               customers first arrive at your shopfront.
-          shopfront_message_link_tooltip: "Insert / edit link"
-          shopfront_message_link_prompt: "Please enter a URL to insert"
           shopfront_closed_message: "Shopfront Closed Message"
           shopfront_closed_message_placeholder: >
               A message which provides a more detailed explanation about why your
@@ -1062,7 +1069,12 @@ en_US:
           customers: Customer
           active: Active?
         connected_apps:
-          loading: "Loading"
+          affiliate_sales_data:
+            loading: "Loading"
+          discover_regen:
+            loading: "Loading"
+          vine:
+            enable: "Pricing"
       actions:
         edit_profile: Settings
         properties: Properties
@@ -1115,10 +1127,8 @@ en_US:
         contact_name: Contact Name
       edit:
         editing: 'Settings:'
-        back_link: Back to enterprises list
       new:
         title: New Enterprise
-        back_link: Back to enterprises list
       welcome:
         welcome_title: Welcome to the Open Food Network!
         welcome_text: You have successfully created a
@@ -1155,6 +1165,8 @@ en_US:
         choose_products_from: "Choose Products From:"
         re_notify_producers: Re notify producers
         notify_producers_tip: This will send an email to each producer with the list of their orders.
+      date_time_warning_modal_content:
+        cancel: 'Cancel'
       incoming:
         incoming: "Incoming"
         supplier: "Supplier"
@@ -1758,7 +1770,6 @@ en_US:
   label_account: "Account"
   label_more: "Show more"
   label_less: "Show less"
-  label_notices: "Notices"
   cart_items: "items"
   cart_headline: "Your shopping cart"
   total: "Total"
@@ -2507,7 +2518,6 @@ en_US:
   spree_admin_single_enterprise_hint: "Hint: To allow people to find you, turn on your visibility under"
   spree_admin_eg_pickup_from_school: "eg. 'Pick up at Community Center'"
   spree_admin_eg_collect_your_order: "eg. 'Please collect your order from 123 High Street, Asheville, NC 22806'"
-  spree_classification_primary_taxon_error: "Taxon %{taxon} is the primary taxon of %{product} and cannot be deleted"
   spree_order_availability_error: "Distributor or order cycle cannot supply the products in your cart"
   spree_order_populator_error: "That distributor or order cycle can't supply all the products in your cart. Please choose another."
   spree_order_cycle_error: "Please choose an order cycle for this order."
@@ -2640,6 +2650,7 @@ en_US:
   report_header_quantity: Quantity
   report_header_max_quantity: Max Quantity
   report_header_variant: Variant
+  report_header_variant_unit_name: Variant Unit Name
   report_header_variant_value: Variant Value
   report_header_variant_unit: Variant Unit
   report_header_total_available: Total available
@@ -2793,7 +2804,7 @@ en_US:
   order_cycles_no_permission_to_coordinate_error: "None of your enterprises have permission to coordinate an order cycle"
   order_cycles_no_permission_to_create_error: "You don't have permission to create an order cycle coordinated by that enterprise"
   order_cycle_closed: "The order cycle you've selected has just closed. Please try again with a different order cycle!"
-  back_to_orders_list: "Back to order list"
+  back_to_orders_list: "Back To Orders List"
   no_orders_found: "No Orders Found"
   order_information: "Order Information"
   new_payment: "New Payment"
@@ -3123,6 +3134,8 @@ en_US:
           This will set stock level to zero on all products for this
           enterprise that are not present in the uploaded file.
     order_cycles:
+      unsaved_changes: "You have unsaved changes"
+      bulk_save_error: "Oh no! I was unable to save your changes."
       create_failure: "Failed to create order cycle"
       update_success: 'Your order cycle has been updated.'
       update_failure: "Failed to update order cycle"
@@ -3150,6 +3163,9 @@ en_US:
           There was a problem setting up your card in our payments gateway.
           Please refresh the page and try again, if it fails a second time,
           please contact us at support-usa@openfoodnetwork.net for help.
+    trix:
+      code: "Code"
+      urlPlaceholder: "Please enter a URL to insert"
   inflections:
     each:
       one: "each"
@@ -3304,7 +3320,7 @@ en_US:
   account: "Account"
   logout: "Logout"
   date_range: "Date Range"
-  status: "status"
+  status: "Status"
   new: "New"
   start: "Start"
   end: "End"
@@ -3337,9 +3353,9 @@ en_US:
     more: "More"
     new_adjustment: "New adjustment"
     new_tax_category: "New Tax Category"
-    new_taxon: "New taxon"
     new_user: "New user"
     no_pending_payments: "No pending payments"
+    remove: "Remove"
     none: "None"
     not_found: "Not found"
     notice_messages:
@@ -3353,8 +3369,6 @@ en_US:
       UPS Ground: "UPS Ground"
     start_date: "Start date"
     successfully_removed: "Successfully Removed"
-    taxonomy_edit: "Taxonomy edit"
-    tree: "Tree"
     updating: "Updating"
     your_order_is_empty_add_product: "Your cart is empty, please search for and add a product above"
     add_product: "Add Product"
@@ -3449,7 +3463,6 @@ en_US:
     tax_rate_amount_explanation: "Tax rates are a decimal amount to aid in calculations, (i.e. if the tax rate is 5% then enter 0.05)"
     included_in_price: "Included in Price"
     show_rate_in_label: "Show rate in label"
-    back_to_tax_rates_list: "Back to Tax Rates List"
     tax_settings: "Tax Settings"
     zones: "Zones"
     new_zone: "New Zone"
@@ -3462,14 +3475,11 @@ en_US:
     iso_name: "ISO Name"
     states_required: "States Required"
     editing_country: "Editing Country"
-    back_to_countries_list: "Back to Countries List"
     states: "States"
     abbreviation: "Abbreviation"
     new_state: "New State"
     payment_methods: "Payment Methods"
-    taxonomies: "Taxonomies"
-    new_taxonomy: "New Taxonomy"
-    back_to_taxonomies_list: "Back to Taxonomies List"
+    taxons: "Product Categories"
     shipping_methods: "Shipping Methods"
     shipping_method: "Shipping Method"
     shipment: "Shipment"
@@ -3559,6 +3569,9 @@ en_US:
     validation:
       must_be_int: "must be an integer"
     admin:
+      images:
+        edit:
+          close: Back
       mail_methods:
         send_testmail: "Send test email"
         testmail:
@@ -3573,6 +3586,7 @@ en_US:
         bulk_order_management: "Bulk Order Management"
         subscriptions: "Subscriptions"
         products: "Products"
+        products_v3: "Products"
         option_types: "Option Types"
         properties: "Properties"
         variant_overrides: "Inventory"
@@ -3585,6 +3599,10 @@ en_US:
         enterprise_relationships: "Permissions"
         customers: "Customers"
         groups: "Groups"
+        overview: "Overview"
+        product_import: "Import"
+        enterprise_roles: "Roles"
+        payment_methods: "Payment Methods"
       product_properties:
         index:
           inherits_properties_checkbox_hint: "Inherit properties from %{supplier}? (unless overridden above)"
@@ -3615,7 +3633,6 @@ en_US:
           continue: "Continue"
         new:
           new_return_authorization: "New Return Authorization"
-          back_to_return_authorizations_list: "Back To Return Authorization List"
           continue: "Continue"
         edit:
           receive: "receive"
@@ -3882,12 +3899,14 @@ en_US:
           new_variant: "New Variant"
         form:
           sku: "SKU"
-          price: "Price"
           unit_price: "Unit Price"
           display_as: "Display As"
           display_name: "Display Name"
           display_as_placeholder: 'For example, 2 kg'
           display_name_placeholder: 'For example, Tomatoes'
+          unit: Unit
+          price: Price
+          variant_category: Category
         autocomplete:
           out_of_stock: "Out of Stock"
           producer_name: "Producer"
@@ -3906,9 +3925,10 @@ en_US:
           total: "Total"
           billing_address_name: "Name"
       taxons:
+        index:
+          title: "Product Categories"
         form:
           name: Name
-          permalink: Permalink
           description: Description
       general_settings:
         edit:
@@ -4129,7 +4149,6 @@ en_US:
       key_cleared: "Key cleared"
       shipment:
         cannot_ready: "Cannot ready shipment."
-      invalid_taxonomy_id: "Invalid taxonomy id."
     activerecord:
       models:
         spree/payment:

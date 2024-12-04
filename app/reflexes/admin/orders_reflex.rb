@@ -21,7 +21,8 @@ module Admin
     def ship
       @order.send_shipment_email = false unless params[:send_shipment_email]
       if @order.ship
-        return set_param_for_controller if request.url.match?('edit')
+        paths = %w[edit customer payments adjustments invoices return_authorizations].freeze
+        return set_param_for_controller if Regexp.union(paths).match? request.url
 
         morph dom_id(@order), render(partial: "spree/admin/orders/table_row",
                                      locals: { order: @order.reload, success: true })
@@ -32,21 +33,26 @@ module Admin
     end
 
     def bulk_invoice(params)
-      visible_orders = editable_orders.where(id: params[:bulk_ids]).filter(&:invoiceable?)
-      if Spree::Config.enterprise_number_required_on_invoices? &&
-         !all_distributors_can_invoice?(visible_orders)
-        render_business_number_required_error(visible_orders)
-        return
-      end
+      visible_orders = bulk_load_orders(params)
+
+      return if notify_if_abn_related_issue(visible_orders)
+
+      file_id = "#{Time.zone.now.to_i}-#{SecureRandom.hex(2)}"
 
       cable_ready.append(
         selector: "#orders-index",
-        html: render(partial: "spree/admin/orders/bulk/invoice_modal")
+        html: render(partial: "spree/admin/orders/bulk/invoice_modal",
+                     locals: { invoice_url: "/admin/orders/invoices/#{file_id}" })
       ).broadcast
 
+      # Preserve order of bulk_ids.
+      # The ids are supplied in the sequence of the orders screen and may be
+      # sorted, for example by last name of the customer.
+      visible_order_ids = params[:bulk_ids].map(&:to_i) & visible_orders.pluck(:id)
+
       BulkInvoiceJob.perform_later(
-        visible_orders.pluck(:id),
-        "tmp/invoices/#{Time.zone.now.to_i}-#{SecureRandom.hex(2)}.pdf",
+        visible_order_ids,
+        "tmp/invoices/#{file_id}.pdf",
         channel: SessionChannel.for_request(request),
         current_user_id: current_user.id
       )
@@ -82,8 +88,8 @@ module Admin
 
     def send_invoices(params)
       count = 0
-      editable_orders.where(id: params[:bulk_ids]).find_each do |o|
-        next unless o.distributor.can_invoice? && o.invoiceable?
+      editable_orders.invoiceable.where(id: params[:bulk_ids]).find_each do |o|
+        next unless o.distributor.can_invoice?
 
         Spree::OrderMailer.invoice_email(o.id, current_user_id: current_user.id).deliver_later
         count += 1
@@ -114,18 +120,42 @@ module Admin
       params[:id] = @order.number
     end
 
-    def all_distributors_can_invoice?(orders)
-      distributor_ids = orders.map(&:distributor_id)
-      Enterprise.where(id: distributor_ids, abn: nil).empty?
-    end
-
-    def render_business_number_required_error(orders)
-      distributor_ids = orders.map(&:distributor_id)
-      distributor_names = Enterprise.where(id: distributor_ids, abn: nil).pluck(:name)
+    def render_business_number_required_error(distributors)
+      distributor_names = distributors.pluck(:name)
 
       flash[:error] = I18n.t(:must_have_valid_business_number,
                              enterprise_name: distributor_names.join(", "))
       morph_admin_flashes
+    end
+
+    def bulk_load_orders(params)
+      editable_orders.invoiceable.where(id: params[:bulk_ids])
+    end
+
+    def notify_if_abn_related_issue(orders)
+      return false unless abn_required?
+
+      distributors = distributors_without_abn(orders)
+      return false if distributors.empty?
+
+      render_business_number_required_error(distributors)
+      true
+    end
+
+    def abn_required?
+      Spree::Config.enterprise_number_required_on_invoices?
+    end
+
+    def distributors_without_abn(orders)
+      abn = if OpenFoodNetwork::FeatureToggle.enabled?(:invoices)
+              [nil, ""]
+            else
+              [nil]
+            end
+      Enterprise.where(
+        id: orders.select(:distributor_id),
+        abn:,
+      )
     end
   end
 end

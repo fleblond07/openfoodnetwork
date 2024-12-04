@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-describe Api::V0::ReportsController, type: :controller do
+RSpec.describe Api::V0::ReportsController, type: :controller do
   let(:params) {
     {
       report_type: 'packing',
@@ -34,7 +34,7 @@ describe Api::V0::ReportsController, type: :controller do
 
     context "as an enterprise user with partial order permissions (supplier with P-OC)" do
       let!(:order) { create(:completed_order_with_totals) }
-      let(:supplier) { order.line_items.first.product.supplier }
+      let(:supplier) { order.line_items.first.variant.supplier }
       let(:current_user) { supplier.owner }
       let!(:perms) {
         create(:enterprise_relationship, parent: supplier, child: order.distributor,
@@ -53,20 +53,16 @@ describe Api::V0::ReportsController, type: :controller do
   private
 
   def report_output(order, user_type)
-    results = []
-
-    order.line_items.each do |line_item|
-      results << __send__("#{user_type}_report_row", line_item)
+    results = order.line_items.map do |line_item|
+      __send__("#{user_type}_report_row", line_item)
     end
-
-    results
   end
 
   def distributor_report_row(line_item)
     {
       "hub" => line_item.order.distributor.name,
       "customer_code" => line_item.order.customer&.code,
-      "supplier" => line_item.product.supplier.name,
+      "supplier" => line_item.variant.supplier.name,
       "product" => line_item.product.name,
       "variant" => line_item.full_name,
       "quantity" => line_item.quantity,
@@ -84,7 +80,7 @@ describe Api::V0::ReportsController, type: :controller do
       'first_name' => '< Hidden >',
       'last_name' => '< Hidden >',
       'phone' => '< Hidden >',
-      "supplier" => line_item.product.supplier.name,
+      "supplier" => line_item.variant.supplier.name,
       "product" => line_item.product.name,
       "variant" => line_item.full_name,
       "quantity" => line_item.quantity,

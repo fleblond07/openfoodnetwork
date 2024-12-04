@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-describe Reporting::Reports::OrdersAndFulfillment::OrderCycleCustomerTotals do
+RSpec.describe Reporting::Reports::OrdersAndFulfillment::OrderCycleCustomerTotals do
   let!(:distributor) { create(:distributor_enterprise, name: "Apple Market") }
   let!(:customer) { create(:customer, enterprise: distributor, user:, code: "JHN") }
   let(:user) { create(:user, email: "john@example.net") }
@@ -29,13 +29,13 @@ describe Reporting::Reports::OrdersAndFulfillment::OrderCycleCustomerTotals do
         distributor:,
         completed_at: order_date,
       ).tap do |order|
-        order.line_items[0].product.supplier.update(name: "Apple Farmer")
+        order.line_items[0].variant.supplier.update(name: "Apple Farmer")
         order.line_items[0].product.update(name: "Apples")
         order.line_items[0].variant.update(sku: "APP")
       end
     end
     let(:comparison_report) do
-      File.read(Rails.root.join(report_file_name))
+      Rails.root.join(report_file_name).read
     end
     let(:report_file_name) do
       "spec/fixtures/reports/orders_and_fulfillment/order_cycle_customer_totals_report.csv"

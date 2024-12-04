@@ -36,13 +36,13 @@ module OpenFoodNetwork
       Spree::Variant.
         ransack(search_params.merge(m: 'or')).
         result.
-        order("spree_products.name, display_name, display_as, spree_products.variant_unit_name").
+        order("spree_products.name, display_name, display_as, spree_variants.variant_unit_name").
         includes(:product).
         joins(:product)
     end
 
     def distributor
-      Enterprise.find params[:distributor_id]
+      @distributor ||= Enterprise.find params[:distributor_id]
     end
 
     def scope_to_schedule

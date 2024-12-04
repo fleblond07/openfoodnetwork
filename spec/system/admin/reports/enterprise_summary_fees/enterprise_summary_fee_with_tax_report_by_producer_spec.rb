@@ -2,7 +2,7 @@
 
 require 'system_helper'
 
-describe "Enterprise Summary Fee with Tax Report By Producer" do
+RSpec.describe "Enterprise Summary Fee with Tax Report By Producer" do
   #   1 order cycle has:
   #     - coordinator fees price 20
   #     - incoming exchange fees 15
@@ -16,7 +16,7 @@ describe "Enterprise Summary Fee with Tax Report By Producer" do
   let!(:table_header){
     ["Distributor", "Producer", "Producer Tax Status", "Order Cycle", "Name", "Type", "Owner",
      "Tax Category", "Tax Rate Name", "Tax Rate", "Total excl. tax ($)", "Tax",
-     "Total incl. tax ($)"].join(" ").upcase
+     "Total incl. tax ($)"].join(" ")
   }
 
   let!(:state_zone){ create(:zone_with_state_member) }
@@ -43,10 +43,10 @@ describe "Enterprise Summary Fee with Tax Report By Producer" do
     create(:supplier_enterprise, name: 'Supplier2', charges_sales_tax: true,
                                  owner_id: supplier2_owner.id)
   }
-  let!(:product){ create(:simple_product, supplier: ) }
-  let!(:product2){ create(:simple_product, supplier: supplier2 ) }
-  let!(:variant){ create(:variant, product_id: product.id, tax_category:) }
-  let!(:variant2){ create(:variant, product_id: product2.id, tax_category:) }
+  let!(:product){ create(:simple_product) }
+  let!(:product2){ create(:simple_product) }
+  let!(:variant){ create(:variant, product_id: product.id, tax_category:, supplier:) }
+  let!(:variant2){ create(:variant, product_id: product2.id, tax_category:, supplier: supplier2) }
   let!(:distributor_owner) { create(:user, enterprise_limit: 1) }
   let!(:distributor){
     distributor = create(:distributor_enterprise_with_tax, name: 'Distributor',
@@ -168,17 +168,6 @@ describe "Enterprise Summary Fee with Tax Report By Producer" do
 
     order2
   }
-
-  before do
-    product.update!({
-                      tax_category_id: tax_category.id,
-                      supplier_id: supplier.id
-                    })
-    product2.update!({
-                       tax_category_id: tax_category.id,
-                       supplier_id: supplier2.id
-                     })
-  end
 
   context 'added tax' do
     #   1 order cycle has:

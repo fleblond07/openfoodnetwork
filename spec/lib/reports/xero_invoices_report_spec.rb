@@ -5,7 +5,7 @@ require 'spec_helper'
 module Reporting
   module Reports
     module XeroInvoices
-      describe Base do
+      RSpec.describe Base do
         subject { Base.new user, {} }
 
         let(:user) { create(:user) }
@@ -84,7 +84,7 @@ module Reporting
 
           describe "when no initial invoice number is given" do
             it "returns the order number" do
-              expect(subject.send(:invoice_number_for, order, 123)).to eq('R731032860')
+              expect(subject.__send__(:invoice_number_for, order, 123)).to eq('R731032860')
             end
           end
 
@@ -92,7 +92,7 @@ module Reporting
             subject { Base.new(user, { initial_invoice_number: '123' }) }
 
             it "increments the number by the index" do
-              expect(subject.send(:invoice_number_for, order, 456)).to eq(579)
+              expect(subject.__send__(:invoice_number_for, order, 456)).to eq(579)
             end
           end
         end

@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-describe Reporting::Reports::EnterpriseFeeSummary::EnterpriseFeesWithTaxReportByProducer do
+RSpec.describe Reporting::Reports::EnterpriseFeeSummary::EnterpriseFeesWithTaxReportByProducer do
   let(:current_user) { create(:admin_user) }
 
   let(:enterprise) {
@@ -26,7 +26,7 @@ describe Reporting::Reports::EnterpriseFeeSummary::EnterpriseFeesWithTaxReportBy
       outgoing.exchange_variants.create(variant:)
     end
   }
-  let(:variant) { create(:product, supplier: enterprise).variants.first }
+  let(:variant) { create(:variant, supplier: enterprise) }
   let(:order) {
     create(
       :order, :with_line_item,

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe CheckoutController, type: :controller do
+RSpec.describe CheckoutController, type: :controller do
   let(:user) { order.user }
   let(:address) { create(:address) }
   let(:distributor) { create(:distributor_enterprise, with_payment_and_shipping: true) }
@@ -308,6 +308,57 @@ describe CheckoutController, type: :controller do
         end
       end
 
+      context "with no payment source" do
+        let(:checkout_params) do
+          {
+            order: {
+              payments_attributes: [
+                {
+                  payment_method_id:,
+                  source_attributes: {
+                    first_name: "Jane",
+                    last_name: "Doe",
+                    month: "",
+                    year: "",
+                    cc_type: "",
+                    last_digits: "",
+                    gateway_payment_profile_id: ""
+                  }
+                }
+              ]
+            },
+            commit: "Next - Order Summary"
+          }
+        end
+
+        context "with a cash/check payment method" do
+          let!(:payment_method_id) { payment_method.id }
+
+          it "updates and redirects to summary step" do
+            put(:update, params:)
+
+            expect(response.status).to be 302
+            expect(response).to redirect_to checkout_step_path(:summary)
+            expect(order.reload.state).to eq "confirmation"
+          end
+        end
+
+        context "with a StripeSCA payment method" do
+          let(:stripe_payment_method) {
+            create(:stripe_sca_payment_method, distributor_ids: [distributor.id],
+                                               environment: Rails.env)
+          }
+          let!(:payment_method_id) { stripe_payment_method.id }
+
+          it "updates and redirects to summary step" do
+            put(:update, params:)
+            expect(response.status).to eq 422
+            expect(flash[:error]).to match "Saving failed, please update the highlighted fields."
+            expect(order.reload.state).to eq "payment"
+          end
+        end
+      end
+
       context "with payment fees" do
         let(:payment_method_with_fee) do
           create(:payment_method, :flat_rate, amount: "1.23", distributors: [distributor])
@@ -382,6 +433,7 @@ describe CheckoutController, type: :controller do
 
     context "summary step" do
       let(:step) { "summary" }
+      let(:checkout_params) { { confirm_order: "Complete order" } }
 
       before do
         order.bill_address = address
@@ -399,6 +451,20 @@ describe CheckoutController, type: :controller do
 
           expect(response).to redirect_to order_path(order, order_token: order.token)
           expect(order.reload.state).to eq "complete"
+        end
+
+        it "syncs stock before locking the order" do
+          actions = []
+          expect(StockSyncJob).to receive(:sync_linked_catalogs_now) do
+            actions << "sync stock"
+          end
+          expect(CurrentOrderLocker).to receive(:around) do
+            actions << "lock order"
+          end
+
+          put(:update, params:)
+
+          expect(actions).to eq ["sync stock", "lock order"]
         end
       end
 
@@ -427,6 +493,58 @@ describe CheckoutController, type: :controller do
 
             expect(response).to redirect_to order_path(order, order_token: order.token)
             expect(order.reload.state).to eq "complete"
+          end
+        end
+      end
+
+      context "with a VINE voucher", feature: :connected_apps do
+        let(:vine_voucher) {
+          create(:vine_voucher, code: 'some_code', enterprise: distributor, amount: 6)
+        }
+        let(:vine_voucher_redeemer) { instance_double(Vine::VoucherRedeemerService) }
+
+        before do
+          # Adding voucher to the order
+          vine_voucher.create_adjustment(vine_voucher.code, order)
+          OrderManagement::Order::Updater.new(order).update_voucher
+
+          allow(Vine::VoucherRedeemerService).to receive(:new).and_return(vine_voucher_redeemer)
+        end
+
+        it "completes the order and redirects to order confirmation" do
+          expect(vine_voucher_redeemer).to receive(:redeem).and_return(true)
+
+          put(:update, params:)
+
+          expect(response).to redirect_to order_path(order, order_token: order.token)
+          expect(order.reload.state).to eq "complete"
+        end
+
+        context "when redeeming the voucher fails" do
+          it "returns 422 and some error" do
+            allow(vine_voucher_redeemer).to receive(:redeem).and_return(false)
+            allow(vine_voucher_redeemer).to receive(:errors).and_return(
+              { redeeming_failed: "Redeeming the voucher failed" }
+            )
+
+            put(:update, params:)
+
+            expect(response.status).to eq 422
+            expect(flash[:error]).to match "Redeeming the voucher failed"
+          end
+        end
+
+        context "when an other error happens" do
+          it "returns 422 and some error" do
+            allow(vine_voucher_redeemer).to receive(:redeem).and_return(false)
+            allow(vine_voucher_redeemer).to receive(:errors).and_return(
+              { vine_api: "There was an error communicating with the API" }
+            )
+
+            put(:update, params:)
+
+            expect(response.status).to eq 422
+            expect(flash[:error]).to match "There was an error while trying to redeem your voucher"
           end
         end
       end

@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe TagRule::FilterOrderCycles, type: :model do
+RSpec.describe TagRule::FilterOrderCycles, type: :model do
   let!(:tag_rule) { build_stubbed(:filter_order_cycles_tag_rule) }
 
   describe "determining whether tags match for a given exchange" do
@@ -12,7 +12,7 @@ describe TagRule::FilterOrderCycles, type: :model do
       end
 
       it "returns false" do
-        expect(tag_rule.send(:tags_match?, nil)).to be false
+        expect(tag_rule.__send__(:tags_match?, nil)).to be false
       end
     end
 
@@ -25,7 +25,7 @@ describe TagRule::FilterOrderCycles, type: :model do
 
       context "when the rule has no preferred exchange tags specified" do
         before { allow(tag_rule).to receive(:preferred_exchange_tags) { "" } }
-        it { expect(tag_rule.send(:tags_match?, exchange_object)).to be false }
+        it { expect(tag_rule.__send__(:tags_match?, exchange_object)).to be false }
       end
 
       context "when the rule has preferred exchange tags specified that match ANY exchange tags" do
@@ -34,7 +34,7 @@ describe TagRule::FilterOrderCycles, type: :model do
                                "wholesale,some_tag,member"
                              }
         }
-        it { expect(tag_rule.send(:tags_match?, exchange_object)).to be true }
+        it { expect(tag_rule.__send__(:tags_match?, exchange_object)).to be true }
       end
 
       context "when the rule has preferred exchange tags specified that match NO exchange tags" do
@@ -43,7 +43,7 @@ describe TagRule::FilterOrderCycles, type: :model do
                                "wholesale,some_tag,some_other_tag"
                              }
         }
-        it { expect(tag_rule.send(:tags_match?, exchange_object)).to be false }
+        it { expect(tag_rule.__send__(:tags_match?, exchange_object)).to be false }
       end
     end
   end

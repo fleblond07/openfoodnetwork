@@ -2,7 +2,7 @@
 
 require 'system_helper'
 
-describe "As a consumer I want to check out my cart" do
+RSpec.describe "As a consumer I want to check out my cart" do
   include AuthenticationHelper
   include WebHelper
   include ShopWorkflow
@@ -17,7 +17,7 @@ describe "As a consumer I want to check out my cart" do
                                   coordinator: create(:distributor_enterprise),
                                   variants: [product.variants.first])
     }
-    let(:product) { create(:simple_product, supplier:) }
+    let(:product) { create(:simple_product, supplier_id: supplier.id) }
     let(:order) { create(:order, order_cycle:, distributor:) }
     let(:address) { create(:address, firstname: "Foo", lastname: "Bar") }
     let(:user) { create(:user, bill_address: address, ship_address: address) }

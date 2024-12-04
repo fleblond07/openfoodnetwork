@@ -3,8 +3,6 @@
 require 'open_food_network/scope_variant_to_hub'
 
 class OrderCycle < ApplicationRecord
-  self.belongs_to_required_by_default = false
-
   searchable_attributes :orders_open_at, :orders_close_at, :coordinator_id
   searchable_scopes :active, :inactive, :active_or_complete, :upcoming, :closed, :not_closed,
                     :dated, :undated, :soonest_opening, :soonest_closing, :most_recently_closed
@@ -26,6 +24,7 @@ class OrderCycle < ApplicationRecord
                                          where incoming: false
                                        }, class_name: "Exchange", dependent: :destroy
 
+  has_many :orders, class_name: 'Spree::Order', dependent: :restrict_with_exception
   has_many :suppliers, -> { distinct }, source: :sender, through: :cached_incoming_exchanges
   has_many :distributors, -> { distinct }, source: :receiver, through: :cached_outgoing_exchanges
   has_many :order_cycle_schedules, dependent: :destroy
@@ -44,7 +43,7 @@ class OrderCycle < ApplicationRecord
   before_update :reset_processed_at, if: :will_save_change_to_orders_close_at?
   after_save :sync_subscriptions, if: :opening?
 
-  validates :name, :coordinator_id, presence: true
+  validates :name, presence: true
   validate :orders_close_at_after_orders_open_at?
 
   preference :product_selection_from_coordinator_inventory_only, :boolean, default: false
@@ -149,29 +148,32 @@ class OrderCycle < ApplicationRecord
 
   # Find the earliest closing times for each distributor in an active order cycle, and return
   # them in the format {distributor_id => closing_time, ...}
-  def self.earliest_closing_times
-    Hash[
-      Exchange.
-        outgoing.
-        joins(:order_cycle).
-        merge(OrderCycle.active).
-        group('exchanges.receiver_id').
-        select("exchanges.receiver_id AS receiver_id,
-                MIN(order_cycles.orders_close_at) AS earliest_close_at").
-        map { |ex| [ex.receiver_id, ex.earliest_close_at.to_time] }
-    ]
+  #
+  # Optionally, specify some distributor_ids as a parameter to scope the results
+  def self.earliest_closing_times(distributor_ids = nil)
+    cycles = Exchange.
+      outgoing.
+      joins(:order_cycle).
+      merge(OrderCycle.active).
+      group('exchanges.receiver_id')
+
+    cycles = cycles.where(receiver_id: distributor_ids) if distributor_ids.present?
+
+    cycles.pluck("exchanges.receiver_id AS receiver_id",
+                 "MIN(order_cycles.orders_close_at) AS earliest_close_at")
+      .to_h
   end
 
   def attachable_distributor_payment_methods
     DistributorPaymentMethod.joins(:payment_method).
       merge(Spree::PaymentMethod.available).
-      where("distributor_id IN (?)", distributor_ids)
+      where(distributor_id: distributor_ids)
   end
 
   def attachable_distributor_shipping_methods
     DistributorShippingMethod.joins(:shipping_method).
       merge(Spree::ShippingMethod.frontend).
-      where("distributor_id IN (?)", distributor_ids)
+      where(distributor_id: distributor_ids)
   end
 
   def clone!
@@ -255,7 +257,7 @@ class OrderCycle < ApplicationRecord
   end
 
   def pickup_time_for(distributor)
-    exchange_for_distributor(distributor)&.pickup_time || distributor.next_collection_at
+    exchange_for_distributor(distributor)&.pickup_time
   end
 
   def pickup_instructions_for(distributor)
@@ -313,6 +315,13 @@ class OrderCycle < ApplicationRecord
 
   def simple?
     coordinator.sells == 'own'
+  end
+
+  def same_datetime_value(attribute, string)
+    return true if self[attribute].blank? && string.blank?
+    return false if self[attribute].blank? || string.blank?
+
+    DateTime.parse(string).to_fs(:short) == self[attribute]&.to_fs(:short)
   end
 
   private

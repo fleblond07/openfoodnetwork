@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Spree::ReturnAuthorization do
+RSpec.describe Spree::ReturnAuthorization do
   let(:order) { create(:shipped_order) }
   let(:variant) { order.shipments.first.inventory_units.first.variant }
   let(:return_authorization) { Spree::ReturnAuthorization.new(order:) }
@@ -104,7 +104,7 @@ describe Spree::ReturnAuthorization do
   context "force_positive_amount" do
     it "should ensure the amount is always positive" do
       return_authorization.amount = -10
-      return_authorization.send :force_positive_amount
+      return_authorization.__send__ :force_positive_amount
       expect(return_authorization.amount).to eq 10
     end
   end

@@ -2,7 +2,7 @@
 
 require 'system_helper'
 
-describe '
+RSpec.describe '
     As an hub manager
     I want to make Stripe payments
 ' do
@@ -192,6 +192,10 @@ describe '
         order.payments << payment
       end
 
+      after do
+        Stripe::Account.delete(connected_account.id)
+      end
+
       it "allows to refund the payment" do
         login_as_admin
         visit spree.admin_order_payments_path order
@@ -201,7 +205,7 @@ describe '
 
         page.find('a.icon-void').click
 
-        expect(page).to have_content "VOID"
+        expect(page).to have_content "VOID", wait: 4
         expect(payment.reload.state).to eq "void"
       end
     end

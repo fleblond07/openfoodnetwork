@@ -5,6 +5,8 @@ es:
       spree/product: Producto
       spree/shipping_method: Método de envío
     attributes:
+      spree/image:
+        attachment: Adjunto
       spree/order/ship_address:
         address1: "Dirección de envío (calle y número)"
         address2: "Dirección de envío linea 2"
@@ -42,10 +44,12 @@ es:
       spree/product:
         name: "nombre del producto"
         price: "Precio"
-        primary_taxon: "categoría del producto"
-        supplier: "Proveedora"
+        primary_taxon_id: "categoría del producto"
         shipping_category_id: "Categoría de envío"
-        variant_unit: "Unidad Variante"
+      spree/variant:
+        primary_taxon: "categoría del producto"
+        shipping_category_id: "Categoría de envío"
+        supplier: "Proveedora"
         variant_unit_name: "Nombre de la unidad de la variante"
         unit_value: "Valor unidad"
       spree/credit_card:
@@ -58,6 +62,11 @@ es:
         orders_close_at: Fecha de cierre
       variant_override:
         count_on_hand: "Disponibles"
+      spree/payment_method/calculator:
+        preferred_flat_percent: "Calculadora Porcentaje fijo:"
+        preferred_amount: "Calculadora Importe:"
+      enterprise:
+        white_label_logo_link: "Enlace para el logo que se usara en el escaparate"
     errors:
       models:
         spree/user:
@@ -79,8 +88,10 @@ es:
         variant_override:
           count_on_hand:
             using_producer_stock_settings_but_count_on_hand_set: "debe estar en blanco porque estás usando la configuración de estoc de la productora"
-            on_demand_but_count_on_hand_set: "debe estar en blanco si está bajo demanda"
             limited_stock_but_no_count_on_hand: "se debe especificar porque se ha definido estoc limitado"
+        connected_apps:
+          vine:
+            api_request_error: "Un error se ha producido al conectarse a Vine API"
       messages:
         blank: "no puede estar vacío"
   errors:
@@ -90,9 +101,13 @@ es:
       image_metadata_missing: "no es una imagen valida"
       aspect_ratio_not_square: "la imagen tiene que ser cuadrada"
       aspect_ratio_not_portrait: "la imagen tiene que ser un retrato"
+      aspect_ratio_not_landscape: "debe ser una imagen de paisaje"
+      aspect_ratio_unknown: "tiene una relación de aspecto desconocida"
       image_not_processable: "no es una imagen valida"
     internal_server_error:
       title: "Lo sentimos pero algo fue mal (500)"
+    unprocessable_entity:
+      title: "El cambio deseado ha sido rechazado (422)"
   stripe:
     error_code:
       incorrect_number: "El número de tarjeta es incorrecto."
@@ -145,6 +160,8 @@ es:
       transaction_not_allowed: "La tarjeta ha sido denegada por una razón desconocida."
       try_again_later: "La tarjeta ha sido denegada por una razón desconocida."
       withdrawal_count_limit_exceeded: "El cliente ha superado el saldo o límite de crédito disponible en su tarjeta."
+    success_code:
+      disconnected: "Cuenta de Stripe desconectada."
   activemodel:
     errors:
       messages:
@@ -170,6 +187,7 @@ es:
               not_available_to_shop: "no está disponible para %{shop}"
   card_details: "Detalles de tarjeta"
   card_type: "Tipo de tarjeta"
+  what_is_this: "¿Qué es esto?"
   cardholder_name: "Nombre del titular de la tarjeta"
   community_forum_url: "URL del foro de la comunidad"
   customer_instructions: "Instrucciones del Consumidor"
@@ -250,6 +268,9 @@ es:
     integer_array_validator:
       not_array_error: "debe ser una matriz"
       invalid_element_error: "debe contener solo enteros válidos"
+  backorder_mailer:
+    backorder_failed:
+      product: "Producto"
   enterprise_mailer:
     confirmation_instructions:
       subject: "Confirma la dirección de correo electrónico de %{enterprise}"
@@ -338,8 +359,12 @@ es:
   cancel_order: "Cancelar pedido"
   confirm_send_invoice: "Una factura para esta orde se envió al cliente. ¿Está seguro que quiere continuar?"
   confirm_resend_order_confirmation: "¿Estás seguro que quieres reenviar el correo de confirmación del pedido?"
+  must_have_valid_business_number: "%{enterprise_name} tiene que tener un CIF valido para poder usar las facturas."
   invoice: "Factura"
+  invoices: "Facturas"
+  file: "Fichero"
   active: "Activo"
+  download: "Descargar"
   cancelled: "Cancelado"
   more: "Más"
   say_no: "No"
@@ -397,6 +422,7 @@ es:
   none: Ninguno
   notes: Notas
   error: Error
+  voucher: Bono
   processing_payment: "Procesando el pago..."
   no_pending_payments: "No tiene pagos pendientes"
   invalid_payment_state: "Estado de pago inválido: %{state}"
@@ -447,8 +473,11 @@ es:
           title: Productoras
         colums: Columnas
       columns:
+        image: Imagen
         name: Nombre
         unit: Unidad
+        unit_value: Valor unidad
+        display_as: Mostrar unidad como
         price: Precio
         producer: Productora
         category: Categoría
@@ -474,8 +503,11 @@ es:
         edit: Editar
         clone: Duplicar
         delete: Borrar
+        remove: Eliminar
       image:
         edit: Editar
+      product_preview:
+        shop_tab: Tienda
     adjustments:
       skipped_changing_canceled_order: "No puede cambiar un pedido cancelado."
     begins_at: Empieza en
@@ -540,6 +572,8 @@ es:
     has_n_rules: "Tiene %{num} reglas"
     unsaved_confirm_leave: "Has cambios sin guardar en esta página ¿Continuar sin guardar?"
     available_units: "Unidades disponibles"
+    terms_of_service: Leer los términos de servicio
+    accept_terms_of_service: Aceptar los terminos de servicio
     shopfront_settings:
       embedded_shopfront_settings: "Configuración de la tienda integrada"
       enable_embedded_shopfronts: "Habilitar tiendas integradas"
@@ -625,6 +659,9 @@ es:
         your_content: Tu contenido
         user_guide: Manual de Usuario
         map: Mapa
+    dfc_product_imports:
+      index:
+        imported_products: "Productos importados:"
     enterprise_fees:
       index:
         title: "Comisiones de la Organización"
@@ -678,7 +715,6 @@ es:
       variants:
         infinity: "infinito"
         to_order_tip: "Los artículos hechos según demanda no tienen un nivel de stock, como por ejemplo panes hechos según demanda."
-      back_to_products_list: "Volver a la lista de productos"
       editing_product: "Editando producto"
       tabs:
         product_details: "Detalles del Producto"
@@ -690,25 +726,47 @@ es:
       index:
         header:
           title: Editar varios Productos
+      content:
         loading: Cargando tus productos
-      sort:
-        pagination:
-          clear_search: Limpiar la búsqueda
+      delete_modal:
+        delete_product_modal:
+          heading: "Borrar producto"
+          confirmation_text: "Borrar producto"
+          cancellation_text: "Mantener producto"
+        delete_variant_modal:
+          heading: "Borrar variante"
+          confirmation_text: "Borrar variante"
+          cancellation_text: "Mantener variante"
       filters:
+        search_products: Buscar productos
+        search_for_producers: Buscar productoras
+        select_producer: Seleccionar productora
+        all_producers: Todas las productoras
         producers:
           label: Productoras
         categories:
           label: Categorías
         search: Buscar
+      sort:
+        pagination:
+          per_page:
+            show: Mostrar
+          clear_search: Limpiar la búsqueda
       no_products:
         no_products_found: No se encontraron productos
         import_products: Importar varios productos
       table:
         reset: Desechar Cambios
         save: Guardar Cambios
+      product_variant_row:
         new_variant: Nueva variante
-      edit_image:
-        close: Atrás
+      bulk_update:
+        success: Cambios guardados
+      variant_row:
+        none_tax_category: Ninguno
+        category_field_name: "Categoría"
+        tax_category_field_name: "Categoría de impuestos"
+        producer_field_name: "Productora"
     product_import:
       title: Importación de productos
       file_not_found: Archivo no encontrado o no se pudo abrir
@@ -749,6 +807,7 @@ es:
         tax_categories: Categorías de impuestos
         shipping_categories: Categorías de envío
       dfc_import_form:
+        title: "Importar del catálogo DFC"
         enterprise: "Organización"
         import: "Importar"
       import:
@@ -952,6 +1011,7 @@ es:
         images:
           legend: "Imágenes"
           logo: Logo
+          logo_size: "300 x 300 pixeles"
           promo_image_placeholder: 'Esta imagen aparece en "Sobre nosotras"'
           promo_image_note1: 'ATENCIÓN:'
           promo_image_note2: La imagen será recortada a  1200 x 260.
@@ -1043,8 +1103,6 @@ es:
               en el sitio. si el texto se agrega en este campo, va a ser mostrado
               en la pestaña de inicio cuando los clientes ingresen por primera vez
               a la tienda.
-          shopfront_message_link_tooltip: "Insertar / editar enlace"
-          shopfront_message_link_prompt: "Por favor introduzca una URL para insertar"
           shopfront_closed_message: "Mensaje de tienda cerrada"
           shopfront_closed_message_placeholder: >
               Un mensaje que proporciona una explicación más detallada sobre por qué
@@ -1056,6 +1114,7 @@ es:
           open_date: "Fecha de Inicio"
           close_date: "Fecha de Finalización"
           display_ordering_in_shopfront: "Mostrar pedidos en la tienda:"
+          shopfront_sort_by_product: "Por producto"
           shopfront_sort_by_category: "Por categoria"
           shopfront_sort_by_producer: "Por productora"
           shopfront_sort_by_category_placeholder: "Categoría"
@@ -1120,14 +1179,21 @@ es:
           net_value: Valor neto
           active: ¿Activo?
           add_new: Añadir nuevo
+          no_voucher_yet: Todavía no hay bonos
         white_label:
           hide_ofn_navigation: "Ocultar la navegación de OFN"
           upload_logo: "Logo que se utilizará en el escaparate"
           remove_logo: "Eliminar el logo"
           remove_logo_confirm: "¿Está seguro de que desea eliminar este logo?"
           remove_logo_success: "Logo eliminado"
+          white_label_logo_link_label: "Enlace para el log que se usara en el escaparate"
         connected_apps:
-          loading: "Cargando"
+          affiliate_sales_data:
+            loading: "Cargando"
+          discover_regen:
+            loading: "Cargando"
+          vine:
+            enable: "Conectar"
       actions:
         edit_profile: Configuración
         properties: Propiedades
@@ -1180,10 +1246,8 @@ es:
         contact_name: Nombre de Contacto
       edit:
         editing: 'Configuración:'
-        back_link: Volver a la lista de organizaciones
       new:
         title: Nueva Organización
-        back_link: Volver a la lista de organizaciones
       welcome:
         welcome_title: Bienvenida a Open Food Network!
         welcome_text: Has creado correctamente un
@@ -1220,6 +1284,8 @@ es:
         choose_products_from: "Escoger Productos desde:"
         re_notify_producers: Re notificar a los productores
         notify_producers_tip: Esto le enviará un correo a cada productor con su lista de pedidos.
+      date_time_warning_modal_content:
+        cancel: 'Cancelar'
       incoming:
         incoming: "Entrante"
         supplier: "Proveedora"
@@ -1774,6 +1840,7 @@ es:
   abn: "NIF:"
   acn: "ACN:"
   invoice_issued_on: "Factura emitida el:"
+  order_number: "Número de pedido:"
   date_of_transaction: "Fecha de la transacción:"
   menu_1_title: "Tiendas"
   menu_1_url: "/shops"
@@ -1856,7 +1923,6 @@ es:
   label_account: "Cuenta"
   label_more: "Mostrar más"
   label_less: "Mostrar menos"
-  label_notices: "Noticias"
   cart_items: "elementos"
   cart_headline: "Su carrito de compras"
   total: "Total"
@@ -2607,7 +2673,6 @@ es:
   spree_admin_single_enterprise_hint: "Sugerencia: Para permitir que la gente te encuentre, activa tu visibilidad"
   spree_admin_eg_pickup_from_school: "p.ej. 'Recogida en la Cooperativa'"
   spree_admin_eg_collect_your_order: "p.ej. 'Por favor recoge tu pedido en la Calle del Hormiguero nº3'"
-  spree_classification_primary_taxon_error: "La clasificación %{taxon} es la clasificación primaria de %{product} y no puede ser eliminada"
   spree_order_availability_error: "El Distribuidor o el Ciclo de Pedido no pueden suministrar los productos en su carrito"
   spree_order_populator_error: "Este Distribuidor o Ciclo de Pedido no puede suministrar todos los productos en tu carrito. Por favor, elige otro."
   spree_order_cycle_error: "Elija un ciclo de pedido para este pedido."
@@ -2752,6 +2817,7 @@ es:
   report_header_quantity: Cantidad
   report_header_max_quantity: Cantidad máxima
   report_header_variant: Variante
+  report_header_variant_unit_name: Nombre de la unidad de la variante
   report_header_variant_value: Valor de la variante
   report_header_variant_unit: Unidad Variante
   report_header_total_available: Total disponible
@@ -2834,7 +2900,9 @@ es:
   report_header_transaction_fee: Comisión por transacción (sin impuestos)
   report_header_total_untaxable_admin: Total de ajustes administrativos no tributables (sin impuestos)
   report_header_total_taxable_admin: Total de ajustes tributarios de administración (impuestos incluidos)
+  invoice_date: "Fecha de factura"
   due_date: "Fecha de vencimiento"
+  account_code: "Código de cuenta"
   equals: "Iguales"
   contains: "Contiene"
   discount: "Descuento"
@@ -2911,9 +2979,11 @@ es:
   no_orders_found: "No se encontraron pedidos"
   order_information: "información del pedido"
   new_payment: "Nuevo pago"
+  create_or_update_invoice: "Crear o actualizar factura"
   date_completed: "Fecha de finalización"
   amount: "Cantidad"
   invoice_number: "Número de Factura"
+  invoice_file: "Fichero"
   state_names:
     ready: Listo
     pending: Pendiente
@@ -3240,6 +3310,8 @@ es:
           Esto establecerá el nivel de stock a cero en todos los productos para este
           organización no está presente en el archivo subido.
     order_cycles:
+      unsaved_changes: "Tienes cambios sin guardar"
+      bulk_save_error: "¡Vaya! No se ha podido guardar los cambios."
       create_failure: "Error al crear el ciclo de pedido"
       update_success: 'Se ha actualizado su ciclo de pedido.'
       update_failure: "Error al actualizar el ciclo de pedido"
@@ -3265,6 +3337,16 @@ es:
     stripe_elements:
       unknown_error_from_stripe: |
           Hubo un problema al configurar su tarjeta en nuestra pasarela de pagos. Actualice la página y vuelva a intentarlo; si falla por segunda vez, comuníquese con nosotros para obtener asistencia.
+    trix:
+      bold: "Negrita"
+      code: "Código"
+      italic: "Italica"
+      link: "Enlace"
+      numbers: "Numeros"
+      redo: "Rehacer"
+      undo: "Deshacer"
+      url: "URL"
+      urlPlaceholder: "Por favor introduzca una URL para insertar"
   inflections:
     each:
       one: "each"
@@ -3443,7 +3525,7 @@ es:
   account: "Cuenta"
   logout: "Cerrar sesión"
   date_range: "Rango de fechas"
-  status: "estado"
+  status: "Estado"
   new: "Nuevo"
   start: "Inicio"
   end: "Final"
@@ -3469,6 +3551,7 @@ es:
     editing_tax_category: "Editando categoría fiscal"
     editing_tax_rate: "Editando la tasa de impuestos"
     editing_zone: "Editando zona"
+    editing_state: "Editando provincia"
     expiration: "Vencimiento"
     invalid_payment_provider: "Proveedor de pago inválido"
     items_cannot_be_shipped: "Los artículos no se pueden enviar"
@@ -3477,9 +3560,9 @@ es:
     more: "Más"
     new_adjustment: "Nuevo ajuste"
     new_tax_category: "Nueva categoría de impuestos"
-    new_taxon: "Nuevo taxón"
     new_user: "Nuevo usuario"
     no_pending_payments: "No tiene pagos pendientes"
+    remove: "Eliminar"
     none: "Ninguno"
     not_found: "No encontrado"
     notice_messages:
@@ -3494,8 +3577,6 @@ es:
       pick_up: "Recoger en la granja"
     start_date: "Fecha de inicio"
     successfully_removed: "Eliminado con éxito"
-    taxonomy_edit: "editar taxonomía"
-    tree: "Árbol"
     updating: "Actualizando"
     your_order_is_empty_add_product: "Su pedido está vacío, busque y añada un producto arriba"
     add_product: "Añadir Producto"
@@ -3590,7 +3671,6 @@ es:
     tax_rate_amount_explanation: "Las tasas de impuestos son una cantidad decimal para ayudar en los cálculos (es decir, si la tasa de impuestos es del 5%, introduzca 0.05)"
     included_in_price: "Incluido en el precio"
     show_rate_in_label: "Mostrar impuesto en la etiqueta"
-    back_to_tax_rates_list: "Volver a la lista de impuestos"
     tax_settings: "Configuración de Impuestos"
     zones: "Zonas"
     new_zone: "Nueva zona"
@@ -3603,14 +3683,11 @@ es:
     iso_name: "Nombre ISO"
     states_required: "Estados requeridos"
     editing_country: "Editar país"
-    back_to_countries_list: "Volver a la lista de países"
     states: "Estados"
     abbreviation: "Abreviatura"
     new_state: "Nuevo estado"
     payment_methods: "Métodos de Pago"
-    taxonomies: "Taxonomias"
-    new_taxonomy: "Nueva taxonomía"
-    back_to_taxonomies_list: "Volver a la Lista de Taxonomías"
+    taxons: "Categorías de Producto"
     shipping_methods: "Métodos de envío"
     shipping_method: "Método de envío"
     shipment: "Envío"
@@ -3700,6 +3777,11 @@ es:
     validation:
       must_be_int: "debe ser un entero"
     admin:
+      images:
+        edit:
+          title: Modificar la foto del producto
+          close: Atrás
+          upload: Subir foto
       mail_methods:
         send_testmail: "Enviar correo electrónico de prueba"
         testmail:
@@ -3714,6 +3796,7 @@ es:
         bulk_order_management: "Gestión de pedidos en bloque"
         subscriptions: "Suscripciones"
         products: "Productos"
+        products_v3: "Productos"
         option_types: "Tipos de opciones"
         properties: "Propiedades"
         variant_overrides: "Inventario"
@@ -3726,6 +3809,10 @@ es:
         enterprise_relationships: "Permisos"
         customers: "Consumidoras"
         groups: "Redes"
+        overview: "Visión general"
+        product_import: "Importar"
+        enterprise_roles: "Roles"
+        payment_methods: "Métodos de Pago"
       product_properties:
         index:
           inherits_properties_checkbox_hint: "¿Heredar propiedades desde %{supplier}? (a menos que sea anulado arriba)"
@@ -3756,7 +3843,6 @@ es:
           continue: "Continuar"
         new:
           new_return_authorization: "Nueva autorización de devolución"
-          back_to_return_authorizations_list: "Back To Return Authorization List"
           continue: "Continuar"
         edit:
           receive: "recibir"
@@ -3802,6 +3888,7 @@ es:
           print_invoices: "Imprimir facturas"
           cancel_orders: "Cancelar pedidos"
           resend_confirmation: "Reenviar confirmación"
+          send_invoice: "Enviar facturas"
           selected:
             zero: "Ningún pedido seleccionado"
             one: "1 pedido seleccionado"
@@ -4033,12 +4120,15 @@ es:
           new_variant: "Nueva Variante"
         form:
           sku: "SKU"
-          price: "Precio"
           unit_price: "Precio por unidad"
           display_as: "Mostrar como"
           display_name: "Nombre para mostrar"
           display_as_placeholder: 'p. ej. 2 Kg'
           display_name_placeholder: 'p. ej. Tomates'
+          unit: Unidad
+          price: Precio
+          unit_value: Valor unidad
+          variant_category: Categoría
         autocomplete:
           out_of_stock: "Agotado"
           producer_name: "Productora"
@@ -4057,9 +4147,10 @@ es:
           total: "Total"
           billing_address_name: "Nombre"
       taxons:
+        index:
+          title: "Categorías de Producto"
         form:
           name: Nombre
-          permalink: Enlace permanente
           description: Descripción
       general_settings:
         edit:
@@ -4286,7 +4377,6 @@ es:
       key_cleared: "valor borrado"
       shipment:
         cannot_ready: "No se puede completar envío"
-      invalid_taxonomy_id: "El identificador de taxonomía es inválido."
     activerecord:
       models:
         spree/payment:
@@ -4356,3 +4446,5 @@ es:
     pagination:
       next: Siguiente
       previous: Anterior
+  invisible_captcha:
+    sentence_for_humans: "Por favor, dejalo vacio"

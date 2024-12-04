@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'benchmark'
 
-describe Spree::Shipment do
+RSpec.describe Spree::Shipment do
   let(:order) { build(:order) }
   let(:shipping_method) { build(:shipping_method, name: "UPS") }
   let(:shipment) do
@@ -65,8 +65,8 @@ describe Spree::Shipment do
     end
 
     describe "with soft-deleted products or variants" do
-      let!(:product) { create(:product) }
-      let!(:order) { create(:order, distributor: product.supplier) }
+      let(:variant) { create(:variant) }
+      let(:order) { create(:order, distributor: variant.supplier) }
 
       context "when the variant is soft-deleted" do
         it "can still access the variant" do
@@ -79,7 +79,7 @@ describe Spree::Shipment do
 
       context "when the product is soft-deleted" do
         it "can still access the variant" do
-          order.line_items.first.variant.delete
+          order.line_items.first.product.delete
 
           variants = shipment.reload.manifest.map(&:variant)
           expect(variants).to eq [order.line_items.first.variant]
@@ -261,6 +261,37 @@ describe Spree::Shipment do
           with(state: 'shipped', updated_at: kind_of(Time))
         shipment.update!(order)
       end
+    end
+  end
+
+  describe "#finalize!" do
+    subject(:shipment) { order.shipments.first }
+    let(:variant) { order.variants.first }
+    let(:order) { create(:order_ready_for_confirmation) }
+
+    it "reduces stock" do
+      variant.on_hand = 5
+
+      expect { shipment.finalize! }
+        .to change { variant.on_hand }.from(5).to(4)
+    end
+
+    it "reduces stock of a variant override" do
+      variant.on_hand = 5
+      variant_override = VariantOverride.create!(
+        variant:,
+        hub: order.distributor,
+        count_on_hand: 7,
+        on_demand: false,
+      )
+
+      expect {
+        shipment.finalize!
+        variant.reload
+        variant_override.reload
+      }
+        .to change { variant_override.count_on_hand }.from(7).to(6)
+        .and change { variant.on_hand }.by(0)
     end
   end
 

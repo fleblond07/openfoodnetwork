@@ -22,8 +22,8 @@ sv:
         state: Region
       spree/product:
         price: "Pris"
+      spree/variant:
         supplier: "Leverantör"
-        variant_unit: "Enhet för variant"
       spree/credit_card:
         month: "Månad"
         year: "År"
@@ -47,6 +47,9 @@ sv:
           Var du gäst senast? Du behöver kanske skapa ett konto eller återställa ditt lösenord.
   sku: "SKU"
   tax_rate: "Skattesats"
+  backorder_mailer:
+    backorder_failed:
+      product: "Produkt"
   enterprise_mailer:
     confirmation_instructions:
       subject: "Vänligen bekräfta e-postadressen för %{enterprise}"
@@ -176,8 +179,11 @@ sv:
         inherits_properties: "Ärva egenskaper?"
       actions:
         edit: Redigera
+        remove: Ta bort
       image:
         edit: Redigera
+      product_preview:
+        shop_tab: 'Butik '
     customer: Kund
     date: Datum
     email: epost
@@ -325,8 +331,11 @@ sv:
         producers:
           label: 'Producenter '
         search: Sök
-      edit_image:
-        close: Backa
+      variant_row:
+        none_tax_category: Ingen
+        category_field_name: "Kategori"
+        tax_category_field_name: "Skattekategori"
+        producer_field_name: "Producent"
     product_import:
       file_not_found: Filen hittades inte eller kunde inte öppnas
       no_data: Ingen data hittades i kalkylbladet
@@ -558,6 +567,9 @@ sv:
           managers_tip: Andra användare med tillstånd att leda detta företag.
         vouchers:
           customers: Kund
+        connected_apps:
+          vine:
+            enable: "Anslut"
       actions:
         edit_profile: Inställningar
         properties: Egenskaper
@@ -608,11 +620,8 @@ sv:
         owner_tip: Den primära användaren är ansvarig för detta företag.
         i_am_producer: Jag är en Tillverkare
         contact_name: Kontaktperson
-      edit:
-        back_link: Åter till företagslistan
       new:
         title: Nya företag
-        back_link: Åter till företagslistan
       welcome:
         welcome_title: Välkommen till OFN!
         welcome_text: Du har korrekt slutfört en
@@ -633,6 +642,8 @@ sv:
         next: "Näst"
         cancel: "Avbryt"
         choose_products_from: "Välj produkter från:"
+      date_time_warning_modal_content:
+        cancel: 'Avbryt'
       incoming:
         incoming: "Inkommande"
         supplier: "Leverantör"
@@ -984,7 +995,6 @@ sv:
   label_account: "Konto"
   label_more: "Visa mer"
   label_less: "Visa mindre"
-  label_notices: "Anmälan"
   cart_headline: "Din varukorg"
   total: "Summa "
   cart_updating: "Uppdatera din varukorg"
@@ -1591,7 +1601,6 @@ sv:
   spree_admin_single_enterprise_hint: "Tips: För att folk skall hitta dig lättare, slå på din reklam under"
   spree_admin_eg_pickup_from_school: "t.ex. \"Upphämtning från grundskolan\""
   spree_admin_eg_collect_your_order: "t.ex. \"Var snäll och samla din beställning från Exempelgatan,  100 00 Stad '"
-  spree_classification_primary_taxon_error: "Gruppen %{taxon} är den primära gruppen för %{product} och kan inte raderas"
   spree_order_availability_error: "Distributören eller beställningsomgången kan inte leverera produkterna i din kundvagn"
   spree_order_populator_error: "Denna distributör eller beställningsomgång kan inte leverera alla produkter i din kundvagn. Vänligen välj en annan."
   spree_order_populator_availability_error: "Den produkten är inte tillgänglig från den valda distributören eller denna beställningsomgång."
@@ -2081,6 +2090,8 @@ sv:
       confirmation: |
           Detta kommer att ställa lagersaldot till noll på alla produkter för detta företag, som inte är närvarande i den uppladdade filen.
     order_cycles:
+      unsaved_changes: "Du har osparade ändringar"
+      bulk_save_error: "Å nej! Jag kunde inte spara dina ändringar."
       update_success: 'Din beställningsomgång har uppdaterats.'
       no_distributors: Det finns inga distributörer i denna beställningsomgång. Den kommer inte att vara synlig för kunderna tills du lägger till en distributör. Vill du fortsätta och spara denna beställningsomgång? '
     enterprises:
@@ -2097,6 +2108,8 @@ sv:
       signup_or_login: "Börja genom att underteckna (eller logga in)"
       have_an_account: "Har du redan ett konto?"
       action_login: "Logga in nu."
+    trix:
+      code: "Kod"
   producers:
     signup:
       start_free_profile: "Börja med en gratis profil och uppgradera när du är redo!"
@@ -2132,10 +2145,12 @@ sv:
   administration: "Administration"
   account: "Konto"
   logout: "Logga ut"
+  status: "Status"
   spree:
     all: "Alla"
     category: "Kategori"
     credit: "Kredit"
+    remove: "Ta bort"
     none: "Ingen"
     updating: "Uppdaterar"
     resend: "Återsänd"
@@ -2192,10 +2207,14 @@ sv:
       messages:
         blank: "kan inte vara blank"
     admin:
+      images:
+        edit:
+          close: Backa
       tab:
         dashboard: "Panel"
         bulk_order_management: "Hantera flera beställningar"
         products: "Produkter"
+        products_v3: "Produkter"
         properties: "Egenskaper"
         variant_overrides: "Lager"
         reports: "Rapporter"
@@ -2205,6 +2224,9 @@ sv:
         enterprises: "Företag"
         customers: "Kunder"
         groups: "Grupper"
+        overview: "Översikt"
+        enterprise_roles: "Uppgifter"
+        payment_methods: "Betalningssätt"
       properties:
         index:
           properties: "Egenskaper"
@@ -2330,9 +2352,11 @@ sv:
           price: "Pris"
         form:
           sku: "SKU"
-          price: "Pris"
           unit_price: "Styckpris"
           display_as: "Visa som"
+          unit: Enhet
+          price: Pris
+          variant_category: Kategori
         autocomplete:
           producer_name: "Producent"
           unit: "Enhet"

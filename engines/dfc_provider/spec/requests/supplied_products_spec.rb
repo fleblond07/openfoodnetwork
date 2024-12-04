@@ -2,19 +2,20 @@
 
 require_relative "../swagger_helper"
 
-describe "SuppliedProducts", type: :request, swagger_doc: "dfc.yaml", rswag_autodoc: true do
+RSpec.describe "SuppliedProducts", type: :request, swagger_doc: "dfc.yaml", rswag_autodoc: true do
   let!(:user) { create(:oidc_user) }
   let!(:enterprise) { create(:distributor_enterprise, id: 10_000, owner: user) }
   let!(:product) {
     create(
       :product_with_image,
       id: 90_000,
-      supplier: enterprise, name: "Pesto", description: "Basil Pesto",
-      variants: [variant],
-      primary_taxon: taxon
+      name: "Pesto", description: "Basil Pesto",
+      variants: [variant]
     )
   }
-  let(:variant) { build(:base_variant, id: 10_001, unit_value: 1) }
+  let(:variant) {
+    build(:base_variant, id: 10_001, unit_value: 1, primary_taxon: taxon, supplier: enterprise)
+  }
   let(:taxon) {
     build(
       :taxon,
@@ -114,7 +115,7 @@ describe "SuppliedProducts", type: :request, swagger_doc: "dfc.yaml", rswag_auto
           product = Spree::Product.find(product_id)
           expect(product.name).to eq "Apple"
           expect(product.variants).to eq [variant]
-          expect(product.primary_taxon).to eq(non_local_vegetable)
+          expect(product.variants.first.primary_taxon).to eq(non_local_vegetable)
 
           # Creates a variant for existing product
           supplied_product[:'ofn:spree_product_id'] = product_id
@@ -244,7 +245,7 @@ describe "SuppliedProducts", type: :request, swagger_doc: "dfc.yaml", rswag_auto
           }.to change { variant.description }.to("DFC-Pesto updated")
             .and change { variant.display_name }.to("Pesto novo")
             .and change { variant.unit_value }.to(17)
-            .and change { variant.product.primary_taxon }.to(drink_taxon)
+            .and change { variant.primary_taxon }.to(drink_taxon)
         end
       end
     end

@@ -2,7 +2,7 @@
 
 require_relative "../swagger_helper"
 
-describe "Enterprises", type: :request, swagger_doc: "dfc.yaml", rswag_autodoc: true do
+RSpec.describe "Enterprises", type: :request, swagger_doc: "dfc.yaml", rswag_autodoc: true do
   let!(:user) { create(:oidc_user) }
   let!(:enterprise) do
     create(
@@ -27,7 +27,7 @@ describe "Enterprises", type: :request, swagger_doc: "dfc.yaml", rswag_autodoc: 
   let!(:product) {
     create(
       :product_with_image,
-      id: 90_000, supplier: enterprise, name: "Apple", description: "Round",
+      id: 90_000, name: "Apple", description: "Round",
       variants: [variant],
       primary_taxon: non_local_vegetable
     )
@@ -39,7 +39,9 @@ describe "Enterprises", type: :request, swagger_doc: "dfc.yaml", rswag_autodoc: 
       dfc_id: "https://github.com/datafoodconsortium/taxonomies/releases/latest/download/productTypes.rdf#non-local-vegetable"
     )
   }
-  let(:variant) { build(:base_variant, id: 10_001, unit_value: 1, sku: "APP") }
+  let(:variant) {
+    build(:base_variant, id: 10_001, unit_value: 1, sku: "APP", supplier: enterprise)
+  }
 
   before { login_as user }
 
@@ -71,6 +73,7 @@ describe "Enterprises", type: :request, swagger_doc: "dfc.yaml", rswag_autodoc: 
 
             expect(json_response["@graph"][0]).to include(
               "dfc-b:affiliates" => "http://test.host/api/dfc/enterprise_groups/60000",
+              "dfc-b:websitePage" => "https://openfoodnetwork.org",
             )
 
             # Insert static value to keep documentation deterministic:

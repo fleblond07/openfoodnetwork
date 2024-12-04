@@ -47,8 +47,8 @@ angular.module("ofn.admin").controller "AdminProductEditCtrl", ($scope, $timeout
     removeClearedValues()
     params = {
       'q[name_cont]': $scope.q.query,
-      'q[supplier_id_eq]': $scope.q.producerFilter,
-      'q[primary_taxon_id_eq]': $scope.q.categoryFilter,
+      'q[variants_supplier_id_eq]': $scope.q.producerFilter,
+      'q[variants_primary_taxon_id_eq]': $scope.q.categoryFilter,
       'q[s]': $scope.sorting,
       import_date: $scope.q.importDateFilter,
       page: $scope.page,
@@ -126,8 +126,11 @@ angular.module("ofn.admin").controller "AdminProductEditCtrl", ($scope, $timeout
     DisplayProperties.setShowVariants 0, showVariants
 
   $scope.addVariant = (product) ->
+    # Set new variant category to same as last product variant category to keep compactibility with deleted variant callback to set new variant category
+    newVariantId = $scope.nextVariantId();
+    newVariantCategoryId = product.variants[product.variants.length - 1]?.category_id
     product.variants.push
-      id: $scope.nextVariantId()
+      id: newVariantId
       unit_value: null
       unit_description: null
       on_demand: false
@@ -136,7 +139,9 @@ angular.module("ofn.admin").controller "AdminProductEditCtrl", ($scope, $timeout
       on_hand: null
       price: null
       tax_category_id: null
+      category_id: newVariantCategoryId
     DisplayProperties.setShowVariants product.id, true
+    DirtyProducts.addVariantProperty(product.id, newVariantId, 'category_id', newVariantCategoryId)
 
 
   $scope.nextVariantId = ->
@@ -182,9 +187,8 @@ angular.module("ofn.admin").controller "AdminProductEditCtrl", ($scope, $timeout
     product.variants.length > 0
 
 
-  $scope.hasUnit = (product) ->
-    product.variant_unit_with_scale?
-
+  $scope.hasUnit = (variant) ->
+    variant.variant_unit_with_scale?
 
   $scope.variantSaved = (variant) ->
     variant.hasOwnProperty('id') && variant.id > 0
@@ -216,8 +220,8 @@ angular.module("ofn.admin").controller "AdminProductEditCtrl", ($scope, $timeout
         products: productsToSubmit
         filters:
           'q[name_cont]': $scope.q.query
-          'q[supplier_id_eq]': $scope.q.producerFilter
-          'q[primary_taxon_id_eq]': $scope.q.categoryFilter
+          'q[variants_supplier_id_eq]': $scope.q.producerFilter
+          'q[variants_primary_taxon_id_eq]': $scope.q.categoryFilter
           'q[s]': $scope.sorting
           import_date: $scope.q.importDateFilter
         page: $scope.page
@@ -237,32 +241,28 @@ angular.module("ofn.admin").controller "AdminProductEditCtrl", ($scope, $timeout
     $window.location = destination
 
   $scope.packProduct = (product) ->
-    if product.variant_unit_with_scale
-      match = product.variant_unit_with_scale.match(/^([^_]+)_([\d\.]+)$/)
-      if match
-        product.variant_unit = match[1]
-        product.variant_unit_scale = parseFloat(match[2])
-      else
-        product.variant_unit = product.variant_unit_with_scale
-        product.variant_unit_scale = null
-    else
-      product.variant_unit = product.variant_unit_scale = null
-
-
     if product.variants
       for id, variant of product.variants
-        $scope.packVariant product, variant
+        $scope.packVariant variant
 
 
-  $scope.packVariant = (product, variant) ->
+  $scope.packVariant = (variant) ->
+    if variant.variant_unit_with_scale
+      match = variant.variant_unit_with_scale.match(/^([^_]+)_([\d\.]+)$/)
+      if match
+        variant.variant_unit = match[1]
+        variant.variant_unit_scale = parseFloat(match[2])
+      else
+        variant.variant_unit = variant.variant_unit_with_scale
+        variant.variant_unit_scale = null
+
     if variant.hasOwnProperty("unit_value_with_description")
       match = variant.unit_value_with_description.match(/^([\d\.\,]+(?= |$)|)( |)(.*)$/)
       if match
-        product = BulkProducts.find product.id
         variant.unit_value  = parseFloat(match[1].replace(",", "."))
         variant.unit_value  = null if isNaN(variant.unit_value)
-        if variant.unit_value && product.variant_unit_scale
-          variant.unit_value = parseFloat(window.bigDecimal.multiply(variant.unit_value, product.variant_unit_scale, 2))
+        if variant.unit_value && variant.variant_unit_scale
+          variant.unit_value = parseFloat(window.bigDecimal.multiply(variant.unit_value, variant.variant_unit_scale, 2))
         variant.unit_description = match[3]
 
   $scope.incrementLimit = ->
@@ -313,27 +313,14 @@ filterSubmitProducts = (productsToFilter) ->
         if product.hasOwnProperty("name")
           filteredProduct.name = product.name
           hasUpdatableProperty = true
-        if product.hasOwnProperty("producer_id")
-          filteredProduct.supplier_id = product.producer_id
-          hasUpdatableProperty = true
         if product.hasOwnProperty("price")
           filteredProduct.price = product.price
-          hasUpdatableProperty = true
-        if product.hasOwnProperty("variant_unit_with_scale")
-          filteredProduct.variant_unit       = product.variant_unit
-          filteredProduct.variant_unit_scale = product.variant_unit_scale
-          hasUpdatableProperty = true
-        if product.hasOwnProperty("variant_unit_name")
-          filteredProduct.variant_unit_name = product.variant_unit_name
           hasUpdatableProperty = true
         if product.hasOwnProperty("on_hand") and filteredVariants.length == 0 #only update if no variants present
           filteredProduct.on_hand = product.on_hand
           hasUpdatableProperty = true
         if product.hasOwnProperty("on_demand") and filteredVariants.length == 0 #only update if no variants present
           filteredProduct.on_demand = product.on_demand
-          hasUpdatableProperty = true
-        if product.hasOwnProperty("category_id")
-          filteredProduct.primary_taxon_id = product.category_id
           hasUpdatableProperty = true
         if product.hasOwnProperty("inherits_properties")
           filteredProduct.inherits_properties = product.inherits_properties
@@ -375,9 +362,23 @@ filterSubmitVariant = (variant) ->
     if variant.hasOwnProperty("tax_category_id")
       filteredVariant.tax_category_id = variant.tax_category_id
       hasUpdatableProperty = true
+    if variant.hasOwnProperty("category_id")
+      filteredVariant.primary_taxon_id = variant.category_id
+      hasUpdatableProperty = true
     if variant.hasOwnProperty("display_as")
       filteredVariant.display_as = variant.display_as
       hasUpdatableProperty = true
+    if variant.hasOwnProperty("producer_id")
+      filteredVariant.supplier_id = variant.producer_id
+      hasUpdatableProperty = true
+    if variant.hasOwnProperty("variant_unit_with_scale")
+      filteredVariant.variant_unit       = variant.variant_unit
+      filteredVariant.variant_unit_scale = variant.variant_unit_scale
+      hasUpdatableProperty = true
+    if variant.hasOwnProperty("variant_unit_name")
+      filteredVariant.variant_unit_name = variant.variant_unit_name
+      hasUpdatableProperty = true
+
   {filteredVariant: filteredVariant, hasUpdatableProperty: hasUpdatableProperty}
 
 

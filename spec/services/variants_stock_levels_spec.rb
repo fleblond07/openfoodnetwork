@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe VariantsStockLevels do
+RSpec.describe VariantsStockLevels do
   let(:order) { create(:order) }
 
   let!(:line_item) do
@@ -53,7 +53,7 @@ describe VariantsStockLevels do
 
   describe "when the variant has an override" do
     let!(:distributor) { create(:distributor_enterprise) }
-    let(:supplier) { variant_in_the_order.product.supplier }
+    let(:supplier) { variant_in_the_order.supplier }
     let!(:order_cycle) {
       create(:simple_order_cycle, suppliers: [supplier], distributors: [distributor],
                                   variants: [variant_in_the_order, variant_not_in_the_order])

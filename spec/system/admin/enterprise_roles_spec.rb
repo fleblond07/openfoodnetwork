@@ -2,7 +2,7 @@
 
 require 'system_helper'
 
-describe '
+RSpec.describe '
   As an Administrator
   I want to manage relationships between users and enterprises
 ' do
@@ -23,6 +23,7 @@ create(:enterprise)
       create(:enterprise_role, user: u2, enterprise: e4)
 
       # When I go to the roles page
+      scroll_to(:bottom)
       click_link 'Users'
       click_link 'Roles'
 
@@ -179,6 +180,7 @@ create(:enterprise)
   private
 
   def navigate_to_enterprise_users
+    scroll_to(:bottom)
     within ".side_menu" do
       click_link "Users"
     end

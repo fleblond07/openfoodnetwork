@@ -27,10 +27,12 @@ en_BE:
       spree/product:
         name: "Product Name"
         price: "Price"
-        primary_taxon: "Product Category"
-        supplier: "Supplier"
+        primary_taxon_id: "Product Category"
         shipping_category_id: "Shipping Category"
-        variant_unit: "Variant Unit"
+      spree/variant:
+        primary_taxon: "Product Category"
+        shipping_category_id: "Shipping Category"
+        supplier: "Supplier"
         variant_unit_name: "Variant Unit Name"
       spree/credit_card:
         base: "Credit Card"
@@ -54,7 +56,6 @@ en_BE:
         variant_override:
           count_on_hand:
             using_producer_stock_settings_but_count_on_hand_set: "must be blank because using producer stock settings"
-            on_demand_but_count_on_hand_set: "must be blank if on demand"
             limited_stock_but_no_count_on_hand: "must be specified because forcing limited stock"
       messages:
         blank: "can't be blank"
@@ -120,6 +121,9 @@ en_BE:
     integer_array_validator:
       not_array_error: "must be an array"
       invalid_element_error: "must contain only valid integers"
+  backorder_mailer:
+    backorder_failed:
+      product: "Product"
   enterprise_mailer:
     confirmation_instructions:
       subject: "Please confirm the email address for %{enterprise}"
@@ -266,7 +270,6 @@ en_BE:
   password_confirmation: Password Confirmation
   reset_password_token: Reset password token
   expired: has expired, please request a new one
-  back_to_payments_list: "Back to Payments List"
   on_hand: "On Hand"
   on hand: "On Hand"
   ship: "Ship"
@@ -290,6 +293,7 @@ en_BE:
           title: Producers
         colums: Columns
       columns:
+        image: Image
         name: Name
         unit: Unit
         price: Price
@@ -317,8 +321,11 @@ en_BE:
         edit: Edit
         clone: Clone
         delete: Delete
+        remove: Remove
       image:
         edit: Edit
+      product_preview:
+        shop_tab: Shop
     begins_at: Begins At
     begins_on: Begins On
     customer: Customer
@@ -497,7 +504,6 @@ en_BE:
       variants:
         infinity: "Infinity"
         to_order_tip: "Items made to order do not have a set stock level, such as loaves of bread made fresh to order."
-      back_to_products_list: "Back to products list"
       tabs:
         group_buy_options: "Group Buy Options"
         images: "Images"
@@ -512,10 +518,13 @@ en_BE:
         categories:
           label: Categories
         search: Search
-      table:
+      product_variant_row:
         new_variant: New variant
-      edit_image:
-        close: Back
+      variant_row:
+        none_tax_category: None
+        category_field_name: "Category"
+        tax_category_field_name: "Tax Category"
+        producer_field_name: "Producer"
     product_import:
       title: Product Import
       file_not_found: File not found or could not be opened
@@ -807,8 +816,6 @@ en_BE:
           customer_names_false: "Disabled"
           customer_names_true: "Enabled"
           shopfront_message: "Shopfront Message"
-          shopfront_message_link_tooltip: "Insert / edit link"
-          shopfront_message_link_prompt: "Please enter a URL to insert"
           shopfront_closed_message: "Shopfront Closed Message"
           shopfront_closed_message_placeholder: >
               A message which provides a more detailed explanation about why your
@@ -874,7 +881,12 @@ en_BE:
           rate: Rate
           customers: Customer
         connected_apps:
-          loading: "Loading"
+          affiliate_sales_data:
+            loading: "Loading"
+          discover_regen:
+            loading: "Loading"
+          vine:
+            enable: "Connect"
       actions:
         edit_profile: Settings
         properties: Properties
@@ -927,10 +939,8 @@ en_BE:
         contact_name: Contact Name
       edit:
         editing: 'Settings:'
-        back_link: Back to enterprises list
       new:
         title: New Enterprise
-        back_link: Back to enterprises list
       welcome:
         welcome_title: Welcome to the Open Food Network!
         welcome_text: You have successfully created a
@@ -961,6 +971,8 @@ en_BE:
         next: "Next"
         cancel: "Cancel"
         choose_products_from: "Choose Products From:"
+      date_time_warning_modal_content:
+        cancel: 'Cancel'
       incoming:
         incoming: "Incoming"
         supplier: "Supplier"
@@ -1465,7 +1477,6 @@ en_BE:
   label_account: "Account"
   label_more: "Show more"
   label_less: "Show less"
-  label_notices: "Notices"
   cart_items: "items"
   cart_headline: "Your shopping cart"
   total: "Total"
@@ -2182,7 +2193,6 @@ en_BE:
   spree_admin_single_enterprise_hint: "Hint: To allow people to find you, turn on your visibility under"
   spree_admin_eg_pickup_from_school: "eg. 'Pick-up from Primary School'"
   spree_admin_eg_collect_your_order: "eg. 'Please collect your order from 123 Imaginary St, Northcote, 3070'"
-  spree_classification_primary_taxon_error: "Taxon %{taxon} is the primary taxon of %{product} and cannot be deleted"
   spree_order_availability_error: "Distributor or order cycle cannot supply the products in your cart"
   spree_order_populator_error: "That distributor or order cycle can't supply all the products in your cart. Please choose another."
   spree_order_populator_availability_error: "That product is not available from the chosen distributor or order cycle."
@@ -2311,6 +2321,7 @@ en_BE:
   report_header_quantity: Quantity
   report_header_max_quantity: Max Quantity
   report_header_variant: Variant
+  report_header_variant_unit_name: Variant Unit Name
   report_header_variant_value: Variant Value
   report_header_variant_unit: Variant Unit
   report_header_total_available: Total available
@@ -2456,7 +2467,7 @@ en_BE:
   order_cycles_bulk_update_notice: 'Order cycles have been updated.'
   order_cycles_no_permission_to_coordinate_error: "None of your enterprises have permission to coordinate an order cycle"
   order_cycles_no_permission_to_create_error: "You don't have permission to create an order cycle coordinated by that enterprise"
-  back_to_orders_list: "Back to order list"
+  back_to_orders_list: "Back To Orders List"
   no_orders_found: "No Orders Found"
   order_information: "Order Information"
   new_payment: "New Payment"
@@ -2749,6 +2760,8 @@ en_BE:
           This will set stock level to zero on all products for this
           enterprise that are not present in the uploaded file.
     order_cycles:
+      unsaved_changes: "You have unsaved changes"
+      bulk_save_error: "Oh no! I was unable to save your changes."
       create_failure: "Failed to create order cycle"
       update_success: 'Your order cycle has been updated.'
       update_failure: "Failed to update order cycle"
@@ -2771,6 +2784,9 @@ en_BE:
       signup_or_login: "Start By Signing Up (or logging in)"
       have_an_account: "Already have an account?"
       action_login: "Log in now."
+    trix:
+      code: "Code"
+      urlPlaceholder: "Please enter a URL to insert"
   producers:
     signup:
       start_free_profile: "Start with a free profile, and expand when you're ready!"
@@ -2843,7 +2859,7 @@ en_BE:
   account: "Account"
   logout: "Logout"
   date_range: "Date Range"
-  status: "status"
+  status: "Status"
   new: "New"
   start: "Start"
   end: "End"
@@ -2856,6 +2872,7 @@ en_BE:
     category: "Category"
     credit: "Credit"
     more: "More"
+    remove: "Remove"
     none: "None"
     updating: "Updating"
     your_order_is_empty_add_product: "Your order is empty, please search for and add a product above"
@@ -2937,7 +2954,6 @@ en_BE:
     tax_rate_amount_explanation: "Tax rates are a decimal amount to aid in calculations, (i.e. if the tax rate is 5% then enter 0.05)"
     included_in_price: "Included in Price"
     show_rate_in_label: "Show rate in label"
-    back_to_tax_rates_list: "Back to Tax Rates List"
     tax_settings: "Tax Settings"
     zones: "Zones"
     new_zone: "New Zone"
@@ -2950,14 +2966,11 @@ en_BE:
     iso_name: "ISO Name"
     states_required: "States Required"
     editing_country: "Editing Country"
-    back_to_countries_list: "Back to Countries List"
     states: "States"
     abbreviation: "Abbreviation"
     new_state: "New State"
     payment_methods: "Payment Methods"
-    taxonomies: "Taxonomies"
-    new_taxonomy: "New Taxonomy"
-    back_to_taxonomies_list: "Back to Taxonomies List"
+    taxons: "Product Categories"
     shipping_methods: "Shipping Methods"
     shipping_method: "Shipping Method"
     shipment: "Shipment"
@@ -3019,6 +3032,9 @@ en_BE:
           header:
             store: Store
     admin:
+      images:
+        edit:
+          close: Back
       subscriptions:
         number: "Number"
       tab:
@@ -3027,6 +3043,7 @@ en_BE:
         bulk_order_management: "Bulk Order Management"
         subscriptions: "Subscriptions"
         products: "Products"
+        products_v3: "Products"
         option_types: "Option Types"
         properties: "Properties"
         variant_overrides: "Inventory"
@@ -3039,6 +3056,10 @@ en_BE:
         enterprise_relationships: "Permissions"
         customers: "Customers"
         groups: "Groups"
+        overview: "Overview"
+        product_import: "Import"
+        enterprise_roles: "Roles"
+        payment_methods: "Payment Methods"
       product_properties:
         index:
           inherits_properties_checkbox_hint: "Inherit properties from %{supplier}? (unless overridden above)"
@@ -3270,9 +3291,11 @@ en_BE:
           option_types: "Option Types"
         form:
           sku: "SKU"
-          price: "Price"
           unit_price: "Unit Price"
           display_as: "Display As"
+          unit: Unit
+          price: Price
+          variant_category: Category
         autocomplete:
           out_of_stock: "Out of Stock"
           producer_name: "Producer"
@@ -3289,6 +3312,8 @@ en_BE:
           total: "Total"
           billing_address_name: "Name"
       taxons:
+        index:
+          title: "Product Categories"
         form:
           name: Name
           description: Description

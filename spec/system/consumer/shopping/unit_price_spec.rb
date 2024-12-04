@@ -2,7 +2,7 @@
 
 require 'system_helper'
 
-describe "As a consumer, I want to check unit price information for a product" do
+RSpec.describe "As a consumer, I want to check unit price information for a product" do
   include AuthenticationHelper
   include WebHelper
   include ShopWorkflow
@@ -15,8 +15,7 @@ describe "As a consumer, I want to check unit price information for a product" d
                                 coordinator: create(:distributor_enterprise),
                                 orders_close_at: 2.days.from_now)
   }
-  let(:product) { create(:simple_product, supplier:) }
-  let(:variant) { product.variants.first }
+  let(:variant) { create(:variant, supplier:) }
   let(:order) { create(:order, distributor:) }
   let(:exchange1) { oc1.exchanges.to_enterprises(distributor).outgoing.first }
   let(:user) { create(:user, password: "password", password_confirmation: "password") }

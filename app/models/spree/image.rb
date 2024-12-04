@@ -33,8 +33,8 @@ module Spree
       return self.class.default_image_url(size) unless attachment.attached?
 
       image_variant_url_for(variant(size))
-    rescue ActiveStorage::Error, MiniMagick::Error, ActionView::Template::Error => e
-      Bugsnag.notify "Product ##{viewable_id} Image ##{id} error: #{e.message}"
+    rescue StandardError => e
+      Alert.raise "Product ##{viewable_id} Image ##{id} error: #{e.message}"
       Rails.logger.error(e.message)
 
       self.class.default_image_url(size)

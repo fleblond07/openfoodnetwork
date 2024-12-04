@@ -27,11 +27,13 @@ pt_BR:
       spree/product:
         name: "Nome do Produto"
         price: "Preço"
-        primary_taxon: "Categoria de Produto"
-        supplier: "Fornecedor"
+        primary_taxon_id: "Categoria de Produto"
         shipping_category_id: "Tipos de Frete"
-        variant_unit: "Unidade variante"
-        variant_unit_name: "Nome da unidade variante"
+      spree/variant:
+        primary_taxon: "Categoria de Produto"
+        shipping_category_id: "Tipos de Frete"
+        supplier: "Fornecedor"
+        variant_unit_name: "Nome da Unidade da Variante"
       spree/credit_card:
         base: "Cartão de Crédito"
         number: "Número"
@@ -63,7 +65,6 @@ pt_BR:
         variant_override:
           count_on_hand:
             using_producer_stock_settings_but_count_on_hand_set: "deve estar em branco porque está usando configurações de estoque do produtor"
-            on_demand_but_count_on_hand_set: "deve ficar em branco se sob demanda"
             limited_stock_but_no_count_on_hand: "deve ser especificado porque está forçando o estoque limitado"
       messages:
         blank: "Não pode ser vazio"
@@ -189,6 +190,9 @@ pt_BR:
     integer_array_validator:
       not_array_error: "deve ser uma matriz"
       invalid_element_error: "deve conter apenas números inteiros válidos"
+  backorder_mailer:
+    backorder_failed:
+      product: "Produto"
   enterprise_mailer:
     confirmation_instructions:
       subject: "Por favor confirme o endereço de e-mail para %{enterprise}"
@@ -342,7 +346,7 @@ pt_BR:
   password_confirmation: Confirmação de senha
   reset_password_token: Redefinir chave de senha
   expired: expirou, por favor solicite um novo
-  back_to_payments_list: "voltar para lista de pagamento"
+  back_to_payments_list: "Voltar pra Lista de Pagamentos"
   maestro_or_solo_cards: "Cartões Maestro / Solo"
   backordered: "Pedidos em atraso"
   on_hand: "Disponível"
@@ -376,6 +380,7 @@ pt_BR:
           title: Produtores
         colums: Colunas
       columns:
+        image: Imagem
         name: Nome
         unit: Unidade
         price: Preço
@@ -403,8 +408,11 @@ pt_BR:
         edit: Editar
         clone: Cópia
         delete: Deletar
+        remove: Remover
       image:
         edit: Editar
+      product_preview:
+        shop_tab: Comprar
     adjustments:
       skipped_changing_canceled_order: "Não é possível modificar um pedido cancelado"
     begins_at: Começa em
@@ -458,7 +466,6 @@ pt_BR:
     show_n_more: 'Mostrar mais %{num} '
     choose: "Escolher..."
     please_select: Por favor selecione...
-    column_save_as_default: Salvar Como Padrão
     columns: Colunas
     actions: Ações
     viewing: "Visualizando: %{current_view_name}"
@@ -604,7 +611,6 @@ pt_BR:
       variants:
         infinity: "Infinidade"
         to_order_tip: "Os itens feitos por encomenda não têm um nível de estoque definido, como pão fresco, por exemplo."
-      back_to_products_list: "Voltar à lista de produtos"
       editing_product: "Editando Produto"
       tabs:
         product_details: "Detalhes do Produto"
@@ -616,15 +622,18 @@ pt_BR:
       index:
         header:
           title: Editar Produtos em Atacado
-      sort:
-        pagination:
-          clear_search: Nova busca
       filters:
         producers:
           label: Produtores
         search: Buscar
-      edit_image:
-        close: Voltar
+      sort:
+        pagination:
+          clear_search: Nova busca
+      variant_row:
+        none_tax_category: Nenhum
+        category_field_name: "Categoria"
+        tax_category_field_name: "Categoria de taxa"
+        producer_field_name: "Produtor"
     product_import:
       title: Importação de produtos
       file_not_found: O arquivo não foi encontrado ou não pôde ser aberto
@@ -934,8 +943,6 @@ pt_BR:
               Uma mensagem opcional para dar as boas-vindas aos clientes e explicar
               como comprar com você. Se o texto for inserido aqui, ele será exibido
               em uma guia inicial quando os clientes chegarem à sua loja virtual.
-          shopfront_message_link_tooltip: "Inserir / editar link"
-          shopfront_message_link_prompt: "Digite um URL para inserir"
           shopfront_closed_message: "Mensagem de loja virtual fechada"
           shopfront_closed_message_placeholder: >
               Uma mensagem que forneça uma explicação detalhada sobre o porque de
@@ -1001,7 +1008,12 @@ pt_BR:
           customers: Consumidor
           active: Ativo?
         connected_apps:
-          loading: "Carregando"
+          affiliate_sales_data:
+            loading: "Carregando"
+          discover_regen:
+            loading: "Carregando"
+          vine:
+            enable: "Conectar"
       actions:
         edit_profile: Configurações
         properties: Propriedades
@@ -1054,10 +1066,8 @@ pt_BR:
         contact_name: Nome para contato
       edit:
         editing: 'Configurações:'
-        back_link: Voltar à lista de iniciativas
       new:
         title: Nova iniciativa
-        back_link: Voltar à lista de iniciativas
       welcome:
         welcome_title: Bem-vindo à Ajunta!
         welcome_text: Você criou com sucesso uma
@@ -1092,6 +1102,8 @@ pt_BR:
         back_to_list: "Voltar Para a Lista"
         save_and_back_to_list: "Salvar e Voltar para a Lista"
         choose_products_from: "Escolha produtos de:"
+      date_time_warning_modal_content:
+        cancel: 'Cancelar'
       incoming:
         incoming: "Entrada"
         supplier: "Fornecedor"
@@ -1650,7 +1662,6 @@ pt_BR:
   label_account: "Conta"
   label_more: "Mostrar mais"
   label_less: "Mostrar menos"
-  label_notices: "Avisos"
   cart_items: "itens"
   cart_headline: "seu carrinho de compras"
   total: "Total"
@@ -2394,7 +2405,6 @@ pt_BR:
   spree_admin_single_enterprise_hint: "Dica: Para permitir que as pessoas te encontrem, ative sua visibilidade em"
   spree_admin_eg_pickup_from_school: "ex: 'Buscar na Escola'"
   spree_admin_eg_collect_your_order: "ex: 'Por favor, colete seu pedido na Rua dos Sonhos, 123, casa 5, Bairro Liberdade"
-  spree_classification_primary_taxon_error: "O táxon %{taxon} é o táxon principal de %{product} e não pode ser excluído"
   spree_order_availability_error: "O distribuidor ou o ciclo de pedidos não pode fornecer os produtos no seu carrinho"
   spree_order_populator_error: "Distribuidor ou ciclo de pedidos não pode fornecer os produtos no seu carrinho. Por favor, escolha outro."
   spree_order_cycle_error: "Favor escolher um ciclo de pedidos para este pedido"
@@ -2523,6 +2533,7 @@ pt_BR:
   report_header_quantity: Quantidade
   report_header_max_quantity: Quantidade máxima
   report_header_variant: Variante
+  report_header_variant_unit_name: Nome da Unidade da Variante
   report_header_variant_value: Valor da variante
   report_header_variant_unit: Unidade variante
   report_header_total_available: Total disponível
@@ -2676,7 +2687,7 @@ pt_BR:
   order_cycles_no_permission_to_coordinate_error: "Nenhuma das suas iniciativas tem permissão para coordenar um ciclo de pedidos"
   order_cycles_no_permission_to_create_error: "Você não tem permissão para criar um ciclo de pedidos coordenado por esta iniciativa"
   order_cycle_closed: "O ciclo de pedidos selecionado acabou de fechar, por favor tente novamente depois!"
-  back_to_orders_list: "Voltar à lista de pedidos"
+  back_to_orders_list: "Voltar Para Lista de Pedidos"
   no_orders_found: "Nenhum pedido encontrado"
   order_information: "Informações sobre pedidos"
   new_payment: "Novo Pagamento"
@@ -3000,6 +3011,8 @@ pt_BR:
           Isso ajustará o nível de estoque para zero em todos os produtos para esta
           iniciativa que não está presente no arquivo carregado.
     order_cycles:
+      unsaved_changes: "Você possui alterações não salvas"
+      bulk_save_error: "Ah não! Não consegui salvar suas alterações."
       create_failure: "Falha ao criar o ciclo do pedidos"
       update_success: 'O seu ciclo de pedidos foi atualizado.'
       update_failure: "Falha ao atualizar o ciclo do pedidos"
@@ -3027,6 +3040,8 @@ pt_BR:
           Houve um problema ao configurar seu cartão no nosso serviço de pagamento.
           Favor recarregar a página e tentar novamente. Se não funcionar,
           por favor entre em contato com o nosso suporte.
+    trix:
+      code: "Código"
   inflections:
     each:
       one: "cada"
@@ -3199,7 +3214,7 @@ pt_BR:
   account: "Conta"
   logout: "Sair"
   date_range: "Período"
-  status: "status"
+  status: "Status"
   new: "Novo"
   start: "Início"
   end: "Fim"
@@ -3232,9 +3247,9 @@ pt_BR:
     more: "Mais"
     new_adjustment: "Novo ajuste"
     new_tax_category: "Nova Categoria de Taxa"
-    new_taxon: "Nova taxonomia"
     new_user: "Novo usuário"
     no_pending_payments: "Nenhum pagamento pendente"
+    remove: "Remover"
     none: "Nenhum"
     not_found: "Não encontrado"
     notice_messages:
@@ -3245,8 +3260,6 @@ pt_BR:
     server_error: "Erro de servidor"
     start_date: "Data de início"
     successfully_removed: "Removido com Sucesso"
-    taxonomy_edit: "Editar Taxonomia"
-    tree: "Árvore"
     updating: "Atualizando"
     your_order_is_empty_add_product: "Seu pedido está vazio, pesquise e adicione um produto acima"
     add_product: "Adicionar produto"
@@ -3341,7 +3354,6 @@ pt_BR:
     tax_rate_amount_explanation: "As alíquotas são um valor decimal para ajudar nos cálculos (por exemplo, se a alíquota for de 5%, digite 0,05)"
     included_in_price: "Incluído no preço"
     show_rate_in_label: "Mostrar taxa no rótulo"
-    back_to_tax_rates_list: "Voltar à lista de alíquotas."
     tax_settings: "Configurações de Taxas"
     zones: "Zonas"
     new_zone: "Nova Zona"
@@ -3354,14 +3366,10 @@ pt_BR:
     iso_name: "Nome ISO"
     states_required: "Estados Necessários"
     editing_country: "Editando País"
-    back_to_countries_list: "Voltar à lista de países"
     states: "Estados"
     abbreviation: "Abreviação"
     new_state: "Estado novo"
     payment_methods: "Métodos de pagamento"
-    taxonomies: "Taxonomias"
-    new_taxonomy: "Nova taxonomia"
-    back_to_taxonomies_list: "Voltar à lista de taxonomias"
     shipping_methods: "Métodos de envio"
     shipping_method: "Método de envio"
     shipment: "Envio"
@@ -3451,6 +3459,9 @@ pt_BR:
     validation:
       must_be_int: "deve ser um número integral "
     admin:
+      images:
+        edit:
+          close: Voltar
       mail_methods:
         send_testmail: "Enviar email de teste"
         testmail:
@@ -3465,6 +3476,7 @@ pt_BR:
         bulk_order_management: "Gestão de Pedidos em Massa"
         subscriptions: "Assinaturas"
         products: "Produtos"
+        products_v3: "Produtos"
         option_types: "Tipos de opção"
         properties: "Propriedades"
         variant_overrides: "Inventário"
@@ -3477,6 +3489,10 @@ pt_BR:
         enterprise_relationships: "Permissões"
         customers: "Compradores"
         groups: "Grupos"
+        overview: "Visão geral"
+        product_import: "Importar"
+        enterprise_roles: "Funções"
+        payment_methods: "Métodos de pagamento"
       product_properties:
         index:
           inherits_properties_checkbox_hint: "Herdar propriedades de %{supplier}? (a menos que substituído acima)"
@@ -3507,7 +3523,6 @@ pt_BR:
           continue: "Continuar"
         new:
           new_return_authorization: "Nova Autorização de Retorno"
-          back_to_return_authorizations_list: "Voltar Para Lista de Autorização de Retorno"
           continue: "Continuar"
         edit:
           receive: "receber"
@@ -3768,12 +3783,14 @@ pt_BR:
           new_variant: "Nova Variante"
         form:
           sku: "SKU"
-          price: "Preço"
           unit_price: "Preço Unitário"
           display_as: "Mostrar Como"
           display_name: "Mostrar Nome"
           display_as_placeholder: 'ex. 2 kg'
           display_name_placeholder: 'ex. Tomates'
+          unit: Unidade
+          price: Preço
+          variant_category: Categoria
         autocomplete:
           out_of_stock: "Sem estoque"
           producer_name: "Produtor"
@@ -3794,7 +3811,6 @@ pt_BR:
       taxons:
         form:
           name: Nome
-          permalink: Permalink
           description: Descrição
       general_settings:
         edit:
@@ -4011,7 +4027,6 @@ pt_BR:
       key_cleared: "Chave apagada"
       shipment:
         cannot_ready: "Não é possível completar a entrega."
-      invalid_taxonomy_id: "Id invalido de taxonomia"
     activerecord:
       models:
         spree/payment:

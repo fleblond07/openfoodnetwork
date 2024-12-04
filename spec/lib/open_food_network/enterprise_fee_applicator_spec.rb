@@ -4,7 +4,7 @@ require 'spec_helper'
 require 'open_food_network/enterprise_fee_applicator'
 
 module OpenFoodNetwork
-  describe EnterpriseFeeApplicator do
+  RSpec.describe EnterpriseFeeApplicator do
     let(:line_item) { create(:line_item, variant: target_variant) }
     let(:inherits_tax) { true }
     let(:enterprise_fee) {
@@ -70,7 +70,7 @@ module OpenFoodNetwork
 
       describe "#line_item_adjustment_label" do
         it "makes an adjustment label for a line item" do
-          expect(applicator.send(:line_item_adjustment_label)).
+          expect(applicator.__send__(:line_item_adjustment_label)).
             to eq("Bananas - packing name fee by distributor Ballantyne")
         end
       end
@@ -79,7 +79,7 @@ module OpenFoodNetwork
         let(:applicator) { EnterpriseFeeApplicator.new enterprise_fee, nil, 'distributor' }
 
         it "makes an adjustment label for an order" do
-          expect(applicator.send(:order_adjustment_label)).
+          expect(applicator.__send__(:order_adjustment_label)).
             to eq("Whole order - packing name fee by distributor Ballantyne")
         end
       end

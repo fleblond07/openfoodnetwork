@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe Admin::InventoryItemsController, type: :controller do
+RSpec.describe Admin::InventoryItemsController, type: :controller do
   describe "create" do
     context "json" do
       let(:format) { :json }
@@ -44,7 +44,7 @@ describe Admin::InventoryItemsController, type: :controller do
 
         context "and the producer has granted VO permission" do
           before do
-            create(:enterprise_relationship, parent: variant.product.supplier, child: enterprise,
+            create(:enterprise_relationship, parent: variant.supplier, child: enterprise,
                                              permissions_list: [:create_variant_overrides])
           end
 
@@ -114,7 +114,7 @@ describe Admin::InventoryItemsController, type: :controller do
 
         context "and the producer has granted VO permission" do
           before do
-            create(:enterprise_relationship, parent: variant.product.supplier, child: enterprise,
+            create(:enterprise_relationship, parent: variant.supplier, child: enterprise,
                                              permissions_list: [:create_variant_overrides])
           end
 

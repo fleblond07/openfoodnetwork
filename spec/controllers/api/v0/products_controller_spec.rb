@@ -3,15 +3,15 @@
 require 'spec_helper'
 require 'spree/core/product_duplicator'
 
-describe Api::V0::ProductsController, type: :controller do
+RSpec.describe Api::V0::ProductsController, type: :controller do
   render_views
 
   let(:supplier) { create(:supplier_enterprise) }
   let(:supplier2) { create(:supplier_enterprise) }
-  let!(:product) { create(:product, supplier:) }
-  let!(:other_product) { create(:product) }
-  let(:product_other_supplier) { create(:product, supplier: supplier2) }
-  let(:product_with_image) { create(:product_with_image, supplier:) }
+  let!(:product) { create(:product, supplier_id: supplier.id) }
+  let!(:other_product) { create(:product, supplier_id: supplier.id) }
+  let(:product_other_supplier) { create(:product, supplier_id: supplier2.id) }
+  let(:product_with_image) { create(:product_with_image, supplier_id: supplier.id) }
   let(:all_attributes) { ["id", "name", "variants"] }
   let(:variants_attributes) {
     ["id", "options_text", "unit_value", "unit_description", "unit_to_display", "on_demand",
@@ -25,6 +25,7 @@ describe Api::V0::ProductsController, type: :controller do
   end
 
   context "as a normal user" do
+    let(:taxon) { create(:taxon) }
     let(:attachment) { fixture_file_upload("thinking-cat.jpg") }
 
     before do
@@ -34,9 +35,11 @@ describe Api::V0::ProductsController, type: :controller do
 
     it "gets a single product" do
       product.create_image!(attachment:)
-      product.variants.create!(unit_value: "1", unit_description: "thing", price: 1)
+      product.variants.create!(unit_value: "1", variant_unit: "weight", variant_unit_scale: 1,
+                               unit_description: "thing", price: 1, primary_taxon: taxon, supplier:)
       product.variants.first.images.create!(attachment:)
       product.set_property("spree", "rocks")
+
       api_get :show, id: product.to_param
 
       expect(all_attributes.all?{ |attr| json_response.keys.include? attr }).to eq(true)
@@ -117,8 +120,10 @@ describe Api::V0::ProductsController, type: :controller do
       expect(response.status).to eq(422)
       expect(json_response["error"]).to eq("Invalid resource. Please fix errors and try again.")
       errors = json_response["errors"]
-      expect(errors.keys).to match_array(["name", "primary_taxon", "supplier", "variant_unit",
-                                          "price"])
+      expect(errors.keys).to match_array([
+                                           "name", "price", "primary_taxon_id",
+                                           "supplier_id", "variant_unit"
+                                         ])
     end
 
     it "can update a product" do
@@ -226,9 +231,9 @@ describe Api::V0::ProductsController, type: :controller do
   describe '#bulk_products' do
     context "as an enterprise user" do
       let!(:taxon) { create(:taxon) }
-      let!(:product2) { create(:product, supplier:, primary_taxon: taxon) }
-      let!(:product3) { create(:product, supplier: supplier2, primary_taxon: taxon) }
-      let!(:product4) { create(:product, supplier: supplier2) }
+      let!(:product2) { create(:product, supplier_id: supplier.id, primary_taxon: taxon) }
+      let!(:product3) { create(:product, supplier_id: supplier2.id, primary_taxon: taxon) }
+      let!(:product4) { create(:product, supplier_id: supplier2.id) }
       let(:current_api_user) { supplier_enterprise_user(supplier) }
 
       before { current_api_user.enterprise_roles.create(enterprise: supplier2) }
@@ -260,13 +265,15 @@ describe Api::V0::ProductsController, type: :controller do
       end
 
       it "filters results by supplier" do
-        api_get :bulk_products, { page: 1, per_page: 15, q: { supplier_id_eq: supplier.id } },
+        api_get :bulk_products,
+                { page: 1, per_page: 15, q: { variants_supplier_id_eq: supplier.id } },
                 format: :json
         expect(returned_product_ids).to eq [product2.id, other_product.id, product.id]
       end
 
       it "filters results by product category" do
-        api_get :bulk_products, { page: 1, per_page: 15, q: { primary_taxon_id_eq: taxon.id } },
+        api_get :bulk_products,
+                { page: 1, per_page: 15, q: { variants_primary_taxon_id_eq: taxon.id } },
                 format: :json
         expect(returned_product_ids).to eq [product3.id, product2.id]
       end
@@ -292,6 +299,6 @@ describe Api::V0::ProductsController, type: :controller do
   end
 
   def returned_product_ids
-    json_response['products'].map{ |obj| obj['id'] }
+    json_response['products'].pluck(:id)
   end
 end
