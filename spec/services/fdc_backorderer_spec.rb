@@ -33,7 +33,7 @@ RSpec.describe FdcBackorderer do
     expect(backorder.lines).to eq []
 
     # Add items and place the new order:
-    catalog = FdcOfferBroker.load_catalog(order.distributor.owner, urls)
+    catalog = FdcOfferBroker.load_catalog(order.distributor.owner, urls.catalog_url)
     product = catalog.find { |i| i.semanticType == "dfc-b:SuppliedProduct" }
     offer = FdcOfferBroker.new(nil, nil).offer_of(product)
     line = subject.find_or_build_order_line(backorder, offer)
@@ -80,7 +80,7 @@ RSpec.describe FdcBackorderer do
 
   describe "#find_or_build_order_line" do
     it "add quantity to an existing line item", vcr: true do
-      catalog = FdcOfferBroker.load_catalog(order.distributor.owner, urls)
+      catalog = FdcOfferBroker.load_catalog(order.distributor.owner, urls.catalog_url)
       backorder = subject.find_or_build_order(order)
       existing_line = backorder.lines[0]
 
@@ -104,6 +104,22 @@ RSpec.describe FdcBackorderer do
       found_line = subject.find_or_build_order_line(backorder, catalog_offer)
 
       expect(found_line).to eq existing_line
+    end
+  end
+
+  describe "#new?" do
+    describe "without knowing URLs" do
+      let(:subject) { FdcBackorderer.new(nil, nil) }
+
+      it "recognises new orders" do
+        order = DataFoodConsortium::Connector::Order.new(nil)
+        expect(subject.new?(order)).to eq true
+      end
+
+      it "recognises existing orders" do
+        order = DataFoodConsortium::Connector::Order.new("https://order")
+        expect(subject.new?(order)).to eq false
+      end
     end
   end
 end

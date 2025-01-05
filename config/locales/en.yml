@@ -188,6 +188,10 @@ en:
         We record all errors and may be working on a fix.
 
         If the problem persists or is urgent, please contact us."
+    unauthorized:
+      message: "You are not authorised to perform that action."
+    network_error:
+      message: "Network error: please try again later."
   stripe:
     error_code:
       incorrect_number: "The card number is incorrect."
@@ -351,6 +355,8 @@ en:
   sku: "SKU"
   subtotal: "Subtotal"
   tax_rate: "Tax rate"
+  with_tax_incl: "%{amount} tax incl."
+  producer_mail_qty: QTY
   validators:
     date_time_string_validator:
       not_string_error: "must be a string"
@@ -2493,6 +2499,7 @@ See the %{link} to find out more about %{sitename}'s features and to start using
   email_order_summary_subtotal: "Subtotal:"
   email_order_summary_total: "Total:"
   email_order_summary_includes_tax: "(includes tax):"
+  email_order_summary_voucher_label: "Voucher (%{code}):"
   email_payment_paid: PAID
   email_payment_not_paid: NOT PAID
   email_payment_description: Payment Description at Checkout
@@ -3459,6 +3466,7 @@ See the %{link} to find out more about %{sitename}'s features and to start using
     ready: Ready
     pending: Pending
     shipped: Shipped
+  business_name: Business Name
   js:
     saving: 'Saving...'
     changes_saved: 'Changes saved.'
